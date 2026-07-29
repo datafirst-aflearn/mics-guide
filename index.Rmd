@@ -1,9 +1,12 @@
---- 
-title: "YOUR TITLE HERE"
-author: "YOUR NAME HERE"
-date: "`r Sys.Date()`"
+---
 site: bookdown::bookdown_site
 ---
 
-# Down the rabbit-hole
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  cache = FALSE
+)
+```

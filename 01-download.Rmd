@@ -1,0 +1,183 @@
+# Download the MICS Data {#c01-download}
+
+Before you can follow the R or Stata examples in this guide, you need
+the official MICS microdata on your computer in the right place.
+
+This chapter walks you through:
+
+1.  Where to download the official data
+2.  Which files you need for this guide
+3.  How to organise your folders with the prepare script
+4.  A short checklist before you start analysing
+
+MICS datasets are released as **SPSS** (`.sav`) files. They already
+include variable and value labels, so you do not need separate label
+scripts, and you do not need to convert the files to Stata format before
+starting.
+
+## What you need for this guide
+
+The analysis chapters assume you are working from this guide’s project
+folder and that prepared survey folders exist under
+`data/MICS_Datasets/`. After you run the prepare script (Step 3), a
+typical layout looks like this:
+
+``` text
+data/MICS_Datasets/
+├── BEN_2021_MICS6_v01_M/
+│   ├── bh.sav
+│   ├── ch.sav
+│   ├── fs.sav      # children aged 5–17 (foundation skills / FS module)
+│   ├── hh.sav
+│   ├── hl.sav
+│   ├── mn.sav
+│   ├── tn.sav
+│   ├── wm.sav
+│   └── Readme_....rtf   # or "Read me_....txt" — name varies by survey
+├── GHA_2017_MICS6_v01_M/
+│   └── ...
+└── ...
+```
+
+Each survey folder keeps **all** SPSS modules from that release, plus the
+readme. Module sets differ slightly by country (for example some surveys
+include `fg.sav`). The **FS** file (`fs.sav`) holds the questionnaire for
+children aged 5–17, which is the unit of analysis used in this guide’s
+worked examples.
+
+Because the `.sav` files are already labelled, you can open them directly
+in R with `haven::read_sav()` or in Stata with `import spss`.
+
+## Download the data from UNICEF MICS
+
+Official MICS microdata are published on the UNICEF MICS surveys page.
+
+1.  Open [https://mics.unicef.org/surveys](https://mics.unicef.org/surveys).
+2.  Log in if the site asks you to (dataset downloads often require an
+    account).
+3.  Set the filters to match the surveys you want. For this guide’s
+    Africa MICS6 examples, use:
+    -   Round: **MICS6**
+    -   Region / countries: **African countries** (or the countries you
+        need)
+    -   Data type: **MICS**
+    -   Status: **Completed**
+4.  Click **Download MICS datasets**. The site packages all surveys that
+    match your filters into one bulk zip (often named
+    `MICS_Datasets.zip`).
+
+You can use other filters (for example MICS7 only, or a single country).
+The prepare script in Step 3 is **not** limited to one round or to a
+fixed list of countries: it organises whatever surveys are inside the
+bulk zip, as long as UNICEF uses the usual folder-and-nested-zip layout.
+
+Save the downloaded zip somewhere easy to find (for example your
+Downloads folder, or this guide’s project folder).
+
+## Set up your project folders
+
+Work from this guide’s project root (the folder that contains `index.Rmd`
+and the chapter `.Rmd` files). Create a `data/` folder there if it does
+not already exist. The prepare script lives in `R/`:
+
+``` text
+mics-guide/
+├── data/                         # created if needed; prepared surveys go here
+├── R/
+│   └── prepare-mics-fs.R         # already in the guide
+├── 01-download.Rmd
+├── 02-whats-in-the-data.Rmd
+├── 03-r.Rmd
+└── 04-stata.Rmd
+```
+
+Keeping prepared files under `mics-guide/data/MICS_Datasets/` means the
+analysis chapters can use short relative paths. If you prefer another
+location, that is fine, but then you must change the file paths in the R
+and Stata chapters to match.
+
+## Run the prepare script
+
+The bulk zip contains one folder per survey, and each of those folders
+contains another zip with the SPSS files. Unpacking every nested archive
+by hand is tedious. This guide includes an R script that does it for you:
+it finds `MICS_Datasets.zip`, extracts every `.sav` file and the readme
+for each survey, and writes a clean folder tree under
+`data/MICS_Datasets/`.
+
+### Option A: Run from the guide project
+
+1.  Put `MICS_Datasets.zip` in your **mics-guide** project root, or in `data/`.
+2.  In R, set the working directory to the **mics-guide** project root.
+3.  Run:
+
+```{r eval=FALSE}
+source("R/prepare-mics-fs.R")
+```
+
+The script searches for the zip in the working directory, the project
+`data/` folder and the project root. If you
+need to point to a zip in an unusual location, source the script once
+(so the functions are loaded), then call:
+
+```{r eval=FALSE}
+prepare_mics_data(zip = "C:/Users/you/path/MICS_Datasets.zip")
+```
+
+### Option B: Script and zip in the same folder
+
+You can copy `R/prepare-mics-fs.R` next to `MICS_Datasets.zip` in any
+folder on your computer (Downloads, Desktop, a USB drive, and so on):
+
+```{r eval=FALSE}
+setwd("C:/path/to/folder/with/zip/and/script")
+source("prepare-mics-fs.R")
+```
+
+Organised files are written to `data/MICS_Datasets/` under that folder
+(or under the mics-guide project root if the script can find the
+project).
+
+The original bulk zip is **kept** by default. To delete it after a
+successful run, call `prepare_mics_data(remove_zip = TRUE)`.
+
+## Step 4: Confirm everything is ready
+
+Before moving on to the R or Stata chapters, check that:
+
+1.  `data/MICS_Datasets/` exists in the guide project folder.
+2.  At least one survey folder is present (for example
+    `data/MICS_Datasets/BEN_2021_MICS6_v01_M/`).
+3.  That folder contains `.sav` files (including `fs.sav` when the survey
+    fielded the children 5–17 module) and usually a readme.
+4.  You can open a `.sav` file in R (`haven::read_sav()`) or Stata
+    (`import spss`).
+5.  Your R or Stata working directory is the guide project root when you
+    knit or run the examples.
+
+Quick checks:
+
+```{r eval=FALSE}
+# R
+dir.exists("data/MICS_Datasets")
+list.files("data/MICS_Datasets")
+file.exists("data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav")
+```
+
+```{stata eval=FALSE}
+* Stata
+confirmdir "data/MICS_Datasets"
+confirm file "data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav"
+```
+
+If these checks succeed (using a survey folder name that exists on your
+machine), you are ready for the analysis chapters.
+
+## Next steps
+
+Once `data/MICS_Datasets/` is in place:
+
+-   Follow [Understanding MICS Data](#ch-whats-in-data) for survey design
+    and file structure.
+-   Follow [R Tutorial](#c03-r) if you work in R.
+-   Follow [Stata Tutorial](#c04-stata) if you work in Stata.

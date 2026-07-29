@@ -3,3 +3,18 @@
 .Rproj.user
 *.Rproj
 _bookdown_files/
+mics-guide_cache/
+
+# Nav page build artifacts at project root
+nav-guide.html
+nav-guide_files/
+
+# Local Stata scratch files
+*.log
+profile.do
+stata*.do
+
+# Local MICS microdata (downloaded / prepared; do not commit)
+data/*.sav
+data/*.zip
+data/MICS_Datasets/

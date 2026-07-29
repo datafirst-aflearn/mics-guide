@@ -1,0 +1,2150 @@
+# R tutorial 
+
+## Packages used in this guide
+
+Run the block below at the top of every script before working through these notes. The `pacman::p_load()` call will install any package that is not yet on your machine and then load all of them in one step.
+
+```{r load-guide-packages, results='hide'}
+if (!require(pacman)) install.packages("pacman")
+
+pacman::p_load(
+  tidyverse,    # data wrangling and plotting (dplyr, ggplot2, tidyr, readr, ...)
+  haven,        # read Stata .dta files
+  labelled,     # work with value labels from Stata files
+  survey,       # analyse complex survey data with design-based inference
+  lmtest,       # robust standard errors for regression models
+  sandwich,     # variance estimators that feed into lmtest
+  car,          # test linear combinations of regression coefficients
+  margins,      # compute predicted margins (average marginal effects)
+  fastDummies,  # generate dummy variables from categorical columns
+  modelsummary,
+  questionr,
+  texreg
+)
+```
+
+
+### What each package does in this guide
+
+| Package | What it is | What it does here |
+|---|---|---|
+| **tidyverse** | A bundle of packages (`dplyr`, `ggplot2`, `tidyr`, `readr`, and more) that share a consistent design | Used throughout for every day data tasks: filtering rows, creating new variables, summarising by group, reshaping data between wide and long formats, and producing all plots |
+| **haven** | A reader for proprietary data formats | Loads the MICS `.dta` files produced in Stata into R with `read_dta()`, preserving value labels and variable labels so they are accessible in R |
+| **labelled** | A toolkit for working with labelled data from survey files | Lets us inspect value labels (`val_labels()`), search variable names *and* labels at the same time (`look_for()`), and convert labelled integers to readable factors at the point of use rather than permanently |
+| **survey** | A full survey-analysis toolkit | Defines the complex sampling design (clusters, strata, weights) with `svydesign()` so that all subsequent means, proportions, and regression models correctly account for the design — the R equivalent of Stata's `svyset` and `svy:` prefix |
+| **lmtest** | Hypothesis testing tools for regression models | Used with `coeftest()` to apply cluster-robust standard errors to regression output, replacing the default standard errors that assume independence |
+| **sandwich** | Sandwich variance estimators | Provides the `vcovCL()` estimator that `lmtest` uses to compute cluster-robust standard errors — the two packages are always used together |
+| **car** | Companion to Applied Regression | Supplies `linearHypothesis()`, which tests any linear combination of regression coefficients — the R equivalent of Stata's `test` command, used here for interaction decomposition and joint significance tests |
+| **margins** | Marginal effects for regression models | Computes predicted values and average marginal effects after a regression, producing results equivalent to Stata's `margins` command — particularly useful for interpreting interaction terms |
+| **fastDummies** | Fast creation of dummy variables | Expands a categorical column into a set of 0/1 indicator variables with `dummy_cols()`, used in Module 3 for creating contract-teacher and baseline group indicators |
+
+\newpage
+
+# Getting to Know Your Data in R
+
+
+**OBJECTIVES:** By the end of this lab, you should have:
+
+- Gained skills in loading and exploring a dataset in R
+- Learned to use key summarising and data-checking commands
+- Prepared data for regression analysis
+
+By this point you should have R and RStudio open and be comfortable running commands from a script. If you need a refresher on the RStudio interface, packages, or getting help, refer back to the **Getting Started with R** section above.
+
+## 1. LOOKING AT SOME OF THE DATA, AND HOW IT IS CAPTURED IN R
+
+You will need to download the data from MS Teams before you can open it in R. Unzip `mics6.zip` from the folder [Name of training] / MICS6 and save it somewhere convenient (e.g. your desktop or project folder).
+
+Load the dataset by running the following, replacing the path with the location of your unzipped file:
+
+```{r clear-reload, results='hide'}
+rm(list = ls())          # removes all objects from memory
+dat <- read_dta("./MICS6/ipums_mics6_africa.dta")
+```
+
+The `rm(list = ls())` line clears everything from memory before loading — the equivalent of Stata's `clear all`. In R, this is optional since assigning a new dataset to the same object name simply overwrites the old one, but it is good practice when re-running a script from scratch. Note that `read_dta()` is provided by the **haven** package, which was loaded earlier on in this guide. In practice, keeping a single script or R Markdown document that loads the data once at the top and then creates variables sequentially is good practice, exactly as you would structure a Stata do-file.
+
+The dataset we are using is a harmonised version of several MICS surveys. MICS stands for the Multiple Indicator Cluster Survey and is a household survey run by UNICEF in many different countries around the world with a focus on health and education outcomes. If you go to the MICS website (https://mics.unicef.org/) and navigate to the surveys tab, you will only find individual country datasets available for download. The dataset that you have now loaded into R was created for this course using Stata code from IPUMS (https://www.ipums.org/), a research unit that focuses on data harmonisation and integration. Specifically, the dataset was created using code from the IPUMS-MICS project (https://mics.ipums.org/mics/) that allows us to create a single dataset from many separate country datasets with variables that all have the same names and value codes (harmonised).
+
+First let's take a more detailed look at what variables are stored in the data set. In R you can inspect structure and dimensions:
+
+```{r describe, eval=FALSE}
+# Structure: variable names, types, first values (like Stata's describe)
+str(dat)
+```
+
+
+```{r glimpse, eval=FALSE}
+# Or a compact summary (tidyverse style)
+glimpse(dat)
+```
+
+You can see how many observations and variables there are:
+
+```{r count, results='hide'}
+# Number of rows (observations) – like Stata's count
+nrow(dat)
+
+# Number of columns (variables)
+ncol(dat)
+```
+
+To view the data in a spreadsheet-like window (like Stata’s browse):
+
+```{r browse, eval=FALSE}
+View(dat)
+```
+
+You should note the following:
+
+- Each **observation** (here, each child aged 5–17 in the household with recorded information) appears in a **row**. Moving across the row shows that child’s values for each variable. For example, the first person might live in Algeria, in 2018–9, in cluster 1, household number 7, and scrolling across you see she is a girl aged 14 living in an urban area.  
+- Each **variable** appears in a **column**. What are the age and gender variables called?
+
+Using the data viewer or subsetting, find the 420th observation. What is this child’s age? Their gender?
+
+## 2. SIMPLE SUMMARISING COMMANDS
+
+A frequency distribution table lists all the observed values for a given variable and the number of observations in each category. In R we use `table()` for one- and two-way frequency counts (similar to Stata’s `tabulate`). 
+
+**A note on value labels.** When a dataset is read from a Stata `.dta` file using `haven::read_dta()`, variables are stored as **labelled integers** — the underlying values are numbers (e.g. 1, 2, 3 for countries) but they carry text labels (e.g. "Algeria", "Ghana"). In Stata you would toggle the display of these labels with `numlabel, add` or `numlabel, remove`. In R the idiomatic approach is different: **keep the variable as a numeric/integer for all data manipulation and calculations, and convert to a labelled factor only at the point where you need readable labels** — for example in a table or a plot. You can do this with `haven::as_factor()` inline. To inspect the code-to-label mapping for any variable, use `labelled::val_labels()`:
+
+```{r labels-demo, results='hide'}
+# Inspect the code-to-label mapping (like Stata's codebook or label list)
+labelled::val_labels(dat$country)
+```
+
+```{r table, results='hide'}
+# Human-readable frequency table (equivalent to tab country in Stata after numlabel, add)
+table(as_factor(dat$country))
+```
+
+The use of `as_factor()` expands all value labels defined in the Stata file, including countries that exist in the label dictionary but have zero observations in the data, resulting in the bloated output you're seeing.To remove factor levels that have no observations, we can use `droplevels()`
+
+```{r droplevels, results='hide'}
+# Human-readable frequency table (equivalent to tab country in Stata after numlabel, add)
+table(droplevels(as_factor(dat$country)))
+```
+
+How many observations are from Lesotho?
+
+For help on any function, use `?functionname`, e.g. `?table`. The help page opens in the Help pane in RStudio. Unlike Stata’s help files which have clickable sub-entries (e.g. "tabulate oneway" vs "tabulate twoway"), R’s help pages cover all variants of a function in one page — scroll down to the **Arguments** and **Examples** sections, which are usually the most useful parts.
+
+We can describe the time dimension of the dataset:
+
+```{r tab-year, results='hide'}
+
+table(dat$year)
+```
+
+Note that `as_factor()` is most useful for variables like `country` or `urban` where the underlying codes are arbitrary numbers that need labels to be interpretable. For variables like `year` where the numeric values are already self-explanatory, `table(dat$year)` directly gives a cleaner result. Where you do use `as_factor()`, wrapping it in `droplevels()` - as above - is good practice, it drops any factor levels that exist in the Stata label dictionary but have no observations in the data, preventing empty categories from cluttering your output.
+
+For a two-way table of country and year:
+
+```{r tab-country-year, results='hide'}
+table(droplevels(as_factor(dat$country)), dat$year)
+```
+
+Which country appears more than once in our dataset? Consider another two-way table:
+
+```{r tab-country-urban, results='hide'}
+table(droplevels(as_factor(dat$country)), droplevels(as_factor(dat$urban)))
+
+```
+
+\begin{tcolorbox}[colback=idocolor, colframe=datafirstteal, title=\textbf{BOX: TABLE WITH ROW, COL, CELL}]
+
+Row percentages give the percentage of the ROW observations which are in each COLUMN category
+(percentages across each row sum to 100). Column percentages give the percentage of the COLUMN
+observations which are in each ROW category. Cell percentages give the percentage of the sample in each cell.
+
+\medskip
+The \texttt{table()} function gives raw counts. For \textbf{row percentages} (percentages within each row
+that fall in each column), use \texttt{prop.table()} with \texttt{margin = 1}:
+
+\begin{verbatim}
+prop.table(table(dat$country, dat$urban), margin = 1) * 100
+\end{verbatim}
+
+So, for example, we might see that 67.63\% of learners from Algeria in our sample live in urban areas.
+
+\medskip
+For \textbf{column percentages} (percentages within each column that fall in each row):
+
+\begin{verbatim}
+prop.table(table(dat$country, dat$urban), margin = 2) * 100
+\end{verbatim}
+
+For \textbf{cell percentages} (percent of the whole sample in each cell):
+
+\begin{verbatim}
+prop.table(table(dat$country, dat$urban)) * 100
+\end{verbatim}
+
+E.g.\ 8.4\% of the sample might be Malawian learners from rural areas.
+
+\medskip
+To learn more, use \texttt{?table} and \texttt{?prop.table}.
+
+\end{tcolorbox}
+
+## 3. FINDING A UNIQUE IDENTIFIER
+
+An important first step in getting to know your dataset is finding out the unit of analysis and what uniquely identifies observations. We saw there are 184,190 observations (or whatever `nrow(dat)` shows). It is important to know which variable or combination of variables uniquely identifies these observations and what each row represents (a person, a classroom, a school?). If we inspect the data again, the IPUMS-MICS approach usefully includes a variable called `unitanalysis`. In R:
+
+```{r ta-unitanalysis, results='hide'}
+table(droplevels(as_factor(dat$unitanalysis)))
+```
+
+This tells us that the unit of analysis in this dataset is children aged 5–17 years. Typically, datasets won’t include such a convenient variable. However, it is more normal for datasets to include some type of “ID” or “unique number” variable. We can check whether a combination of variables uniquely identifies rows. Some investigation of the IPUMS and MICS documentation suggested that the combination of `sample`, `hhno` and `linech` might uniquely identify each child.
+
+To learn about these variables (similar to Stata’s `codebook`), inspect them. In Stata, `codebook` tells you the variable type, label, number of unique values, range, number of missing observations, and value labels all at once. In R we can get equivalent information using a combination of functions:
+
+```{r codebook, results='hide'}
+# Variable type and basic stats (like Stata's codebook for numeric variables)
+summary(dat[, c("sample", "hhno", "linech")])
+
+# Number of unique values per variable
+sapply(dat[, c("sample", "hhno", "linech")], function(x) length(unique(x)))
+
+# Value labels attached (if any) – useful for labelled variables from .dta files
+labelled::val_labels(dat$sample)
+
+# Number of missing values per variable
+colSums(is.na(dat[, c("sample", "hhno", "linech")]))
+
+# Number of unique combinations of the three variables:
+nrow(unique(dat[, c("sample", "hhno", "linech")]))
+```
+
+How many samples are there? There are only 80 unique household numbers and 27 unique lines within households. These hardly seem enough to uniquely identify 180 thousand children, but that can be the case when we combine these variables.
+
+Check whether the combination uniquely identifies rows (like Stata’s `isid`):
+
+```{r isid, results='hide'}
+nrow(dat) == nrow(unique(dat[, c("sample", "hhno", "linech")]))
+
+# If FALSE, this combination is not unique. Try adding cluster:
+nrow(dat) == nrow(unique(dat[, c("sample", "cluster", "hhno", "linech")]))
+```
+
+If the last line returns `TRUE`, that combination uniquely identifies the children. To make browsing easier, create a single unique identifier (like Stata’s `egen childid = group(sample cluster hhno linech)`):
+
+```{r egen-childid, results='hide'}
+library(dplyr)
+# Modern dplyr equivalent of Stata's egen group():
+dat <- dat %>%
+  group_by(sample, cluster, hhno, linech) %>%
+  mutate(childid = cur_group_id()) %>%
+  ungroup()
+nrow(dat) == length(unique(dat$childid))  # should be TRUE
+```
+
+Now confirm the new variable works as a unique identifier (like Stata's `codebook childid` and `isid childid`):
+
+```{r unique-childid, results='hide'}
+# How many unique values does childid have?
+length(unique(dat$childid))
+# Does it uniquely identify every row?
+nrow(dat) == length(unique(dat$childid))   # should be TRUE
+# Any missing values?
+sum(is.na(dat$childid))                    # should be 0
+```
+
+
+
+
+When browsing, it is often easiest to have the unique identifier as the first column. Reorder columns:
+
+```{r order, results='hide'}
+dat <- dat %>% 
+  select(childid, everything())
+# Or: dat <- dat[, c("childid", setdiff(names(dat), "childid"))]
+
+# names(dat) this confirms if childid is now the first column in the dataframe
+```
+
+Confirm with `names(dat)` and `View(dat)`.
+
+
+## 4. EXAMINING VARIABLES
+
+Often we are interested in whether a dataset contains a certain variable, and reading a long list of variables from `str()` or `glimpse()` can be tedious. In Stata you would use `lookfor`, which searches both **variable names and variable labels**. The direct R equivalent is `labelled::look_for()`, which does the same — searching both names and any labels that came with the `.dta` file. This matters because some variables have uninformative short names but descriptive labels, so searching only names would miss them.
+
+Suppose you are interested in studying the effect of private schooling on numeracy scores. First find variables related to school type:
+
+```{r lookfor-type, results='hide'}
+# Searches both variable names AND variable labels (like Stata's lookfor)
+look_for(dat, "type")
+
+# Base R alternative (names only – misses label-only matches):
+# names(dat)[grepl("type", names(dat), ignore.case = TRUE)]
+```
+
+You might see a variable called `schooltype`. Tabulate it:
+
+```{r ta-schooltype, results='hide'}
+table(as_factor(dat$schooltype))
+
+```
+
+Next, look for variables related to numeracy. Let’s first try “number”:
+
+```{r lookfor-number, results='hide'}
+look_for(dat, "number")
+```
+
+This brings up variables like `flbigger1` and `flnumadd1`. Do you notice that they all have “fl” in the prefix? A common practice by dataset processors is to use prefixes for variables in the same questionnaire module. This is a hint. Search more broadly:
+
+```{r lookfor-fl, results='hide'}
+look_for(dat, "fl")
+```
+
+Now we see a full range of assessment variables including numeracy items like `flrecognize1` that don’t contain the word “number” and would have been missed the first time around.
+
+You might see variables like `flbigger1`, `flnumadd1`, etc. To view the unique identifier and a set of similarly named variables (like Stata’s browse with wildcards), select those columns:
+
+```{r browse-numeracy, eval=FALSE}
+dat %>%
+  select(childid, matches("^flrecognize[1-5]$"),
+         starts_with("flbigger"), 
+         starts_with("flnumadd"), 
+         starts_with("flnumseq")) %>%
+  View()
+```
+
+In R, missing data are represented by `NA`. How did child 17502 do on the numeracy tests? Subset that row:
+
+```{r browse-if, results='hide'}
+flvars <- dat %>% 
+  select(matches("^flrecognize[1-5]$"),
+         starts_with("flbigger"),
+         starts_with("flnumadd"),
+         starts_with("flnumseq")) %>% 
+  names()
+
+dat %>% 
+  filter(childid == 17502) %>% 
+  select(childid, flvars)
+```
+
+\begin{tcolorbox}[colback=idocolor, colframe=datafirstteal, title=\textbf{BOX: SUBSETTING IN R}]
+
+In R we limit data to particular groups by \textbf{subsetting} (filtering) with logical conditions,
+similar to Stata's \texttt{if}. Use comparison and logical operators:
+
+\medskip
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Meaning} & \textbf{Stata} & \textbf{R} \\
+\midrule
+Equal            & \texttt{==}                             & \texttt{==}  \\
+Not equal        & \texttt{\textasciitilde=} / \texttt{!=} & \texttt{!=}  \\
+Greater than     & \texttt{>}                              & \texttt{>}   \\
+Less than        & \texttt{<}                              & \texttt{<}   \\
+Greater or equal & \texttt{>=}                             & \texttt{>=}  \\
+Less or equal    & \texttt{<=}                             & \texttt{<=}  \\
+Or               & \texttt{|}                              & \texttt{|}   \\
+And              & \texttt{\&}                             & \texttt{\&}  \\
+Not              & \texttt{\textasciitilde}                & \texttt{!}   \\
+\bottomrule
+\end{tabular}
+\end{center}
+\medskip
+
+Example: one- and two-way tables for urban observations only:
+
+\begin{verbatim}
+table(dat$age, dat$sexfs)[, 1:2]   # example; for urban == 1:
+dat_urban <- dat %>% filter(urban == 1)
+table(dat_urban$age, dat_urban$sexfs)
+prop.table(table(dat_urban$age, dat_urban$sexfs), margin = 2) * 100
+\end{verbatim}
+
+\textit{Practice:} What percentage of the sample from Algeria lives in urban areas?
+What percentage of 15-year-old boys live in rural areas?
+What percentage of the sample are girls living in Malawi?
+
+\end{tcolorbox}
+
+
+## 5. EXAMINING VARIABLES FURTHER
+
+Suppose you are interested in the distribution of age for Grade 2. Search for variables related to age and grade, then focus on current grade:
+
+```{r ta-edgradecurr, results='hide'}
+table(droplevels(as_factor(dat$edgradecurr)))
+```
+
+A useful way to describe numeric data is summary statistics (like Stata’s `sum`):
+
+```{r sum-age, results='hide'}
+summary(dat$age)
+mean(dat$age, na.rm = TRUE)
+sd(dat$age, na.rm = TRUE)
+```
+
+What is the average age? The standard deviation? Limit to Grade 2:
+
+```{r sum-age-grade2, results='hide'}
+dat %>% 
+  filter(edgradecurr == 2) %>% 
+  summarise(mean_age = mean(age, na.rm = TRUE), 
+            sd_age = sd(age, na.rm = TRUE))
+```
+
+A table of age for Grade 2 shows the distribution more clearly:
+
+```{r ta-age-grade2, results='hide'}
+table(dat$age[dat$edgradecurr == 2])
+```
+
+Comparing the mean to the distribution: although the mean might be around 10 years, most Grade 2 children might cluster around 7 and 8. Why is the mean so much higher? Inspect with a histogram.
+
+If you just type `hist(dat_g2$age)` without specifying breaks, R will choose its own bin width automatically — often something like 0.27 years, giving you many narrow, unevenly spaced bars that are hard to read. This is because R (like Stata by default) treats age as a generic continuous variable. But age recorded in whole years is a **discrete** variable: it increases in chunks of exactly 1. We should tell R to use bins of width 1 so that each bar represents exactly one year of age:
+
+```{r results='hide'}
+dat_g2 <- dat %>% filter(edgradecurr == 2)
+```
+
+```{r hist-age-grade2, eval=FALSE}
+# Poor default (R picks bin width automatically, often a fraction of a year):
+hist(dat_g2$age)
+
+# Better: integer breaks so each bar = one year (like Stata's hist age, discrete)
+hist(dat_g2$age,
+     breaks = seq(min(dat_g2$age, na.rm = TRUE),
+                  max(dat_g2$age, na.rm = TRUE) + 1) - 0.5,
+     main = "Age in Grade 2", xlab = "Age", col = "steelblue")
+```
+
+The second plot is evenly spaced and each bin clearly represents one year of age. A continuous variable like income or a wealth index score could increase by fractions, so using the default bin width is appropriate there — but for discrete variables, always specify your own breaks.
+
+Or with ggplot2:
+
+```{r hist-ggplot, eval=FALSE}
+library(ggplot2)
+dat %>% filter(edgradecurr == 2) %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 1, boundary = 0.5, fill = "steelblue", col = "white") +
+  labs(title = "Age in Grade 2", x = "Age")
+```
+
+You might see heaping at 7–8 and again at older ages (bimodal). Does it seem right that there are so many 12–17 year-olds in Grade 2? Check by country (like Stata’s `by()`):
+
+```{r hist-by-country, eval=FALSE}
+dat %>% filter(edgradecurr == 2) %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 1, boundary = 0.5) +
+  facet_wrap(~ as_factor(country)) +
+  labs(title = "Age in Grade 2 by country")
+
+```
+
+And by grade (restricting to non-missing grade, e.g. `edgradecurr < 96`):
+
+```{r hist-by-grade, eval=FALSE}
+dat %>% filter(edgradecurr < 96) %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 1, boundary = 0.5) +
+  facet_wrap(~ edgradecurr) +
+  labs(title = "Age by current grade")
+```
+
+The bimodal shape may be more prominent in earlier grades. From the MICS questionnaire, education level and grade are both relevant; the variable `edlevelcurr` is needed. Compare level and grade:
+
+```{r ta-grade, results='hide'}
+table(dat$edlevelcurr)
+```
+
+```{r, ta-level-grade, results='hide'}
+table(droplevels(as_factor(dat$edlevelcurr)), dat$edgradecurr)
+```
+
+To focus on “primary” Grade 2 (e.g. level 200), plot age:
+
+```{r hist-grade2-primary, eval=FALSE}
+dat %>% filter(edgradecurr == 2, edlevelcurr == 200) %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 1, boundary = 0.5, fill = "steelblue") +
+  labs(title = "Age in Grade 2 (primary level)")
+```
+
+This can give a clearer bell-shaped distribution. This exercise illustrates the usefulness of inspecting distributions and checking questionnaires.
+
+
+## 6. QUICK INTRODUCTION TO R SCRIPTS AND R MARKDOWN
+
+In R you can type commands in the Console, but for reproducibility we use **scripts** (.R) or **R Markdown** (.Rmd) documents. We will focus on using R scripts in this guide. An R script is a sequence of commands that you can run line by line or as a whole.
+
+Example of a short script (like a Stata do-file):
+
+```{r do-file-example, eval=FALSE}
+# Clear environment (optional; like Stata's clear all)
+# rm(list = ls())
+
+dat2 <- read_dta("./MICS6/ipums_mics6_africa.dta")
+table(dat2$country, dat2$urban)
+```
+
+Save your script (e.g. `example.R`) and run it from the Console with `source("example.R")`. If you create new variables in the same script and run it again, you are re-running from the top; if you reload the data, new variables are created again. Keeping a single script that loads data once and then creates variables is good practice.
+
+## 7. MISSING DATA CODES
+
+Returning to the research question about private school and numeracy scores: inspect `schooltype`:
+
+```{r ta-schooltype-missing, results='hide'}
+table(dat$schooltype, useNA = "ifany")
+```
+
+Value code 10 = Government/public, 20 = Religious/faith, 30 = Private. Codes 97–99 may be Don’t know, Missing, NIU. If you run `mean(dat$schooltype, na.rm = TRUE)` you get a number that is not interpretable like a mean of age, because `schooltype` is **categorical**.
+
+\begin{tcolorbox}[colback=idocolor, colframe=datafirstteal, title=\textbf{BOX: TYPES OF VARIABLES}]
+
+Let's take a moment to review different types of variables. The statistical and graphical tools
+used to understand the distributions of the various types of variables are quite different, so it
+is important to understand the differences between these measures.
+
+\begin{itemize}
+  \item \textbf{Continuous variables} have an infinite number of possible values between any two
+    observed values (e.g.\ age in principle, or wealth index score). They can be truly continuous
+    (income, price) or \textbf{discrete} (age in years).
+  \item \textbf{Categorical variables} are made up of distinct categories; the numeric codes are
+    arbitrary (e.g.\ school type, home language, gender). You should not interpret the mean of a
+    categorical variable.
+  \item \textbf{Ordinal categorical} variables have a meaningful order (e.g.\ age group) but the
+    mean of the code is still not interpretable.
+  \item \textbf{Dummy (indicator) variables} take only 0 and 1. The \textbf{mean} of a dummy is
+    the \textbf{proportion} (share) in the category coded 1.
+\end{itemize}
+
+\medskip
+Look at the frequency table again and think about missing data. Generally we would call codes 10--52
+``non-missing and say something like 69.27\% of the sample have non-missing 	exttt{schooltype}.
+But there are different types of missing: non-response (e.g.\ 97), unspecified missing (98), and
+NIU (not in universe, e.g.\ 99). The \texttt{table(\ldots, useNA = "ifany")} shows how many have
+\texttt{NA} in R (Statas ``.).
+To include all missings in the table:
+
+\begin{verbatim}
+table(dat$schooltype, useNA = "ifany")
+\end{verbatim}
+
+NIU might apply when the question was not asked (e.g.\ foundational learning module only for
+children 7--14; or skip patterns). It is important to understand who has non-missing vs missing
+data. Investigate using the questionnaire and cross-tabs, e.g.\ school type by current school attendance:
+
+\begin{verbatim}
+table(dat$schooltype, dat$schoolcurr, useNA = "ifany")
+\end{verbatim}
+
+And by ever attended school:
+
+\begin{verbatim}
+table(dat$schooltype, dat$schoolever, useNA = "ifany")
+\end{verbatim}
+
+Limit to children who ever attended and currently attend, and exclude ECE
+(e.g.\ \texttt{edlevelcurr != 100}):
+
+\begin{verbatim}
+dat_eligible <- dat %>% filter(schoolever == 1, schoolcurr == 1, edlevelcurr != 100)
+table(dat_eligible$schooltype, useNA = "ifany")
+\end{verbatim}
+
+Check whether missing \texttt{schooltype} is concentrated in certain countries:
+
+\begin{verbatim}
+dat %>% filter(is.na(schooltype)) %>% count(country)
+table(dat$country[is.na(dat$schooltype)])
+\end{verbatim}
+
+If only a few countries have all missing for this question, that is useful to note.
+
+\end{tcolorbox}
+
+## 8. CREATING NEW VARIABLES
+
+Create a “clean” dummy for private school (1 = private, 0 = non-private, and set true missings to `NA`). In R we use `mutate()` and `case_when()` or `ifelse()` (similar to Stata’s `generate` and `replace`):
+
+```{r gen-private, results='hide'}
+dat <- dat %>%
+  mutate(
+    private = case_when(
+      schooltype == 30 ~ 1L,
+      schooltype %in% c(10, 20, 50, 52) ~ 0L,
+      schooltype >= 97 | is.na(schooltype) ~ NA_integer_
+    )
+  )
+table(dat$schooltype, dat$private, useNA = "ifany")
+```
+
+Shortcut: a dummy that is 1 when `schooltype == 30` and 0 otherwise (with missings from schooltype >= 97 set to NA as above):
+
+```{r gen-private-short, results='hide'}
+dat <- dat %>% 
+  mutate(private = ifelse(schooltype == 30, 1L, 
+                          ifelse(schooltype >= 97 | is.na(schooltype), 
+                                 NA_integer_, 0L)))
+```
+
+Or using a single recode-style step (like Stata’s `recode`):
+
+```{r recode-private, results='hide'}
+dat <- dat %>%
+  mutate(private = case_when(
+    schooltype %in% c(10, 20, 50, 52) ~ 0,
+    schooltype == 30 ~ 1,
+    schooltype >= 97 ~ NA_real_,
+    TRUE ~ NA_real_
+  ))
+```
+
+Confirm with a two-way table. The mean of `private` (excluding NA) is the share in private school:
+
+```{r su-private, results='hide'}
+mean(dat$private, na.rm = TRUE)
+```
+
+**A note on labelling in R vs Stata.** In Stata, labelling is done upfront as a standard setup step: `la var private "Attends a private school"` gives the variable a label, and `lab define` / `lab val` assign text to the numeric codes (0 = "Non-private", 1 = "Private"). These labels then travel with the variable everywhere.
+
+In R this is not standard practice, and for good reason: converting a numeric column to a **factor** — R's closest equivalent to a value-labelled variable — permanently changes how R treats it. Factor columns behave differently in models (they generate dummy variables automatically), in arithmetic (you cannot add factors), and in many other functions. Converting prematurely can cause unexpected behaviour downstream.
+
+The idiomatic R approach is to **keep the column numeric and convert to a factor at the point of use** — in a model formula, a table, or a plot — rather than mutating the column in the data frame itself:
+
+```{r label-private, results='hide'}
+# Keep 'private' as numeric in the data frame (safe for calculations and models)
+
+# Convert to factor inline when you need labels in a table:
+table(factor(dat$private, levels = c(0, 1), labels = c("Non-private", "Private")))
+```
+
+```{r bar-private, eval=FALSE}
+# Or in a ggplot:
+ggplot(dat, aes(x = factor(private, labels = c("Non-private", "Private")))) +
+  geom_bar() + labs(x = "School type")
+
+# In a model formula, also convert inline if you want R to treat it as categorical:
+# svyglm(numscore ~ factor(private) + age, design = svy_des)
+```
+
+You can store a metadata note about the variable using `comment()` if it helps you remember the coding:
+
+```{r comment-private, results='hide'}
+comment(dat$private) <- "1 = Private school, 0 = Non-private (public/religious/other)"
+comment(dat$private)   # retrieve the note
+```
+
+This keeps the column numeric while giving you a portable reminder of what the codes mean.
+
+## 9. EXTENSIONS TO CREATING NEW VARIABLES
+
+Suppose we want a numeracy score by summing 20 item dummies. First inspect one component’s codes:
+
+```{r ta-flbigger1, results='hide'}
+table(dat$flbigger1)
+```
+
+Decide which codes count as correct (1), wrong (0), or missing. For each item we can create a clean dummy (1 = correct, 0 = incorrect, NA = missing/NIU). Doing this for many similarly named variables is easier with a loop or with `across()` in dplyr. Example for one set (flrecognize1–5), using a loop in R:
+
+```{r loop-clean, results='hide'}
+stems <- c("flrecognize", "flbigger", "flnumadd", "flnumseq")
+
+for (stem in stems) {
+  for (y in 1:5) {
+    var_orig <- paste0(stem, y)
+    var_new  <- paste0(stem, y, "_clean")
+    dat[[var_new]] <- ifelse(dat[[var_orig]] == 1, 1L,
+                      ifelse(dat[[var_orig]] >= 8, NA_integer_, 0L))
+  }
+}
+# Similarly for flbigger, flnumadd, flnumseq...
+```
+
+Then sum the 20 clean components (either by listing them or by selecting columns that end with `_clean` and using `rowSums`). Be careful: if any component is NA, do you want the total score to be NA (complete case) or the sum of non-missing items? For a strict “complete case” score:
+
+```{r numscore, results='hide'}
+clean_vars <- c(paste0("flrecognize", 1:5, "_clean"), paste0("flbigger", 1:5, "_clean"),
+                paste0("flnumadd", 1:5, "_clean"), paste0("flnumseq", 1:5, "_clean"))
+dat$numscore <- rowSums(dat[, clean_vars], na.rm = FALSE)  # NA if any missing
+# With na.rm = TRUE you get sum of non-missing (like egen rowtotal, missing in Stata)
+summary(dat$numscore)
+```
+
+Only children aged 7–14 with consent might have taken the test. Tabulate with a filter:
+
+```{r ta-numscore-eligible, results='hide'}
+dat %>% 
+  filter(age >= 7, 
+         age <= 14,
+         flconsent == 1,
+         flassentchild == 1) %>%
+  count(numscore)  # or table(..., useNA = "ifany")
+```
+
+Using `rowSums(..., na.rm = TRUE)` gives a score that ignores missing items (like Stata’s `egen rowtotal(..., missing)`); a child with 15 correct and 5 missing would get 15. The complete-case approach (NA if any item missing) is often preferred. You can count how many items are missing per child with `rowSums(is.na(dat[, clean_vars]))`.
+
+## 10. USING COMPLEX SURVEY DATA: THE SURVEY PACKAGE
+
+When we want **inferential** statistics (standard errors, confidence intervals) that reflect the sampling design, we use the **survey** package in R (analogous to Stata’s `svy` suite). First we define a survey design with `svydesign()`, then we use survey-aware functions like `svymean()`.
+
+Define the design (cluster, strata, weights). Variable names below match the Stata example; adjust to your dataset:
+
+```{r svyset-cluster, results='hide'}
+library(survey)
+svy_des_cluster <- svydesign(
+  ids = ~ imicscluster,
+ # strata = ~ urban,
+ # weights = ~ weightfs,
+  data = dat,
+ nested = TRUE
+)
+```
+
+Estimate means (like Stata’s `svy: mean`):
+
+```{r svy-mean, results='hide'}
+svymean(~ numscore + wscore, svy_des_cluster, na.rm = TRUE)
+```
+
+Design effects (DEFF) can be computed by comparing variance under the complex design to variance under simple random sampling. R’s survey package computes this with `svymean()` plus the `deff = TRUE` argument:
+
+```{r deff, results='hide'}
+# Estimate mean with design effect (like Stata's svy: mean + estat effects, deff)
+svymean(~ numscore + wscore, svy_des_cluster, deff = "replace", na.rm = TRUE)
+```
+
+The DEFF tells you how many more observations you would need under simple random sampling (SRS) to achieve the same precision. For example, if `wscore` has a DEFF of 6.57 and your complex sample has 95,833 observations, your design is only as precise as an SRS of 95,833 / 6.57 = **14,586 observations**. Can you calculate and interpret the DEFF for `numscore`?
+
+Why might the DEFF be higher for `wscore` than `numscore`? Household wealth varies at the household level and will be the same for all children in the same household. Children in the same cluster are also likely to have similar wealth levels. This makes wealth more homogeneous within clusters than numeracy scores, which vary at the child level. 
+
+We can measure this directly using the intra-cluster correlation (ICC), which captures how similar observations are within clusters — the R equivalent of Stata's loneway. Computing the ICC formally requires fitting a random effects model, which is computationally slow on a dataset this large. A fast and interpretable approximation is to compare the variance of cluster means to the total variance:
+
+
+
+```{r icc, results='hide'}
+library(lme4)
+
+# For wscore
+model_ws <- lmer(wscore ~ 1 + (1 | imicscluster), data = dat, REML = TRUE)
+icc_wscore <- as.numeric(VarCorr(model_ws)$imicscluster) / 
+              (as.numeric(VarCorr(model_ws)$imicscluster) + sigma(model_ws)^2)
+
+# For numscore
+model_ns <- lmer(numscore ~ 1 + (1 | imicscluster), data = dat, REML = TRUE)
+icc_numscore <- as.numeric(VarCorr(model_ns)$imicscluster) / 
+                (as.numeric(VarCorr(model_ns)$imicscluster) + sigma(model_ns)^2)
+
+icc_wscore
+icc_numscore
+```
+
+
+The ICC should be notably higher for wscore than numscore, explaining the larger DEFF for wealth. Intuitively, the ICC measures how much of the total variation in a variable exists between clusters rather than within them — a high ICC means children in the same cluster are very similar on that variable, so each additional observation from the same cluster adds less new information than it would under simple random sampling.
+
+```{r svyset_strata, results='hide'}
+library(survey)
+svy_des_strata <- svydesign(
+ ids = ~ 1, # no clustering
+ strata = ~ urban,
+ # weights = ~ weightfs,
+  data = dat,
+ nested = TRUE
+)
+```
+
+
+```{r svy-mean-strata, results='hide'}
+svymean(~ numscore + wscore, svy_des_strata, na.rm = TRUE)
+```
+
+```{r deff-strata, results='hide'}
+# Estimate mean with design effect (like Stata's svy: mean + estat effects, deff)
+svymean(~ numscore + wscore, svy_des_strata, deff = "replace", na.rm = TRUE)
+```
+
+---
+
+## 11. WEIGHTS
+
+Weights are factors assigned to observations during post-processing of a survey. They serve several roles: accounting for unequal probability of selection (some people were more likely to be sampled than others), correcting for unit non-response, and calibration (ensuring the dataset reflects known population totals from an external benchmark such as a census). Crucially, incorporating weights changes the *point estimate* of statistics, not just the standard errors — this is the key difference from strata, which affect precision only.
+
+\begin{tcolorbox}[colback=idocolor, colframe=datafirstteal, title=\textbf{BOX: TYPES OF WEIGHTS (R / SURVEY)}]
+
+\medskip
+R and the \texttt{survey} package distinguish four weight types, mirroring Stata's \texttt{fweight}, \texttt{aweight}, \texttt{pweight}, and \texttt{iweight}:
+
+\begin{itemize}
+  \item \textbf{Probability weights (pweights)} --- sampling weights: the inverse of the inclusion probability. A pweight of 30 means this observation had a 1-in-30 chance of selection and \textit{represents} 30 people in the population. Use these for survey inference. In \texttt{svydesign()}, the \texttt{weights} argument takes pweights.
+  \item \textbf{Frequency weights (fweights)} --- represent the number of duplicated observations; must be integers. A fweight of 30 means there are 30 observations with identical values on all variables. Used for grouped data.
+  \item \textbf{Analytic weights (aweights)} --- inversely proportional to the variance of an observation. Commonly used when observations are group averages and the weight is the group size. Stata rescales these to sum to 1; only relative weights matter.
+  \item \textbf{Importance weights (iweights)} --- mostly used by programmers; not standard for survey inference.
+\end{itemize}
+
+\medskip
+\textbf{Using the wrong weight type produces misleading standard errors.} The point estimate of the mean is the same whether you use analytic or probability weights, but the standard error is not. Always use pweights (via \texttt{svydesign()}) for survey inference.
+
+\medskip
+For MICS, use the person-level sampling weight \texttt{weightfs} as a pweight inside \texttt{svydesign()}.
+
+\end{tcolorbox}
+
+**Weights in practice: comparing approaches**
+
+To see concretely how weights affect results, compare the unweighted mean, a simple weighted mean, and the full survey-design mean:
+
+```{r weights-compare, results='hide'}
+# Unweighted mean — sample statistic, treats all obs equally
+mean(dat$numscore, na.rm = TRUE)
+
+# Weighted mean — correct point estimate, but SE ignores clustering/stratification
+weighted.mean(dat$numscore, dat$weightfs, na.rm = TRUE)
+
+```
+
+```{r}
+dat %>%
+  group_by(country= as_factor(country)) %>%
+  summarise(
+    mean_wscore = weighted.mean(wscore, w = weightfs, na.rm = TRUE),
+    sd_wscore   = sqrt(sum(weightfs * (wscore - weighted.mean(wscore, weightfs, na.rm = TRUE))^2, na.rm = TRUE) / sum(weightfs, na.rm = TRUE)),
+    freq        = sum(weightfs, na.rm = TRUE),
+    obs         = n()
+  )
+```
+```{r}
+
+# Frequency weights (fw) - integer counts
+weighted.mean(dat$numscore, w = dat$weightfs, na.rm = TRUE)  # fw and aw give same point estimate
+
+# Analytic weights (aw) - same point estimate as fw
+weighted.mean(dat$numscore, w = dat$weightfs, na.rm = TRUE)
+
+# Importance/probability weights (pw) - use survey package
+svy_pw <- svydesign(ids = ~1, weights = ~weightfs, data = dat)
+svymean(~numscore, svy_pw, na.rm = TRUE)
+
+# Inverse weights (iw) - same point estimate as aw/fw
+weighted.mean(dat$numscore, w = dat$weightfs, na.rm = TRUE)
+```
+
+```{r svyset_full, results='hide'}
+library(survey)
+svy_des_full <- svydesign(
+ ids = ~ imicscluster,
+ strata = ~ urban,
+ weights = ~ weightfs,
+  data = dat,
+ nested = TRUE
+)
+```
+
+
+```{r}
+# Full survey-design mean — correct point estimate AND correct SE
+svymean(~ numscore, svy_des_full, na.rm = TRUE)
+```
+
+The unweighted and weighted means will differ because weights correct for over- or under-representation of certain groups in the sample. The `weighted.mean()` and `svymean()` point estimates will match, but `svymean()` also accounts for clustering and stratification in its standard error — `weighted.mean()` does not. The wrong weight type is like Stata's `mean numscore [fw=weightfs]` — it produces an error or wrong SEs because frequency weights must be integers and are not meaningful here.
+
+**Raising weights vs normalised weights**
+
+Not all probability weights are *raising weights*. Raising weights sum to the population total, so you can use them to estimate population counts. Normalised weights are rescaled to sum to the sample size; they yield nationally representative proportions and means but not totals. Always check what your weight variable is designed to do — the survey documentation will say. For MICS, `weightfs` is a raising weight designed to recover nationally representative proportions and population totals.
+
+
+## 12. DESCRIBING DATA: PLOTS AND TABLES
+
+Describe your analysis sample (e.g. non-missing `numscore` and `private`, age 7–14):
+
+```{r mysample, results='hide'}
+dat <- dat %>%
+  mutate(mysample = !is.na(numscore) & 
+           !is.na(private) &
+           age >= 7 &
+           age <= 14)
+
+table(dat$mysample)
+```
+
+You can then restrict to the analysis sample for all subsequent commands, or subset once:
+
+```{r keep-mysample, results='hide'}
+dat_analysis <- dat %>%
+  filter(mysample == 1)
+
+nrow(dat_analysis)
+```
+
+For a histogram of `numscore` (discrete 0–20), base R or ggplot2:
+
+```{r hist-numscore, results='hide'}
+hist(dat_analysis$numscore, breaks = 0:21 - 0.5, main = "Numeracy score", xlab = "Score", col = "steelblue")
+```
+
+Weighted kernel density (conceptually like Stata’s `kdensity [aw=weightfs]`) can be done with `density(..., weights = ...)` or with the survey package. For a simple weighted density:
+
+```{r kdensity, results='hide'}
+d <- density(dat_analysis$numscore, weights = dat_analysis$weightfs / mean(dat_analysis$weightfs, na.rm = TRUE), na.rm = TRUE)
+plot(d, main = "Numeracy score (weighted)")
+```
+
+Side-by-side densities by private school:
+
+```{r kdensity-by-private, eval=FALSE}
+dat_analysis %>%
+  ggplot(aes(x = numscore, weight = weightfs, colour = factor(private))) +
+  geom_density(bw = 1) +
+  labs(title = "Numeracy score by private school", colour = "Private")
+```
+
+Or faceted:
+
+```{r kdensity-facet, eval=FALSE}
+dat_analysis %>%
+  ggplot(aes(x = numscore, weight = weightfs)) +
+  geom_density(bw = 1) +
+  facet_wrap(~ private, labeller = as_labeller(c("0" = "Non-private", "1" = "Private")))
+```
+
+For a bar chart of mean private by country (weighted), use the survey object or aggregate first:
+
+```{r gr-bar, eval=FALSE}
+dat_analysis %>%
+  mutate(country = as_factor(country)) %>%
+  group_by(country) %>%
+  summarise(mean_private = weighted.mean(private, weightfs, na.rm = TRUE)) %>%
+  ggplot(aes(x = reorder(country, mean_private), y = mean_private)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Country", y = "Share in private school")
+```
+
+Descriptive table by private school (mean numscore, mean urban dummy, mean wealth, etc.): use `group_by(private)` and `summarise()`, or `tapply()` with `weighted.mean`. For mother’s education (categorical), report proportions by group; ensure sample size is consistent across rows (same analysis sample).
+
+---
+
+**LIST OF R CONCEPTS / FUNCTIONS INTRODUCED IN MODULE 1**
+
+| Stata       | R / tidyverse / survey                    |
+|------------|-------------------------------------------|
+| use        | read_dta(), read_csv()                    |
+| describe   | str(), glimpse()                          |
+| count      | nrow()                                    |
+| browse     | View()                                    |
+| tab        | table(), prop.table()                     |
+| isid       | nrow(dat) == nrow(unique(dat[, vars]))    |
+| egen group | group_indices(), interaction()           |
+| order      | select(id, everything())                 |
+| lookfor    | names()[grepl(...)]                      |
+| sum        | summary(), mean(), sd()                  |
+| hist       | hist(), geom_histogram()                 |
+| gen/replace| mutate(), case_when(), ifelse()           |
+| recode     | case_when(), recode()                     |
+| drop       | select(-var)                             |
+| bysort :   | group_by() %>% summarise()               |
+| svyset     | svydesign()                               |
+| svy: mean  | svymean()                                 |
+| keep/drop  | filter(), select()                       |
+| forval     | for (...) { ... }                        |
+| foreach    | for (x in list) { ... } / purrr::map()   |
+| lookfor    | labelled::look_for(dat, "term")           |
+| numlabel   | haven::as_factor(); labelled::val_labels() |
+
+---
+
+# Lab Module 2: Introduction to regression analysis in R
+
+**OBJECTIVES:** By the end of this lab, you should be comfortable implementing regressions in R and interpreting output.
+
+We continue with the same example and dataset: does private schooling improve numeracy scores? First set up the survey design (as in Module 1). Then we can compare raw means by private school and run regressions with controls.
+
+## 1. RUNNING A REGRESSION
+
+Restrict to Ghana (e.g. country code 288) and define a subpopulation indicator. For **subpopulation** estimates with correct variance, use the survey package’s subpopulation option (e.g. subsetting the design or using `subset(svy_des, ghana == 1)` in survey functions).
+
+```{r}
+dat <- dat %>%
+  mutate(ghana = (country == 288))
+```
+
+
+
+```{r}
+# Survey design (from Module 1)
+svy_des <- svydesign(ids = ~ imicscluster, strata = ~ urban, weights = ~ weightfs, 
+                     data = dat,nested = TRUE)
+```
+
+Before running a regression, it is useful to compare raw means by group (like Stata’s `svy: mean numscore, over(private)`). In R this is `svyby()`:
+
+```{r svy-means, results='hide'}
+# Raw means by private school status (like Stata's svy: mean numscore, over(private))
+svyby(~ numscore, ~ private, svy_des, svymean, na.rm = TRUE)
+```
+
+Here you can see the mean numeracy score for privately and non-privately schooled students. You can use R as a calculator to compute the difference directly in the Console, just as you would use Stata’s `display` command:
+
+```{r display-diff, results='hide'}
+# Equivalent of Stata's: display 15.577836 - 12.783942
+15.37207 - 12.48015
+```
+
+But are we comparing like with like? Students are likely differentially selected into private school on characteristics that also matter for numeracy — for example, mothers’ education. Regression allows us to hold these other factors constant. Now run a regression of numeracy score on private school (survey-weighted):
+
+
+```{r ghana-subpop, results='hide'}
+svy_ghana <- subset(svy_des, ghana == 1, na.rm = TRUE)
+```
+
+
+```{r svy-reg-ghana, results='hide'}
+m1 <- svyglm(numscore ~ private, design = svy_ghana)
+summary(m1)
+```
+
+The intercept is the mean numeracy score when `private == 0`. The coefficient on `private` is the difference associated with private school. Add controls one by one, but first check that the control variable is coded as you expect before adding it (good practice before any regression step):
+
+```{r check-age, results='hide'}
+# Check age is coded as expected before including it (like Stata's tab age, m)
+table(dat$age[dat$ghana == 1], useNA = "ifany")
+```
+
+```{r reg-age, results='hide'}
+m2 <- svyglm(numscore ~ private + age, design = svy_ghana)
+summary(m2)
+```
+
+
+The constant now corresponds to age = 0, which is not meaningful. You can centre age (e.g. `age - 7`) so the constant is interpretable at age 7. 
+
+**Note**
+Any time you add a new variable to `dat` with `mutate()`, you must recreate `svy_des` and `svy_ghana` before using that variable in a survey model. The survey design object holds a snapshot of `dat` at the moment it was created, so new columns added afterwards are invisible to it. This is a common source of confusion for Stata users. In Stata svyset is a persistent setting that automatically sees any new variables you generate.
+
+
+Add gender:
+
+```{r reg-female, results='hide'}
+dat <- dat %>% mutate(female = (sexfs == 2))
+
+# we will need to redo the svy_design to include the female variable
+svy_des <- svydesign(ids = ~ imicscluster, strata = ~ urban, weights = ~ weightfs, data = dat)
+svy_ghana <- subset(svy_des, ghana == 1, na.rm = TRUE)
+m3 <- svyglm(numscore ~ private + age + female, design = svy_ghana)
+summary(m3)
+```
+
+Before adding mother’s education, it is worth checking whether any category has very few observations (in the Stata notes we find only 3 children in the “unknown” category for Ghana). We create a refined subpopulation that excludes this category:
+
+```{r ghanamumnomiss, results='hide'}
+# Refined subpopulation: Ghana + non-missing/non-unknown mother's education
+dat <- dat %>% mutate(ghanamumnomiss = (country == 288 & !edlevelmom %in% c(98, 99)))
+svy_des <- svydesign(ids = ~ imicscluster, strata = ~ urban, weights = ~ weightfs, data = dat)
+svy_ghana_mm <- subset(svy_des, ghanamumnomiss == 1)
+
+m3b_check <- svyglm(numscore ~ private + age + female + relevel(factor(edlevelmom), ref = "20"),
+                   design = svy_ghana_mm)
+summary(m3b_check)
+# Note: a category with only 3 children will yield a very imprecise coefficient.
+# Verify the unknown category has negligible effect on other estimates.
+```
+
+
+
+Add mother’s education as a factor (R automatically uses the first level as reference, like Stata’s `i.edlevelmom`):
+
+
+```{r}
+table(dat$edlevelmom[dat$ghana == 1], useNA = "ifany")
+```
+
+```{r reg-edlevelmom, results='hide'}
+m4 <- svyglm(numscore ~ private + age + female + factor(edlevelmom), design = svy_ghana)
+summary(m4)
+```
+
+To set a different base category (e.g. primary = 20), make a factor and set the reference:
+
+```{r reg-edlevelmom-base, results='hide'}
+# Create the factor variable on dat first
+dat <- dat %>% 
+  mutate(edlevelmom_f = relevel(factor(edlevelmom), ref = "20"))
+
+# Then recreate the design so it includes edlevelmom_f
+svy_des <- svydesign(ids = ~ imicscluster, strata = ~ urban, 
+                     weights = ~ weightfs, data = dat)
+svy_ghana <- subset(svy_des, ghana == 1, na.rm = TRUE)
+
+# Now the regression will find edlevelmom_f in the design
+m4b <- svyglm(numscore ~ private + age + female + edlevelmom_f, design = svy_ghana)
+summary(m4b)
+```
+
+
+Add wealth quintile (as factor):
+
+```{r reg-wealth, results='hide'}
+m5 <- svyglm(numscore ~ private + age + female + relevel(edlevelmom_f, ref = "20") + factor(windex5), design = svy_ghana)
+summary(m5)
+```
+
+Without survey design (e.g. for administrative data), use `lm()` with weights and cluster-robust standard errors (e.g. `lmtest::coeftest(..., vcov = sandwich::vcovCL(..., cluster = ~ imicscluster))`).
+
+---
+
+## 2. INTERACTION TERMS IN REGRESSIONS
+
+To allow the effect of private school to differ by gender, include an interaction (like Stata’s `private##female`):
+
+```{r reg-interaction, results='hide'}
+m_int <- svyglm(numscore ~ private * female + age, design = svy_ghana)
+summary(m_int)
+```
+
+Interpretation: `private` = effect for males (female = 0); `female` = male–female difference in public schools; `private:female` = how much the private-school effect differs for females.
+
+To find the names of coefficients for testing (like using Stata’s `, coeflegend` option), use:
+
+```{r coefnames, results='hide'}
+names(coef(m_int))   # equivalent of reg ..., coeflegend in Stata
+```
+
+To test whether the gender gap in private schools is significant, we need to test the linear combination `female + private:female = 0` (because the gap for females in private schools is $\beta_2 + \beta_3$ in the model $Y = \beta_0 + \beta_1 \cdot private + \beta_2 \cdot female + \beta_3 \cdot (private \times female) + \beta_4 \cdot age$). Use `car::linearHypothesis()`, the R equivalent of Stata’s `test` command:
+
+```{r linear-hypothesis, results='hide'}
+
+# Check exact coefficient names and positions first
+names(coef(m_int))
+# e.g. [1] "(Intercept)"    [2] "private"    [3] "female"    [4] "private:female"    [5] "age"
+
+# Test: is there a gender gap within private schools?
+# female + private:female = 0
+# (equivalent of Stata's: test _b[1.female] + _b[1.private#1.female] = 0)
+linearHypothesis(m_int, c(0, 0, 1, 1, 0))
+
+# Test: what is the overall private-school effect for females?
+# private + private:female = 0
+# (equivalent of Stata's: test _b[1.private] + _b[1.private#1.female] = 0)
+linearHypothesis(m_int, c(0, 1, 0, 1, 0))
+
+```
+
+To get predicted means for each combination of private and female (like Stata's margins private#female), use `predict()` with `expand.grid()`. 
+
+```{r margins-interaction, results='hide'}
+mf <- model.frame(m_int)
+
+newdata <- expand.grid(
+  private = c(0, 1),                 # numeric, matches mf$private
+  female  = c(FALSE, TRUE),          # logical, matches mf$female
+  age     = mean(mf$age, na.rm = TRUE)  # uses the same age variable as in the model
+)
+
+# sanity check: classes match
+sapply(newdata, class)
+sapply(mf[c("private","female","age")], class)
+```
+
+
+```{r newdata, results='hide'}
+newdata$predicted <- predict(m_int, newdata = newdata, type = "response")
+newdata
+```
+
+## 3. A NEW EXAMPLE: RETURNS TO EDUCATION
+
+We now pivot to a different example using a new dataset. Load `data_glss7.dta`:
+```{r load-glss, results='hide'}
+dat_glss <- read_dta("./data2/data_glss7.dta")
+```
+
+```{r}
+table(dat_glss$edattain)
+```
+
+We want to examine the relationship between wages earned and educational attainment, starting with the relationship between weekly wages and completing junior high school (JHS). 
+Note that we are not using the survey design here, but all regressions can be implemented using the survey design with `svyglm()`.
+
+First create a dummy variable for JHS or above (like Stata's `gen jhs = edattain>=3 & edattain<=8`):
+```{r gen-jhs}
+dat_glss <- dat_glss %>%
+  mutate(jhs = as.integer(edattain >= 3 & edattain <= 8))
+```
+
+The age restriction is important — we want to ensure the majority of people in the sample have completed their education. Run the regression restricted to ages 25–65:
+```{r reg-jhs}
+m_jhs <- lm(realwages_wk ~ jhs,
+            data = dat_glss %>% 
+              filter(age >= 25 & age <= 65),
+            weights = weight_s)
+coeftest(m_jhs, vcov = vcovCL(m_jhs, cluster = ~ clust))
+```
+
+Interpret the constant term and the coefficient on `jhs`. You can test the robustness of your results to slightly different age restrictions (e.g. `age >= 25 & age <= 60`). Add controls one at a time:
+```{r reg-jhs-controls}
+m_jhs2 <- lm(realwages_wk ~ jhs + age + female + fathed_yrs,
+             data = dat_glss %>% filter(age >= 25 & age <= 65),
+             weights = weight_s)
+coeftest(m_jhs2, vcov = vcovCL(m_jhs2, cluster = ~ clust))
+```
+
+What happens to the coefficient on `jhs`? Did it change in the direction you would expect? Adding controls one at a time is a useful habit — it lets you track how each addition affects the coefficient of interest. Interpret the coefficients on `female` and `fathed_yrs` (father's years of education).
+
+Perhaps you decide to control for mother's co-residency:
+```{r reg-moth-res, results='hide'}
+m_jhs3 <- lm(realwages_wk ~ jhs + age + female + fathed_yrs + factor(moth_res),
+             data = dat_glss %>% filter(age >= 25 & age <= 65),
+             weights = weight_s)
+coeftest(m_jhs3, vcov = vcovCL(m_jhs3, cluster = ~ clust))
+```
+
+But does a statistically significant coefficient mean this variable should be in your regression? Not necessarily — we can have **bad controls**. A rule of thumb is that if the variable is measuring something that happens *after* the treatment (education), it is a bad control. Current co-residency is a good example: those more likely to be living with their parents now may do so because they earn lower wages, meaning co-residency is a consequence of education outcomes rather than a confounder. Controlling for it disrupts the causal chain between education and wages.
+
+Similarly, occupation is an outcome of education — controlling for it would answer a different question: *"What is the return to education holding occupation fixed?"* Ideally you want to control only for **confounders**: pre-treatment variables that affect both education and wages. The decision about whether a control is good or bad is not always clear cut and may depend on your research question, context, and motivation.
+
+
+## 4. LOGGING A DEPENDENT VARIABLE
+
+Often it is useful to log transform a continuous variable. This not only normalises the distribution of the variable (useful when distributions are very skewed, minimising the contribution of outliers), but allows us to measure proportional (percentage) change rather than absolute change.
+
+```{r log-wage, results='hide'}
+dat_glss <- dat_glss %>% 
+  mutate(logwklywage = log(realwages_wk))
+```
+
+```{r log-wage_lm, results='hide'}
+m <- lm(logwklywage ~ jhs + female + age + fathed_yrs,
+         data = dat_glss %>% filter(age >= 25 & age <= 60),
+         weights = weight_s)
+
+coeftest(m, vcov = vcovCL(m, cluster = ~clust))
+```
+
+The coefficient on `jhs` is approximately the percentage change in wages for small coefficients; the exact percentage change is `(exp(coef) - 1) * 100`. For example, if the coefficient on `jhs` is  0.4106686, compute directly in the Console (R as a calculator, like Stata’s `display`):
+
+```{r log-interpretation, results='hide'}
+# Exact % change: (exp(coefficient) - 1) * 100
+# (like Stata's: di (exp(.4106686)-1)*100)
+(exp( 0.4106686) - 1) * 100   # approximately 50.8%
+```
+
+This tells us that completing JHS or higher is associated with approximately a 50.78% increase in weekly wages. 
+
+As a rule of thumb: when the coefficient is smaller than about 0.2, `exp(coef) - 1` and `coef` are close enough that you can read the coefficient directly as an approximate percentage change; for larger coefficients always use the exact formula.
+
+**Word of caution:** zeros cannot be logged. Check for zeros in your wage variable before creating the log:
+
+```{r check-zeros, results='hide'}
+sum(dat_glss$realwages_wk == 0, na.rm = TRUE)  # should be 0 before logging
+```
+
+A bad candidate for logging would be a test score with zeros: all children with a score of 0 would be assigned `NA` in the logged form.
+
+## 5. EDUCATION AS CONTINUOUS OR CATEGORICAL
+
+Consider years of education as our variable of interest:
+
+```{r reg-educlvl, results='hide'}
+# Continuous years of education
+m_cont <- lm(logwklywage ~ edyrtotal + female + age,
+             data = dat_glss %>% 
+               filter(age >= 25 & age <= 65), weights = weight_s)
+coeftest(m_cont, vcov = vcovCL(m_cont, cluster = ~ clust))
+```
+
+Now we interpret the coefficient on education as the % change in wage when education increases by a year. It becomes harder to benchmark this as a big or small relationship. As we discussed in the lecture, you could: compare your result to previous estimates of the effect of schooling on wages, consider its size relative to the effect of other policies or to an established benchmark/goal, or contextualise the size relative to the mean wage in your sample, or to a change over time. You're essentially looking for some way of anchoring the estimate and putting its magnitude into context.
+
+Notice that if you were to introduce an interaction term with years of education, note an important difference from Stata: in Stata, when using `##` with a continuous variable you must prefix it with `c.` (e.g. `c.edyrtotal##female`), otherwise Stata treats it as categorical. In R no such prefix is needed — R always treats numeric variables as continuous. Simply write the interaction with `*`:
+
+
+```{r educlvl-female, results='hide'}
+m_int <- lm(logwklywage ~ edyrtotal * female + age,
+            data = dat_glss %>% filter(age >= 25 & age <= 65), weights = weight_s)
+coeftest(m_int, vcov = vcovCL(m_int, cluster = ~clust))
+```
+
+Finally, let's use `educlvl` — a categorical variable. Run the following regression and interpret the results. Recall, coefficients on a categorical variable are interpreted relative to the base category, which R has automatically assigned to the lowest-valued category ('less than primary completed'). Notice how we use `factor()` to let R know we have a categorical variable, equivalent to Stata's `i.`:
+
+```{r tab-educlvl, results='hide'}
+# Equivalent to Stata's: tab educlvl if age>=25 & age<=65
+table(dat_glss %>% filter(age >= 25 & age <= 65) %>% pull(educlvl))
+```
+
+```{r reg-edyrtotal-interact, results='hide'}
+m_cat <- lm(logwklywage ~ factor(educlvl) + age + female + fathed_yrs,
+            data = dat_glss %>% filter(age >= 25 & age <= 65), weights = weight_s)
+coeftest(m_cat, vcov = vcovCL(m_cat, cluster = ~clust))
+```
+You could also create a dummy variable for each education level and include these in your regression. A useful way to do this is with fastDummies:
+
+```{r}
+# Equivalent to Stata's: tab educlvl, gen(edlevel)
+dat_glss <- dat_glss %>%
+  fastDummies::dummy_cols("educlvl", remove_selected_columns = FALSE)
+```
+This creates a dummy variable for each category, equivalent to the edlevel1–edlevel6 variables shown in Stata.
+
+To verify the newly created dummies and see which category each corresponds to:
+
+```{r, results='hide'}
+dat_glss %>% select(educlvl, starts_with("educlvl_")) %>% head()
+```
+
+
+## 6. TRY IT YOURSELF
+
+This exercise largely replicates the content above, so R code is not provided.
+
+Create a "SHS or higher" dummy variable and log wages. You will first need to examine the `edattain` variable to see which codes you should use.
+
+a. Tabulate your "SHS or higher" variable and consider the mean wage when your variable is 0 and 1. HINT: use `group_by()` and `summarise()` with `mean()`.
+
+b. Build up to your final wage regression by starting with a simple regression and adding more covariates. Use logged wage as your outcome variable.
+
+c. Interpret the coefficient on SHS+ completion in your final regression.
+
+d. Is the coefficient statistically significant? What about practically?
+
+e. Is the relationship you find robust to how you restrict your sample by age range?
+
+## 7. SAME DATA, DIFFERENT QUESTION: ON-TIME ENROLMENT AND EDUCATION
+
+We now turn to a different research question using the same dataset: is there an association
+between starting primary school **on time** (age 6 or younger) and total years of education
+completed?
+
+We begin by inspecting the age-started-primary variable and then building up a plot of mean
+completed education by age started school.
+
+---
+
+### Inspecting `agestrtprim`
+
+```{r tab-agestrtprim}
+table(dat_glss$agestrtprim, useNA = "ifany")
+```
+
+About 99% of children have started school by age 11, and there are no oddly coded missing
+values — this mirrors what we see in Stata with `tab agestrtprim`. We will restrict plots
+and models to those who started between ages 5 and 11. Starting before age 5 is implausible
+and likely reflects measurement error.
+
+---
+
+### Plotting education against age started school
+
+Before computing any summaries, it is worth asking what a naive scatter of raw observations
+looks like. In Stata this is:
+
+```stata
+scatter edyrtotal agestrtprim if agestrtprim>=5 & agestrtprim<=11
+```
+
+The R equivalent:
+
+```{r scatter-naive}
+dat_glss %>%
+  filter(age >= 25, agestrtprim >= 5, agestrtprim <= 11) %>%
+  ggplot(aes(x = agestrtprim, y = edyrtotal)) +
+  geom_point(alpha = 0.2) +
+  labs(x = "Age started primary school", y = "Years of education completed",
+       title = "Raw scatter: years of education vs age started primary (adults 25+)")
+```
+
+Is this telling us anything useful about the relationship? Because there are many observations
+stacked at each integer age, the overplotting makes it hard to see a trend. It would be more
+informative to plot the **average** years of completed education for each starting age.
+
+---
+
+### Weighted mean education by age started school
+
+In Stata, `preserve`/`collapse`/`restore` is used to compute weighted group means and plot
+them without permanently modifying the dataset. `collapse` is preferred over `egen` here
+because it lets us apply the sampling weight. In R, the idiomatic equivalent is to compute
+the summary on the fly inside a pipeline — the original data frame is never modified, which
+is the same principle as `preserve`/`restore`.
+
+```{r scatter-mean-educ}
+dat_glss %>%
+  filter(age >= 25, agestrtprim >= 5, agestrtprim <= 11) %>%
+  group_by(agestrtprim) %>%
+  summarise(
+    mean_edyrtotal = weighted.mean(edyrtotal, weight_s, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  ggplot(aes(x = agestrtprim, y = mean_edyrtotal)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Age started primary school",
+       y = "Mean years of education completed",
+       title = "Mean years of education by age started primary (adults 25+)")
+```
+
+We can now see a clear **negative** relationship: children who started school later completed
+fewer years of education on average.
+
+---
+
+### Separating by gender
+
+```{r scatter-mean-educ-gender}
+dat_glss %>%
+  filter(age >= 25, agestrtprim >= 5, agestrtprim <= 11) %>%
+  group_by(agestrtprim, female) %>%
+  summarise(
+    mean_edyrtotal = weighted.mean(edyrtotal, weight_s, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  ggplot(aes(x = agestrtprim, y = mean_edyrtotal,
+             colour = factor(female, labels = c("Male", "Female")),
+             shape  = factor(female, labels = c("Male", "Female")))) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Age started primary",
+       y = "Mean years of education completed",
+       colour = NULL, shape = NULL,
+       title = "Mean years of education by age started primary, by gender")
+
+# Save the plot — format is controlled by the file extension,
+# just as Stata's graph export infers format from the filename.
+ggsave("educ_by_agestrt_gender.png", width = 7, height = 5)
+```
+
+---
+
+### Generating the on-time dummy
+
+We define "on time" as starting primary school at age 6 or younger. Note that missing values
+in `agestrtprim` must be explicitly propagated to `ontime`; otherwise they would be coded 0
+(not on time), which is incorrect.
+
+```{r gen-ontime}
+dat_glss <- dat_glss %>%
+  mutate(ontime = case_when(
+    is.na(agestrtprim) ~ NA_integer_,
+    agestrtprim <= 6   ~ 1L,
+    TRUE               ~ 0L
+  ))
+```
+
+You might make a different decision about the cut-off age — what matters is that you
+document and justify the choice you make.
+
+---
+
+### Are the two groups similar on important dimensions?
+
+Before running any regressions, it is worth checking whether those who start on time differ
+from those who do not on dimensions that are likely to be related to schooling outcomes.
+The Stata command `tab ontime fatheduc if age>=25 [aw=weight_s], row` has this R equivalent:
+
+```{r crosstab-ontime-fatheduc}
+
+sub <- dat_glss[dat_glss$age >= 25, ]
+sub$ontime   <- as_factor(sub$ontime)
+sub$fatheduc <- as_factor(sub$fatheduc)
+
+result <- prop.table(
+  wtd.table(
+    x       = sub$ontime,
+    y       = sub$fatheduc,
+    weights = sub$weight_s
+  ),
+  margin = 1
+) * 100
+
+knitr::kable(round(result, 2),
+             caption = "Row percentages: on-time status by father's education (age >= 25)")
+```
+
+---
+
+### Mean years of education by on-time status
+
+The Stata command `tab ontime if age>=25 [aw=weight_s], sum(edyrtotal)` reports the mean
+(and standard deviation) of `edyrtotal` separately for on-time and not-on-time groups.
+
+> **Question:** What does this tell you before you even run a regression?
+
+```{r tab-ontime-edyrtotal}
+dat_glss %>%
+  filter(age >= 25) %>%
+  group_by(ontime) %>%
+  summarise(
+    mean_edyrtotal = weighted.mean(edyrtotal, weight_s, na.rm = TRUE),
+    sd_edyrtotal   = sqrt(weighted.mean((edyrtotal - weighted.mean(edyrtotal, weight_s, na.rm = TRUE))^2,
+                                        weight_s, na.rm = TRUE)),
+    n_unweighted   = n(),
+    n_weighted     = sum(weight_s),
+    .groups = "drop"
+  )
+```
+
+---
+
+### Linear probability model: completing JHS or higher
+
+An OLS regression with a dummy dependent variable is called a **linear probability model
+(LPM)**. Coefficients are interpreted as **percentage point changes** in the probability of
+the outcome.
+
+```{r reg-lpm-ontime}
+m_lpm <- lm(jhs ~ ontime + female + age + fathed_yrs,
+            data = dat_glss %>% filter(age >= 25),
+            weights = weight_s)
+
+coeftest(m_lpm, vcov = vcovCL(m_lpm, cluster = ~ clust))
+```
+
+We interpret the coefficient on `ontime` as: enrolling in school on time is associated with
+approximately a 12.6 percentage point increase in the probability of completing JHS or
+higher, holding age, gender, and father's education constant.
+
+Note the language — *associated with* rather than *impacts* or *causes*. This signals that
+we are not claiming a causal relationship.
+
+---
+
+### Computing predicted probabilities (like Stata's `margins`)
+
+Stata uses:
+
+```stata
+margins ontime, atmeans
+di (.7996277 - .636563) / .636563
+```
+
+A tempting shortcut is to divide the coefficient by the constant
+(`0.1259 / 0.6434 ≈ 0.196`), which would seem to give a percentage change. 
+However, the constant here is the predicted probability when all covariates are zero — which means
+`age = 0`, something entirely meaningless in this context.** The constant is therefore not substantively interpretable on its own. We should instead use predicted probabilities evaluated at the means of all covariates:
+
+```{r margins-ontime}
+adults <- dat_glss %>% filter(age >= 25)
+
+
+# Restrict to the estimation sample (no missing values on any regression variable)
+est_sample <- adults %>%
+  filter(!is.na(jhs), !is.na(ontime), !is.na(female), 
+         !is.na(age), !is.na(fathed_yrs), !is.na(weight_s))
+
+means_df <- data.frame(
+  ontime     = c(0, 1),
+  female     = weighted.mean(est_sample$female,     est_sample$weight_s),
+  age        = weighted.mean(est_sample$age,        est_sample$weight_s),
+  fathed_yrs = weighted.mean(est_sample$fathed_yrs, est_sample$weight_s)
+)
+
+pred <- predict(m_lpm, newdata = means_df)
+names(pred) <- c("not_on_time", "on_time")
+pred
+
+pred["on_time"] - pred["not_on_time"]
+(pred["on_time"] - pred["not_on_time"]) / pred["not_on_time"] * 100
+```
+
+
+---
+
+> **Sidebar — why restrict the sample to adults aged 25+?**
+>
+> Think back to the returns-to-education analysis. We restrict to age 25+ because younger
+> respondents may still be enrolled in or completing their education. Including them would
+> mean that some people coded as not having completed JHS simply haven't had the chance yet
+> — they would be completing it in the future. This would bias our estimates downward.
+
+---
+
+### Interaction: does the on-time effect differ by gender?
+
+```{r reg-lpm-interact}
+m_lpm_int <- lm(jhs ~ ontime * female + age + fathed_yrs,
+                data = dat_glss %>% filter(age >= 25),
+                weights = weight_s)
+
+coeftest(m_lpm_int, vcov = vcovCL(m_lpm_int, cluster = ~ clust))
+```
+
+Reading the output directly:
+
+- The coefficient on `female` is the gender gap **among students who did not start on time**
+  (i.e. `ontime = 0`). How much less likely are girls who do not start on time to complete
+  JHS compared with boys in the same group?
+- The overall on-time effect for girls is the sum of `ontime` and `ontime:female`:
+
+```{r overall-ontime-girls}
+# Overall on-time effect for girls: ontime + ontime:female
+linearHypothesis(m_lpm_int, "ontime + ontime:female = 0")
+
+# e.g. 0.0846 + 0.0827 ≈ 0.167 — girls who start on time are ~16.7pp more likely
+# to complete JHS than girls who do not
+```
+
+Is the gender gap **among on-time students** statistically different from zero?
+
+```{r test-gender-gap-ontime}
+# Gender gap among on-time students: female + ontime:female
+linearHypothesis(m_lpm_int, "female + ontime:female = 0")
+```
+
+---
+
+### Using `margins` to interpret the interaction as group averages
+
+
+```{r margins-interact}
+# Create adults — all respondents aged 25+
+
+
+# Estimation sample for the interaction model
+est_sample_int <- adults %>%
+  filter(!is.na(jhs), !is.na(ontime), !is.na(female),
+         !is.na(age), !is.na(fathed_yrs), !is.na(weight_s))
+
+# All four ontime-female combinations, other covariates at weighted means
+means_int <- data.frame(
+  ontime     = c(0, 0, 1, 1),
+  female     = c(0, 1, 0, 1),
+  age        = weighted.mean(est_sample_int$age,        est_sample_int$weight_s),
+  fathed_yrs = weighted.mean(est_sample_int$fathed_yrs, est_sample_int$weight_s)
+)
+
+pred_int <- predict(m_lpm_int, newdata = means_int)
+names(pred_int) <- c("male_not_ontime", "female_not_ontime",
+                     "male_ontime",     "female_ontime")
+
+# Arrange as a 2x2 table matching Stata's margins ontime#female
+matrix(pred_int, nrow = 2, ncol = 2,
+       dimnames = list(c("male", "female"), c("not_ontime", "ontime")))
+
+# Difference-in-differences: the interaction coefficient
+(pred_int["female_ontime"] - pred_int["female_not_ontime"]) -
+(pred_int["male_ontime"]   - pred_int["male_not_ontime"])
+```
+
+These four predicted values can be arranged into a 2 × 2 table:
+
+|              | Not on time (`ontime = 0`) | On time (`ontime = 1`) | Difference (on-time effect) |
+|:-------------|:--------------------------:|:----------------------:|:---------------------------:|
+| **Male**     | 0.758                      | 0.843                  | 0.085                       |
+| **Female**   | 0.542                      | 0.710                  | 0.167                       |
+| **Gender gap** | −0.216                   | −0.133                 |                             |
+
+The **interaction coefficient** is the difference-in-differences:
+
+$$
+(\text{Female \& on time} - \text{Female \& not on time}) - (\text{Male \& on time} - \text{Male \& not on time})
+= (0.710 - 0.542) - (0.843 - 0.758) = 0.168 - 0.085 = 0.083
+$$
+
+This is exactly the `ontime:female` coefficient in the regression. `margins` lets us
+connect regression coefficients back to simple, interpretable group averages — and we can
+eyeball statistical significance by checking whether confidence intervals overlap.
+
+---
+
+### Predicting years of education
+
+We can also use the continuous `edyrtotal` outcome:
+
+```{r reg-edyrtotal}
+m_edyrs <- lm(edyrtotal ~ ontime + age + female + fathed_yrs,
+              data = dat_glss %>% filter(age >= 25),
+              weights = weight_s)
+
+coeftest(m_edyrs, vcov = vcovCL(m_edyrs, cluster = ~ clust))
+```
+
+We can add **predicted values** to a copy of the data to compare what the model implies
+for real people against their actual outcomes. Note that we work on a filtered copy
+(`dat_adults`) rather than overwriting `dat_glss`, so the full dataset remains intact for
+any subsequent analyses:
+
+```{r predict-xb}
+# Work on a separate filtered object — do NOT overwrite dat_glss
+dat_adults <- dat_glss %>%
+  filter(age >= 25) %>%
+  mutate(xb = predict(m_edyrs, newdata = filter(dat_glss, age >= 25)))
+
+# Browse predicted alongside actual (like Stata's browse edyrtotal ontime ... xb)
+dat_adults %>%
+  select(edyrtotal, ontime, age, female, fathed_yrs, xb) %>%
+  head(20)
+```
+
+Predicted values tell us what the model implies for real people; coefficients tell us how
+variables relate to each other in aggregate. Whether you need predicted values will depend
+on your specific research question.
+
+---
+
+### Robustness check: categorical father's education
+
+Finally, we check whether our results are robust to how parental education is specified.
+Instead of years of father's education (`fathed_yrs`) we use educational attainment
+categories (`fatheduc`). In Stata this is written as `i.fatheduc`; in R, `factor(fatheduc)`
+is the equivalent — it creates a set of dummy variables, one per category, with the lowest
+category as the reference group.
+
+```{r reg-edyrtotal-fatheduc}
+m_edyrs_cat <- lm(edyrtotal ~ ontime + age + female + factor(fatheduc),
+                  data    = dat_glss %>% filter(age >= 25),
+                  weights = weight_s)
+
+coeftest(m_edyrs_cat, vcov = vcovCL(m_edyrs_cat, cluster = ~ clust))
+```
+
+Do the conclusions about `ontime` change materially when we use categorical rather than
+continuous father's education? This kind of sensitivity check is good practice whenever the
+functional form of a control variable is uncertain.
+
+
+# 8. EXPORTING RESULTS
+
+### Building a comparison table across specifications
+
+In Stata, you run each regression and immediately pipe the results into `outreg2`, using
+`replace` for the first model and `append` for every subsequent one to build up a
+multi-column table:
+
+```stata
+reg edyrtotal ontime age female if age>=25 [aw=weight_s], cluster(clust)
+outreg2 using "filepath/results", bdec(3) excel replace ctitle("reg1")
+
+reg edyrtotal ontime age female fathed_yrs mothed_yrs if age>=25 [aw=weight_s], cluster(clust)
+outreg2 using "filepath/results", bdec(3) excel append ctitle("reg2")
+```
+
+In R the logic is slightly different: you first run and **store** all the models as
+objects, then pass them together to `modelsummary()` in a single call. There is no
+equivalent of `replace`/`append` because the table is assembled all at once. The clustered
+standard errors — equivalent to Stata's `cluster(clust)` — are passed via the `vcov`
+argument directly inside `modelsummary()`, so they are applied at the export stage just as
+they would be reported after `cluster(clust)` in Stata.
+
+```{r run-export-models}
+# Run and store both specifications
+m_export1 <- lm(edyrtotal ~ ontime + age + female,
+                data    = dat_glss %>% filter(age >= 25),
+                weights = weight_s)
+
+m_export2 <- lm(edyrtotal ~ ontime + age + female + fathed_yrs + mothed_yrs,
+                data    = dat_glss %>% filter(age >= 25),
+                weights = weight_s)
+```
+
+The list names (`"reg1"`, `"reg2"`) become the column headers in the output table,
+equivalent to `ctitle("reg1")` and `ctitle("reg2")` in `outreg2`. Note that `fmt = 3`
+mirrors Stata's `bdec(3)` — three decimal places.
+
+```{r export-to-excel, eval=FALSE}
+# Export a two-column comparison table to Excel
+# vcov = ~clust applies clustered SEs, mirroring cluster(clust)
+# fmt  = 3      gives 3 decimal places, mirroring bdec(3)
+# stars = TRUE  adds significance stars
+modelsummary(
+  list("reg1" = m_export1, "reg2" = m_export2),
+  vcov   = ~ clust,
+  fmt    = 3,
+  stars  = TRUE,
+  output = "results.xlsx"
+)
+```
+
+Changing `output = "results.xlsx"` to `output = "results.docx"` or
+`output = "results.tex"` will export to Word or LaTeX respectively — something that
+requires additional Stata packages but is built into `modelsummary` by default.
+
+---
+
+### Viewing the table in your R session first
+
+Just as you would eyeball regression output in the Stata results window before exporting,
+it is good practice to inspect the table interactively before writing to a file. Omitting
+the `output` argument prints the table to the console or renders it inline in your
+RMarkdown document:
+
+```{r view-table-inline}
+# Preview the table — omit output= to render inline rather than saving to file
+modelsummary(
+  list("reg1" = m_export1, "reg2" = m_export2),
+  vcov  = ~ clust,
+  fmt   = 3,
+  stars = TRUE
+)
+```
+
+---
+
+### A second approach: `texreg` / `wordreg`
+
+In Stata, `estout` is an alternative to `outreg2`. You store estimates with
+`estimates store` and then call `estout` to combine them:
+
+```stata
+reg edyrtotal ontime age female if age>=25 [aw=weight_s], cluster(clust)
+estimates store ed1
+
+reg edyrtotal ontime age female fathed_yrs mothed_yrs if age>=25 [aw=weight_s], cluster(clust)
+est store ed2
+
+estout ed1 ed2 using filepath\results.xls
+```
+
+The closest R equivalent is the **texreg** package, which follows the same
+store-then-combine workflow. In R, "storing" a model simply means assigning it to an
+object — there is no separate `estimates store` command.
+
+```{r texreg-export, eval=FALSE}
+# install.packages("texreg")   # run once if not already installed
+library(texreg)
+
+# "Storing" models — equivalent to estimates store / est store
+ed1 <- m_export1
+ed2 <- m_export2
+
+# Export to Word, mirroring estout ... using results.xls
+# Use screenreg() to print to console; htmlreg() for HTML output
+wordreg(
+  list(ed1, ed2),
+  custom.model.names = c("ed1", "ed2"),
+  override.se = list(
+    sqrt(diag(vcovCL(ed1, cluster = ~ clust))),
+    sqrt(diag(vcovCL(ed2, cluster = ~ clust)))
+  ),
+  digits = 3,
+  file   = "results.docx"
+)
+```
+
+Note that with `texreg` you need to pass the clustered standard errors explicitly via
+`override.se`, whereas `modelsummary`'s `vcov` argument handles this more cleanly. For
+most purposes `modelsummary` is the simpler choice; `texreg`/`wordreg` is worth knowing
+because it mirrors the Stata `estimates store` → `estout` workflow more directly.
+
+---
+
+### Exporting margins output
+
+In Stata, `outreg2` can capture the output of `margins` if you add the `,post` option to
+your `margins` command first. This overwrites the stored estimation results with the
+margins estimates so that `outreg2` can read them:
+
+```stata
+margins ontime, atmeans post
+outreg2 using "filepath/results", bdec(3) excel append ctitle("margins")
+```
+
+In R there is no direct equivalent of this workflow. The cleanest approach is to collect
+your predicted probabilities — computed earlier using `predict()` on the estimation-sample
+means — into a data frame and export it separately alongside your regression table:
+
+```{r export-margins, eval=FALSE}
+# Collect the margins-style predictions computed in section 7
+margins_output <- data.frame(
+  group          = c("not_on_time", "on_time"),
+  predicted_prob = as.numeric(pred)
+)
+
+write.csv(margins_output, "margins_results.csv", row.names = FALSE)
+```
+
+As always in R, there is more than one way to manage regression output. `modelsummary`
+and `texreg`/`wordreg` are the two most direct equivalents of Stata's `outreg2` and
+`estout` respectively, and both support Word, Excel, LaTeX, and HTML output with a single
+argument change.
+---
+
+**LIST OF R COMMANDS USED IN THIS LAB**
+
+| Stata             | R                                                        |
+|------------------|----------------------------------------------------------|
+| svy: reg         | svyglm(..., design = svy_des)                            |
+| svy: mean, over  | svyby(~y, ~group, design, svymean)                       |
+| reg              | lm(), glm()                                              |
+| margins          | margins::margins()                                       |
+| test             | car::linearHypothesis()                                  |
+| predict xb       | mutate(xb = predict(model, newdata = .))                 |
+| display          | type expression in Console, e.g. `15.58 - 12.78`        |
+| outreg2 / estout | modelsummary(), stargazer(), kable()                     |
+| preserve/restore | save_df <- dat; ...; dat <- save_df                      |
+| reg ..., coeflegend | names(coef(model))                                   |
+
+---
+
+# Module 3: Replication lab (R)
+
+This practical uses data from Duflo, E., Dupas, P., and Kremer, M. (2015). School governance, teacher incentives, and pupil–teacher ratios: Experimental evidence from Kenyan primary schools. *Journal of Public Economics*, 123, 92--110.
+
+The study randomized schools to receive an extra contract teacher (ETP program) or to serve as the control group. Thereafter, half the schools in the ETP group were randomly selected to receive the SBM (school-based management) intervention. For this exercise, we will ignore the SBM intervention and just focus on the impact of being in an ETP program school.
+
+To make it easier to find the relevant variables, we have created a dataset that contains only the variables that you will need for this practical. The dataset is `rctprac1.dta`.
+
+In Stata, researchers typically define a **global macro** for the working directory (`global wd "C:/Users/..."`) and reference it throughout the do-file as `$wd`. A global macro is a named container for text or values that is stored in memory and can be called from any command during the session. In R, rather than defining a global working directory, we will use the `here` package to locate files relative to the project folder. This approach is more portable because the code continues to work even if the project is moved to another computer, provided the project structure remains the same.
+
+```{r module3-setup, results='hide'}
+# Install pacman if needed
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman")
+}
+
+# Load (and install if necessary) required packages
+pacman::p_load(haven, here)
+
+# Read the dataset
+rct <- read_dta(here("data2", "rctprac1.dta"))
+```
+
+## Question 1
+
+Use `str()`, `nrow()`, and `length(unique(...))` to answer the following (equivalent to Stata's `codebook` command):
+
+
+a. How many students are there in the dataset?
+
+```{r}
+str(rct)
+```
+
+```{r}
+nrow(rct)
+```
+
+b. How many different schools are there in the dataset?
+```{r}
+length(unique(rct$schoolid))
+```
+
+
+## Question 2
+
+One of the issues that the intervention hoped to address was the very large class sizes (pupil--teacher ratios) in Kenyan schools.
+
+a. At baseline (before the intervention) what was the average class size?
+
+```{r}
+summary(rct$schoolPTR)
+```
+
+b. What is the largest class size?
+
+c. At baseline, what is the average class size for ETP schools and for control schools?
+
+```{r}
+rct %>% 
+  group_by(etpschool) %>% 
+  summarise(mean = mean(schoolPTR), na.rm = TRUE)
+```
+
+d. Use a regression to test for balance between the two groups on class size. Are the differences significant?
+
+```{r}
+rct <- rct %>%
+group_by(schoolid) %>%
+mutate(sch_one = row_number() == 1) %>%
+ungroup()
+```
+
+
+```{r}
+rct1 <- rct %>% 
+  filter(sch_one)
+
+```
+
+```{r}
+
+m1 <- lm(schoolPTR ~ etpschool, data = rct1)
+summary(m1)  
+```
+
+e. What level is the class size variable measured at?
+
+\begin{tcolorbox}[learningbit]
+The problem with running a regression of treatment group on class size is that you have multiple observations per school that artificially increase the sample size --- even small differences will be statistically significant. You want to test for differences at the \textit{school} level. The following code assigns a value of \texttt{TRUE} to the first student observation in each school and \texttt{FALSE} to all others, equivalent to Stata's \texttt{egen sch\_one = tag(schoolid)}:
+
+\begin{verbatim}
+rct <- rct %>%
+  group_by(schoolid) %>%
+  mutate(sch_one = row_number() == 1) %>%
+  ungroup()
+\end{verbatim}
+
+You can use this variable with \texttt{filter()} to restrict any summary or regression to one observation per school, just as you would use \texttt{if sch\_one==1} in Stata. For example, to check what percentage of schools are in Bungoma district:
+
+\begin{verbatim}
+rct %>%
+  filter(sch_one) %>%
+  count(district)
+\end{verbatim}
+\end{tcolorbox}
+
+f. Create the `sch_one` variable using the code above and use it to check if there is balance between the schools in the treatment and control groups on class size. Are the differences significant?
+HINT: this is the same regression from (e), but restricted to one observation per school.
+
+## Question 3
+
+a. What is the overall rate of attrition?
+
+b. Is there differential attrition between the treatment groups?
+c. Is the difference significant? (HINT: run a regression of attrition on treatment.) How do you interpret the coefficient when your dependent variable is a dummy variable?
+
+\begin{tcolorbox}[learningbit]
+Recall that unless we tell it otherwise, R (like Stata) assumes our data are from a simple random sample where all the observations are independent. However, in this dataset we have students within schools. Within a school there is likely to be correlation in outcomes across students. To correct the standard errors to allow for correlation between students in the same school, we need to cluster at the school level. This is equivalent to Stata's \texttt{, cluster(schoolid)} option. In R we do this using \texttt{coeftest()} from \texttt{lmtest} together with \texttt{vcovCL()} from \texttt{sandwich}. To test if there is differential attrition between learners in control and ETP schools:
+
+\begin{verbatim}
+m_attr <- lm(attrition ~ etpschool, data = rct)
+coeftest(m_attr, vcov = vcovCL(m_attr, cluster = ~ schoolid))
+\end{verbatim}
+\end{tcolorbox}
+
+d. Run the amended regression taking the clustering into account. What has happened to the point estimate? What has happened to the standard error?
+
+e. Is the overall attrition rate different for boys and girls?
+
+```{r q3e-gender, results='hide'}
+rct %>%
+  group_by(girl) %>%
+  summarise(attrition_rate = mean(attrition, na.rm = TRUE))
+```
+
+\begin{tcolorbox}[learningbit]
+Beyond knowing whether there is differential attrition between the treatment and control groups, we are interested in whether the \textit{correlates} of attrition differ between the two groups --- i.e.\ did we lose different types of students from each group? To investigate this, we use \textbf{interaction terms}.
+
+In Stata, the recommended syntax for interactions is \texttt{\#\#}, which automatically generates the main effects and the interaction, and allows post-estimation commands like \texttt{margins} to work correctly. Stata assumes variables in an interaction are categorical/dummy unless you use the \texttt{c.}\ prefix for continuous variables.
+
+In R, \texttt{*} between two variables in a formula generates both main effects and the interaction --- exactly like \texttt{\#\#} in Stata. No prefix is needed to distinguish continuous from categorical variables; R infers this from the variable type. The equivalent of Stata's \texttt{c.agetest} is simply \texttt{agetest} if it is stored as numeric.
+
+\begin{verbatim}
+m_attr_int <- lm(attrition ~ etpschool * girl, data = rct)
+coeftest(m_attr_int, vcov = vcovCL(m_attr_int, cluster = ~ schoolid))
+
+# Predicted attrition for each group (like Stata's: margins etpschool#girl)
+margins(m_attr_int, at = list(etpschool = c(0, 1), girl = c(0, 1)))
+\end{verbatim}
+
+Also examine whether attrition correlates with age at test using a continuous interaction (equivalent to Stata's \texttt{reg attrition etpschool\#\#c.agetest, cluster(schoolid)}). In R no prefix is needed for continuous variables:
+
+\begin{verbatim}
+m_attr_age <- lm(attrition ~ etpschool * agetest, data = rct)
+coeftest(m_attr_age, vcov = vcovCL(m_attr_age, cluster = ~ schoolid))
+\end{verbatim}
+\end{tcolorbox}
+
+f. What do the results from the gender interaction regression tell us about attrition in this study?
+
+## Question 4
+
+We are now going to look at class size at endline by treatment group.
+
+a. What is the average class size at endline for control schools and for ETP schools?
+b. Use the help function to find out how to create side-by-side histograms of endline class size for control and treatment schools. HINT: `, by()` in Stata becomes `facet_wrap()` in ggplot2.
+
+
+## Question 5
+
+In addition to very large class sizes, heterogeneity within a class is another issue in Kenya. There is considerable variation in age within a class as a result of late entry to school and grade repetition.
+
+a. What is the range in ages? What is the interquartile range?
+b. How many students who were tested at endline have missing age data?
+
+\begin{tcolorbox}[learningbit]
+If we want to use age as a covariate in our regression, students with missing age values will be dropped. Even when the number of students with missing age is small, adding several covariates each with some missing data can result in dropping a sizeable number of observations, potentially introducing selection bias.
+
+A common strategy to deal with this is to (i) create a dummy variable indicating that \texttt{agetest} is missing, and (ii) replace the missing values of \texttt{agetest} with a fixed value (e.g.\ 0). Both variables are then included together in the regression. The dummy variable absorbs any systematic difference between students with and without age data, while the recoded variable allows all students to remain in the sample.
+
+Create a dummy variable that indicates that \texttt{agetest} is missing. In Stata:
+
+\begin{verbatim}
+gen agetest_m = agetest >= . if attrition == 0
+\end{verbatim}
+
+Create a new variable equal to \texttt{agetest} if not missing, and equal to zero if missing. In Stata:
+
+\begin{verbatim}
+recode agetest (.=0) if attrition==0, gen(agetest_no_miss)
+\end{verbatim}
+
+The equivalent in R:
+
+\begin{verbatim}
+rct <- rct %>%
+  mutate(
+    agetest_m       = ifelse(attrition == 0,
+                             as.integer(is.na(agetest)), NA_integer_),
+    agetest_no_miss = ifelse(attrition == 0 & is.na(agetest), 0, agetest)
+  )
+\end{verbatim}
+\end{tcolorbox}
+
+## Question 6
+
+\begin{tcolorbox}[learningbit]
+We will now estimate the impact on the standardised total score of being in an ETP school. To obtain correct standard errors we need to cluster at the school level (the unit of randomisation). We also need to include dummy variables for the randomisation strata --- the sample was stratified by district before randomisation.
+
+Use the \texttt{describe} or \texttt{codebook} equivalent in R to inspect the \texttt{district} variable. What is the variable type? In Stata a string variable generates an error if included directly in a regression. To control for strata, create a dummy variable for each district. In Stata:
+
+\begin{verbatim}
+tab district, gen(temp)
+rename temp1 bungoma
+rename temp2 butere
+\end{verbatim}
+
+This command creates a dummy variable for each category in \texttt{district}. In this case there are two districts, creating \texttt{temp1} and \texttt{temp2}, which are then renamed to the district names. The R equivalent creates the dummies directly:
+
+\begin{verbatim}
+rct <- rct %>%
+  mutate(
+    bungoma = as.integer(district == "Bungoma"),
+    butere  = as.integer(district == "Butere")
+  )
+\end{verbatim}
+\end{tcolorbox}
+
+a. Estimate the impact on the standardised total score of being in an ETP school. Remember to cluster your standard errors and include a dummy variable for the strata. Interpret your regression results.
+
+b. Add the following covariates to your regression: `girl`, `kcpe2004`, `agetest_no_miss`, `agetest_m`. What happens to the standard error of the estimated treatment effect? Why?
+
+## Question 7
+
+We now turn to the comparison between contract and government teachers within ETP schools.
+
+a. Within ETP schools, estimate the impact on the standardised total score of being assigned to a contract teacher. Interpret the results. (HINT: you will need to use an `if` equivalent to restrict to ETP schools.)
+
+b. We are interested in whether there are heterogeneous effects based on learner proficiency at baseline. Re-run your regression including an interaction term between being assigned to a contract teacher and the indicator that the student was in the bottom half of their class at baseline. Fully interpret the results.
+
+c. Test whether the overall effect of contract teachers is significantly different from zero for students in the bottom half.
+
+---
+
+## List of R commands used in Module 3
+
+| Stata command | R equivalent |
+|---|---|
+| `global wd "..."` | `wd <- "..."` then use in `file.path()` or `setwd()` |
+| `use "$wd/file.dta", clear` | `read_dta("file.dta")` (`haven`) |
+| `codebook` / `describe` | `str()`, `summary()`, `class()` |
+| `sum varname` | `summary(rct$varname)` or `mean(..., na.rm=TRUE)` |
+| `sum varname if sch_one==1` | `rct %>% filter(sch_one) %>% summarise(...)` |
+| `bysort group: ...` | `rct %>% group_by(group) %>% summarise(...)` |
+| `egen sch_one = tag(schoolid)` | `group_by(schoolid) %>% mutate(sch_one = row_number()==1)` |
+| `reg y x, cluster(schoolid)` | `lm(y ~ x, data=rct)` + `coeftest(..., vcov=vcovCL(..., cluster=~schoolid))` |
+| `reg y x##z, cluster(schoolid)` | `lm(y ~ x * z, data=rct)` + `coeftest(...)` with `vcovCL` |
+| `reg y x##c.z, cluster(schoolid)` | Same as above — no prefix needed in R for continuous variables |
+| `margins x#z` | `margins(model, at=list(x=c(0,1), z=c(0,1)))` (`margins`) |
+| `test _b[a] + _b[a#b] = 0` | `linearHypothesis(model, "a + a:b = 0")` (`car`) |
+| `tab district, gen(temp)` + `rename` | `mutate(bungoma = as.integer(district=="Bungoma"), ...)` |
+| `gen agetest_m = agetest>=. if attrition==0` | `mutate(agetest_m = ifelse(attrition==0, as.integer(is.na(agetest)), NA))` |
+| `recode agetest (.=0) if attrition==0, gen(agetest_no_miss)` | `mutate(agetest_no_miss = ifelse(attrition==0 & is.na(agetest), 0, agetest))` |
+| `hist varname, by(group)` | `ggplot(aes(x=varname)) + geom_histogram() + facet_wrap(~group)` |
+
+---
+
+
+# Potential challenges and notes
+
+- **Survey design:** Stata’s `svyset` and `svy:` have a direct counterpart in R’s **survey** package (`svydesign`, `svyglm`, `svymean`). Design effects and some post-estimation tools may require a bit more manual steps in R.  
+- **Value labels:** Stata `.dta` files read with **haven** preserve labels as labelled integers. The idiomatic R approach is to keep columns numeric and convert to factor at the point of use (in a table, plot, or model formula) using `haven::as_factor()` or `factor(..., labels = ...)` inline. Avoid converting permanently in the data frame unless the column will never be used numerically. Use `labelled::val_labels()` to inspect codes and `labelled::look_for()` to search variable names and labels simultaneously.  
+- **Matching Stata output exactly:** Small numerical differences can occur; clustering and weighting should be specified the same way.  
+- **PDF output:** This .Rmd is set up for `pdf_document` in the YAML. Rendering to PDF requires a LaTeX installation (e.g. TinyTeX: `install.packages("tinytex"); tinytex::install_tinytex()`).  
+- **Audience:** The level of R used here is aligned with the Stata level: base R plus tidyverse and survey, with minimal jargon, so that beginners can follow and more advanced users can extend.

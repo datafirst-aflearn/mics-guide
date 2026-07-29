@@ -1,46 +1,30 @@
 <!DOCTYPE html>
-<html lang="" xml:lang="">
+
+<html>
+
 <head>
 
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>YOUR TITLE HERE</title>
-  <meta name="description" content="YOUR TITLE HERE" />
-  <meta name="generator" content="bookdown 0.19 and GitBook 2.6.7" />
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-  <meta property="og:title" content="YOUR TITLE HERE" />
-  <meta property="og:type" content="book" />
-  
-  
-  
-  
-
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="YOUR TITLE HERE" />
-  
-  
-  
-
-<meta name="author" content="YOUR NAME HERE" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
-<meta name="date" content="2020-08-10" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  
-  
+<title>MICS Analysis Guide</title>
 
-<link rel="next" href="the-pool-of-tears.html"/>
-<script src="libs/jquery-2.2.3/jquery.min.js"></script>
-<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+<script src="nav-guide_files/header-attrs-2.31/header-attrs.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+      .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
 
 
 
@@ -52,110 +36,650 @@
 
 
 
-
-<link rel="stylesheet" href="style.css" type="text/css" />
 </head>
 
 <body>
 
 
 
-  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
 
-    <div class="book-summary">
-      <nav role="navigation">
+<h1 class="title toc-ignore">MICS Analysis Guide</h1>
 
-<ul class="summary">
-<li><a href="./">SHORT TITLE HERE</a></li>
 
-<li class="divider"></li>
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Down the rabbit-hole</a></li>
-<li class="chapter" data-level="2" data-path="the-pool-of-tears.html"><a href="the-pool-of-tears.html"><i class="fa fa-check"></i><b>2</b> The pool of tears</a></li>
-<li class="chapter" data-level="3" data-path="a-caucus-race-and-a-long-tale.html"><a href="a-caucus-race-and-a-long-tale.html"><i class="fa fa-check"></i><b>3</b> A caucus-race and a long tale</a></li>
-<li class="divider"></li>
-<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
-</ul>
 
-      </nav>
-    </div>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <div class="book-body">
-      <div class="body-inner">
-        <div class="book-header" role="navigation">
-          <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">YOUR TITLE HERE</a>
-          </h1>
-        </div>
-
-        <div class="page-wrapper" tabindex="-1" role="main">
-          <div class="page-inner">
-
-            <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">YOUR TITLE HERE</h1>
-<p class="author"><em>YOUR NAME HERE</em></p>
-<p class="date"><em>2020-08-10</em></p>
-</div>
-<div id="down-the-rabbit-hole" class="section level1">
-<h1><span class="header-section-number">Chapter 1</span> Down the rabbit-hole</h1>
-
-</div>
-            </section>
-
-          </div>
-        </div>
-      </div>
-
-<a href="the-pool-of-tears.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
-    </div>
-  </div>
-<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
-<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
-<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
-<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
-<script>
-gitbook.require(["gitbook"], function(gitbook) {
-gitbook.start({
-"sharing": {
-"github": false,
-"facebook": true,
-"twitter": true,
-"linkedin": false,
-"weibo": false,
-"instapaper": false,
-"vk": false,
-"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
-},
-"fontsettings": {
-"theme": "white",
-"family": "sans",
-"size": 2
-},
-"edit": {
-"link": "https://github.com/YOUR GITHUB USERNAME/YOUR REPO NAME/edit/master/index.Rmd",
-"text": "Edit"
-},
-"history": {
-"link": null,
-"text": null
-},
-"view": {
-"link": "https://github.com/YOUR GITHUB USERNAME/YOUR REPO NAME/blob/master/index.Rmd",
-"text": null
-},
-"download": null,
-"toc": {
-"collapse": "subsection"
+<style>
+:root {
+  --af-navy: #080056;
+  --af-card: #0E0C6A;
+  --af-cyan: #0DD8F9;
+  --af-orange: #FFAD44;
+  --af-tagline: #BAB8D0;
+  --af-welcome: #0B3954;
+  --af-on: #FFFFFF;
+  --af-muted: rgba(255, 255, 255, 0.72);
+  --af-soft: rgba(255, 255, 255, 0.48);
+  --af-hairline: rgba(255, 255, 255, 0.16);
 }
-});
-});
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--af-navy) !important;
+  color: var(--af-on);
+}
+
+#header,
+h1.title,
+.title,
+.book-header,
+.book-summary {
+  display: none !important;
+}
+
+.book .book-body,
+.book .page-inner,
+.book .page-wrapper,
+.book .section.normal {
+  background-color: var(--af-navy) !important;
+  border: none !important;
+  max-width: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.book-body {
+  margin-left: 0 !important;
+}
+
+#mics-landing {
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--af-navy);
+}
+
+.af-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--af-hairline);
+  background: var(--af-navy);
+}
+
+.af-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--af-on);
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.af-nav-brand img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+}
+
+.af-nav-spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+.af-search-wrap {
+  position: relative;
+  min-width: 200px;
+  max-width: 280px;
+  flex: 1;
+}
+
+.af-search {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--af-hairline);
+  border-radius: 8px;
+  padding: 8px 12px;
+  padding-right: 64px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--af-on);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+}
+
+.af-search::placeholder {
+  color: var(--af-soft);
+}
+
+.af-search:focus {
+  border-color: var(--af-cyan);
+}
+
+.af-search-kbd {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: var(--af-soft);
+  pointer-events: none;
+}
+
+.af-search-results {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+  background: var(--af-card);
+  border: 1px solid var(--af-hairline);
+  border-radius: 10px;
+  overflow: hidden;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.af-search-results.open {
+  display: block;
+}
+
+.af-search-hit {
+  display: block;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: var(--af-on);
+  border-bottom: 1px solid var(--af-hairline);
+}
+
+.af-search-hit:last-child {
+  border-bottom: none;
+}
+
+.af-search-hit:hover,
+.af-search-hit.active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.af-search-hit-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.af-search-hit-meta {
+  font-size: 12px;
+  color: var(--af-soft);
+  margin-top: 2px;
+}
+
+.af-search-empty {
+  padding: 12px;
+  font-size: 13px;
+  color: var(--af-soft);
+}
+
+.af-nav-link {
+  color: var(--af-cyan);
+  font-weight: 500;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.af-nav-link-muted {
+  color: var(--af-muted);
+  font-size: 15px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.af-nav-link-muted:hover {
+  color: var(--af-on);
+}
+
+.af-nav-github {
+  width: 22px;
+  height: 22px;
+  display: block;
+  fill: currentColor;
+}
+
+.af-hero {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 20px;
+  align-items: center;
+  padding: 20px 28px 8px;
+}
+
+@media (max-width: 800px) {
+  .af-hero {
+    grid-template-columns: 1fr;
+    padding: 20px 16px 8px;
+  }
+  .af-hero-logo {
+    order: -1;
+    justify-content: flex-start;
+  }
+}
+
+.af-hero-title {
+  margin: 0;
+  font-size: clamp(26px, 3.2vw, 36px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--af-cyan);
+}
+
+.af-hero-sub {
+  margin: 10px 0 0;
+  font-size: clamp(15px, 1.8vw, 20px);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--af-on);
+}
+
+.af-hero-tag {
+  margin: 6px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--af-tagline);
+}
+
+.af-hero-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 0;
+}
+
+.af-hero-logo img {
+  width: min(96px, 28vw);
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.af-hero-wordmark {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  color: var(--af-on);
+}
+
+.af-hero-wordmark-primary {
+  margin: 0;
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.af-hero-wordmark-secondary {
+  margin: 0;
+  font-size: clamp(11px, 1.3vw, 14px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+}
+
+.af-features {
+  padding: 8px 28px 28px;
+}
+
+.af-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.af-grid > .af-card {
+  grid-column: span 2;
+}
+
+/* Five cards: row of three, then two centred on the second row */
+.af-grid > .af-card:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+
+.af-grid > .af-card:nth-child(5) {
+  grid-column: 4 / span 2;
+}
+
+@media (max-width: 900px) {
+  .af-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .af-grid > .af-card,
+  .af-grid > .af-card:nth-child(4),
+  .af-grid > .af-card:nth-child(5) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .af-grid {
+    grid-template-columns: 1fr;
+  }
+  .af-features {
+    padding: 12px 16px 28px;
+  }
+}
+
+.af-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--af-card);
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.af-card:hover {
+  border-color: var(--af-orange);
+}
+
+.af-card-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--af-orange);
+}
+
+.af-card-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--af-on);
+}
+
+.af-card-chip {
+  display: inline-flex;
+  align-self: flex-start;
+  border-radius: 999px;
+  padding: 3px 10px;
+  border: 1px solid var(--af-hairline);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--af-muted);
+}
+
+.af-card-details {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--af-muted);
+}
+</style>
+
+<div id="mics-landing">
+
+  <header class="af-nav">
+    <a class="af-nav-brand" href="index.html">
+      <img src="files/AFLEARN-mark-nav.png" alt="AFLEARN" width="32" height="32">
+      <span>MICS Analysis Guide</span>
+    </a>
+    <div class="af-nav-spacer"></div>
+    <div class="af-search-wrap">
+      <input id="af-search-input"
+             class="af-search"
+             type="search"
+             placeholder="Search"
+             autocomplete="off"
+             aria-label="Search the guide"
+             aria-controls="af-search-results"
+             aria-expanded="false">
+      <span class="af-search-kbd" id="af-search-kbd">Ctrl K</span>
+      <div id="af-search-results" class="af-search-results" role="listbox"></div>
+    </div>
+    <a class="af-nav-link" href="index.html">Home</a>
+    <a class="af-nav-link-muted"
+       href="https://github.com/datafirst-aflearn/mics-guide"
+       target="_blank"
+       rel="noopener"
+       aria-label="GitHub repository">
+      <svg class="af-nav-github" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+    </a>
+  </header>
+
+  <section class="af-hero">
+    <div>
+      <h1 class="af-hero-title">MICS Analysis Guide</h1>
+      <p class="af-hero-sub">Analysing MICS data in Stata and R</p>
+    </div>
+    <div class="af-hero-logo">
+      <img src="files/AFLEARN-mark.png" alt="" width="120" height="120">
+      <div class="af-hero-wordmark">
+        <p class="af-hero-wordmark-primary">AFLEARN</p>
+        <p class="af-hero-wordmark-secondary">DATAHUB</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="af-features">
+    <div class="af-grid" id="card-grid">
+
+      <a class="af-card" href="c01-download.html" data-category="guide">
+        <svg class="af-card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M20 8v16M13 17l7 7 7-7M10 30h20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3 class="af-card-title">Download the MICS Data</h3>
+        <span class="af-card-chip">Guide</span>
+        <p class="af-card-details">Access datasets, documentation, and supporting resources.</p>
+      </a>
+
+      <a class="af-card" href="ch-whats-in-data.html" data-category="guide">
+        <svg class="af-card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <rect x="8" y="10" width="24" height="20" rx="3" stroke="currentColor" stroke-width="2.2"/>
+          <path d="M8 16h24M14 10v20M20 16v14M26 16v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h3 class="af-card-title">Understanding MICS Data</h3>
+        <span class="af-card-chip">Guide</span>
+        <p class="af-card-details">Learn about the survey design, sample, and dataset structure.</p>
+      </a>
+
+      <a class="af-card" href="c05-harmonize.html" data-category="guide">
+        <svg class="af-card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M8 12h10M8 20h24M8 28h16M28 8l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3 class="af-card-title">Harmonising MICS6 reading outcomes</h3>
+        <span class="af-card-chip">Guide</span>
+        <p class="af-card-details">Build one comparable reading dataset from many country surveys.</p>
+      </a>
+
+      <a class="af-card" href="c03-r.html" data-category="analysis">
+        <svg class="af-card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="18" cy="18" r="9" stroke="currentColor" stroke-width="2.2"/>
+          <path d="M18 9v18M23 22l5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+        <h3 class="af-card-title">R Tutorial</h3>
+        <span class="af-card-chip">Analysis</span>
+        <p class="af-card-details">Worked examples for common analytical tasks in R.</p>
+      </a>
+
+      <a class="af-card" href="c04-stata.html" data-category="analysis">
+        <svg class="af-card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M10 28V12h6c4 0 7 2.5 7 6.5S20 25 16 25h-6M22 28l8-16M30 28l-8-16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3 class="af-card-title">Stata Tutorial</h3>
+        <span class="af-card-chip">Analysis</span>
+        <p class="af-card-details">Worked examples for common analytical tasks in Stata.</p>
+      </a>
+
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  var destinations = [
+    {
+      title: "Download the MICS Data",
+      details: "Access datasets, documentation, and supporting resources.",
+      href: "c01-download.html",
+      category: "Guide",
+      keywords: "download data datasets documentation resources mics"
+    },
+    {
+      title: "Understanding MICS Data",
+      details: "Learn about the survey design, sample, and dataset structure.",
+      href: "ch-whats-in-data.html",
+      category: "Guide",
+      keywords: "structure sample survey microdata whats in the data mics"
+    },
+    {
+      title: "Harmonising MICS6 reading outcomes",
+      details: "Build one comparable reading dataset from many country surveys.",
+      href: "c05-harmonize.html",
+      category: "Guide",
+      keywords: "harmonise harmonize reading fs foundational learning skills append stata r mics6"
+    },
+    {
+      title: "R Tutorial",
+      details: "Worked examples for common analytical tasks in R.",
+      href: "c03-r.html",
+      category: "Analysis",
+      keywords: "r tidyverse regression means survey tutorial"
+    },
+    {
+      title: "Stata Tutorial",
+      details: "Worked examples for common analytical tasks in Stata.",
+      href: "c04-stata.html",
+      category: "Analysis",
+      keywords: "stata means regression group differences tutorial"
+    }
+  ];
+
+  var input = document.getElementById("af-search-input");
+  var results = document.getElementById("af-search-results");
+  var kbd = document.getElementById("af-search-kbd");
+  var activeIndex = -1;
+
+  if (/Mac|iPhone|iPad|iPod/.test(navigator.platform)) {
+    kbd.textContent = "⌘ K";
+  }
+
+  function normalize(s) {
+    return (s || "").toLowerCase();
+  }
+
+  function search(query) {
+    var q = normalize(query).trim();
+    if (!q) return [];
+    return destinations.filter(function (d) {
+      var hay = normalize(d.title + " " + d.details + " " + d.category + " " + d.keywords);
+      return hay.indexOf(q) !== -1;
+    });
+  }
+
+  function render(hits) {
+    activeIndex = -1;
+    if (!input.value.trim()) {
+      results.classList.remove("open");
+      input.setAttribute("aria-expanded", "false");
+      results.innerHTML = "";
+      return;
+    }
+    if (!hits.length) {
+      results.innerHTML = '<div class="af-search-empty">No matching sections</div>';
+      results.classList.add("open");
+      input.setAttribute("aria-expanded", "true");
+      return;
+    }
+    results.innerHTML = hits.map(function (d, i) {
+      return (
+        '<a class="af-search-hit" role="option" data-index="' + i + '" href="' + d.href + '">' +
+          '<div class="af-search-hit-title">' + d.title + '</div>' +
+          '<div class="af-search-hit-meta">' + d.category + " · " + d.details + '</div>' +
+        '</a>'
+      );
+    }).join("");
+    results.classList.add("open");
+    input.setAttribute("aria-expanded", "true");
+  }
+
+  function setActive(next) {
+    var hits = results.querySelectorAll(".af-search-hit");
+    if (!hits.length) return;
+    activeIndex = (next + hits.length) % hits.length;
+    hits.forEach(function (el, i) {
+      el.classList.toggle("active", i === activeIndex);
+    });
+    hits[activeIndex].scrollIntoView({ block: "nearest" });
+  }
+
+  input.addEventListener("input", function () {
+    render(search(input.value));
+  });
+
+  input.addEventListener("keydown", function (e) {
+    var hits = results.querySelectorAll(".af-search-hit");
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive(activeIndex + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive(activeIndex - 1);
+    } else if (e.key === "Enter" && activeIndex >= 0 && hits[activeIndex]) {
+      e.preventDefault();
+      window.location.href = hits[activeIndex].getAttribute("href");
+    } else if (e.key === "Escape") {
+      results.classList.remove("open");
+      input.setAttribute("aria-expanded", "false");
+      input.blur();
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    var meta = e.metaKey || e.ctrlKey;
+    if (meta && (e.key === "k" || e.key === "K")) {
+      e.preventDefault();
+      input.focus();
+      input.select();
+    }
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest(".af-search-wrap")) {
+      results.classList.remove("open");
+      input.setAttribute("aria-expanded", "false");
+    }
+  });
+})();
 </script>
 
-</body>
 
+
+<!-- code folding -->
+
+
+
+</body>
 </html>
