@@ -86,23 +86,6 @@ then call:
 prepare_mics_data(zip = "C:/path/to/MICS_Datasets.zip")
 ```
 
-## Guide workspace
-
-For this guide, run prepare so the survey folders land under the project’s
-`data/MICS_Datasets/`. The v1.1 harmonize scripts live in the same `data/`
-folder:
-
-``` text
-mics-guide/
-└── data/
-    ├── MICS_Datasets/
-    │   └── BEN_2021_MICS6_v01_M/fs.sav
-    ├── harmonize-mics-reading-v1.1.R
-    └── harmonize-mics-reading-v1.1.do
-```
-
-Later chapters assume this layout and a working directory set to the
-**mics-guide project root**.
 
 ## Quality checks
 
