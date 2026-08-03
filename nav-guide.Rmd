@@ -15,16 +15,22 @@ output:
 
 <style>
 :root {
-  --af-navy: #080056;
-  --af-card: #0E0C6A;
+  --af-navy: #eef3f7;
+  --af-card: #FFFFFF;
+  --af-bright: #0049ff;
   --af-cyan: #0DD8F9;
   --af-orange: #FFAD44;
-  --af-tagline: #BAB8D0;
-  --af-welcome: #0B3954;
-  --af-on: #FFFFFF;
-  --af-muted: rgba(255, 255, 255, 0.72);
-  --af-soft: rgba(255, 255, 255, 0.48);
-  --af-hairline: rgba(255, 255, 255, 0.16);
+  --af-chip: #D6E8FF;
+  --af-tagline: rgba(13, 13, 82, 0.55);
+  --af-welcome: #0d0d52;
+  --af-on: #0d0d52;
+  --af-muted: rgba(13, 13, 82, 0.72);
+  --af-soft: rgba(13, 13, 82, 0.48);
+  --af-hairline: rgba(13, 13, 82, 0.12);
+  --af-card-on: #0d0d52;
+  --af-card-muted: rgba(13, 13, 82, 0.68);
+  --af-card-soft: rgba(13, 13, 82, 0.48);
+  --af-card-hairline: rgba(13, 13, 82, 0.10);
 }
 
 html, body {
@@ -112,7 +118,7 @@ h1.title,
   border-radius: 8px;
   padding: 8px 12px;
   padding-right: 64px;
-  background: rgba(255, 255, 255, 0.06);
+  background: #FFFFFF;
   color: var(--af-on);
   font-family: inherit;
   font-size: 15px;
@@ -124,7 +130,7 @@ h1.title,
 }
 
 .af-search:focus {
-  border-color: var(--af-cyan);
+  border-color: var(--af-bright);
 }
 
 .af-search-kbd {
@@ -145,11 +151,12 @@ h1.title,
   top: calc(100% + 6px);
   z-index: 40;
   background: var(--af-card);
-  border: 1px solid var(--af-hairline);
+  border: 1px solid var(--af-card-hairline);
   border-radius: 10px;
   overflow: hidden;
   max-height: 320px;
   overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(13, 13, 82, 0.10);
 }
 
 .af-search-results.open {
@@ -160,8 +167,8 @@ h1.title,
   display: block;
   padding: 10px 12px;
   text-decoration: none;
-  color: var(--af-on);
-  border-bottom: 1px solid var(--af-hairline);
+  color: var(--af-card-on);
+  border-bottom: 1px solid var(--af-card-hairline);
 }
 
 .af-search-hit:last-child {
@@ -170,7 +177,7 @@ h1.title,
 
 .af-search-hit:hover,
 .af-search-hit.active {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(13, 13, 82, 0.05);
 }
 
 .af-search-hit-title {
@@ -180,18 +187,18 @@ h1.title,
 
 .af-search-hit-meta {
   font-size: 12px;
-  color: var(--af-soft);
+  color: var(--af-card-soft);
   margin-top: 2px;
 }
 
 .af-search-empty {
   padding: 12px;
   font-size: 13px;
-  color: var(--af-soft);
+  color: var(--af-card-soft);
 }
 
 .af-nav-link {
-  color: var(--af-cyan);
+  color: var(--af-bright);
   font-weight: 500;
   font-size: 16px;
   text-decoration: none;
@@ -219,9 +226,9 @@ h1.title,
 .af-hero {
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
-  gap: 20px;
+  gap: 24px;
   align-items: center;
-  padding: 20px 28px 8px;
+  padding: 28px 28px 12px;
 }
 
 @media (max-width: 800px) {
@@ -241,7 +248,7 @@ h1.title,
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  color: var(--af-cyan);
+  color: var(--af-bright);
 }
 
 .af-hero-sub {
@@ -262,79 +269,31 @@ h1.title,
 
 .af-hero-logo {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
   min-height: 0;
 }
 
 .af-hero-logo img {
-  width: min(96px, 28vw);
+  width: min(280px, 70vw);
   height: auto;
   display: block;
   object-fit: contain;
 }
 
-.af-hero-wordmark {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  text-align: center;
-  color: var(--af-on);
-}
-
-.af-hero-wordmark-primary {
-  margin: 0;
-  font-size: clamp(22px, 2.6vw, 30px);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  line-height: 1;
-}
-
-.af-hero-wordmark-secondary {
-  margin: 0;
-  font-size: clamp(11px, 1.3vw, 14px);
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  line-height: 1;
-}
-
 .af-features {
-  padding: 8px 28px 28px;
+  padding: 12px 28px 40px;
 }
 
 .af-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 14px;
-  max-width: 1080px;
-  margin: 0 auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
-.af-grid > .af-card {
-  grid-column: span 2;
-}
-
-/* Five cards: row of three, then two centred on the second row */
-.af-grid > .af-card:nth-child(4) {
-  grid-column: 2 / span 2;
-}
-
-.af-grid > .af-card:nth-child(5) {
-  grid-column: 4 / span 2;
-}
-
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .af-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .af-grid > .af-card,
-  .af-grid > .af-card:nth-child(4),
-  .af-grid > .af-card:nth-child(5) {
-    grid-column: auto;
   }
 }
 
@@ -343,59 +302,64 @@ h1.title,
     grid-template-columns: 1fr;
   }
   .af-features {
-    padding: 12px 16px 28px;
+    padding: 20px 16px 40px;
   }
 }
 
 .af-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 22px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--af-card-hairline);
   background: var(--af-card);
+  box-shadow: 0 4px 18px rgba(13, 13, 82, 0.07);
   text-decoration: none;
   color: inherit;
   height: 100%;
   box-sizing: border-box;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .af-card:hover {
-  border-color: var(--af-orange);
+  border-color: rgba(0, 73, 255, 0.35);
+  box-shadow: 0 6px 22px rgba(13, 13, 82, 0.11);
 }
 
 .af-card-icon {
-  width: 32px;
-  height: 32px;
-  color: var(--af-orange);
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
 }
 
 .af-card-title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--af-on);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--af-card-on);
 }
 
 .af-card-chip {
   display: inline-flex;
   align-self: flex-start;
   border-radius: 999px;
-  padding: 3px 10px;
-  border: 1px solid var(--af-hairline);
-  background: rgba(255, 255, 255, 0.06);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--af-muted);
+  padding: 4px 12px;
+  border: none;
+  background: var(--af-chip);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--af-on);
 }
 
 .af-card-details {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--af-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--af-card-muted);
 }
 </style>
 
@@ -437,11 +401,7 @@ h1.title,
       <p class="af-hero-sub">Analysing MICS data in Stata and R</p>
     </div>
     <div class="af-hero-logo">
-      <img src="files/AFLEARN-mark.png" alt="" width="120" height="120">
-      <div class="af-hero-wordmark">
-        <p class="af-hero-wordmark-primary">AFLEARN</p>
-        <p class="af-hero-wordmark-secondary">DATAHUB</p>
-      </div>
+      <img src="files/AFLEARN-datahub-lockup.png" alt="AFLEARN DATAHUB" width="280" height="191">
     </div>
   </section>
 
@@ -449,47 +409,35 @@ h1.title,
     <div class="af-grid" id="card-grid">
 
       <a class="af-card" href="c01-download.html" data-category="guide">
-        <svg class="af-card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <path d="M20 8v16M13 17l7 7 7-7M10 30h20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <img class="af-card-icon" src="files/icons/ahead-bars.svg" alt="" width="40" height="40">
         <h3 class="af-card-title">Download the MICS Data</h3>
         <span class="af-card-chip">Guide</span>
         <p class="af-card-details">Access datasets, documentation, and supporting resources.</p>
       </a>
 
       <a class="af-card" href="ch-whats-in-data.html" data-category="guide">
-        <svg class="af-card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <rect x="8" y="10" width="24" height="20" rx="3" stroke="currentColor" stroke-width="2.2"/>
-          <path d="M8 16h24M14 10v20M20 16v14M26 16v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <img class="af-card-icon" src="files/icons/ahead-book.svg" alt="" width="40" height="40">
         <h3 class="af-card-title">Understanding MICS Data</h3>
         <span class="af-card-chip">Guide</span>
         <p class="af-card-details">Learn about the survey design, sample, and dataset structure.</p>
       </a>
 
       <a class="af-card" href="c05-harmonize.html" data-category="guide">
-        <svg class="af-card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <path d="M8 12h10M8 20h24M8 28h16M28 8l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <img class="af-card-icon" src="files/icons/ahead-layers.svg" alt="" width="40" height="40">
         <h3 class="af-card-title">Harmonising MICS6 reading outcomes</h3>
         <span class="af-card-chip">Guide</span>
         <p class="af-card-details">Build one comparable reading dataset from many country surveys.</p>
       </a>
 
       <a class="af-card" href="c03-r.html" data-category="analysis">
-        <svg class="af-card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <circle cx="18" cy="18" r="9" stroke="currentColor" stroke-width="2.2"/>
-          <path d="M18 9v18M23 22l5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-        </svg>
+        <img class="af-card-icon" src="files/icons/ahead-r.svg" alt="" width="40" height="40">
         <h3 class="af-card-title">R Tutorial</h3>
         <span class="af-card-chip">Analysis</span>
         <p class="af-card-details">Worked examples for common analytical tasks in R.</p>
       </a>
 
       <a class="af-card" href="c04-stata.html" data-category="analysis">
-        <svg class="af-card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <path d="M10 28V12h6c4 0 7 2.5 7 6.5S20 25 16 25h-6M22 28l8-16M30 28l-8-16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <img class="af-card-icon" src="files/icons/ahead-doc.svg" alt="" width="40" height="40">
         <h3 class="af-card-title">Stata Tutorial</h3>
         <span class="af-card-chip">Analysis</span>
         <p class="af-card-details">Worked examples for common analytical tasks in Stata.</p>

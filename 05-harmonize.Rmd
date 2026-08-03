@@ -18,44 +18,54 @@ reading-achievement analysis.
 This chapter builds the reading outcomes from the official per-survey
 `fs.sav` files prepared in [Download the MICS Data](#c01-download). It
 harmonises names, retains every passage (and folds B/C where the scripts
-require), derives scores and skills on a common footing, and writes
-`data/mics6_reading_harmonized.dta` with merge keys so you can still link
-background variables from an IPUMS extract.
+require), derives passage length from the data, builds scores and skills on
+a common footing, and writes `data/mics6_reading_harmonized.dta` with merge
+keys so you can still link background variables from an IPUMS extract.
 
-Two complete scripts accompany the chapter. They implement identical
-definitions, so use whichever language you work in:
+Two complete **v1.1** scripts accompany the chapter. They live in `data/`
+next to `MICS_Datasets/`, implement identical definitions, and work in either language:
 
 | Script | Language |
 |---|---|
-| `do/harmonize-mics-reading.do` | Stata 16 or later |
-| `R/harmonize-mics-reading.R` | R, using the tidyverse |
+| `data/harmonize-mics-reading-v1.1.do` | Stata 16 or later |
+| `data/harmonize-mics-reading-v1.1.R` | R, using the tidyverse |
 
-Run either one from the project root. Throughout the chapter, code is shown
-in pairs labelled **Stata** then **R**, so you can follow in either language.
+Download the files from AFLEARN's GitHub page, set the working directory to `data/` folder, and then run
+either script. Throughout the chapter, code is shown in pairs labelled
+**Stata** then **R**, so you can follow in either language.
 
 <p class="code-lang code-lang-stata">Stata</p>
 
 ```{stata eval=FALSE}
-do "do/harmonize-mics-reading.do"
+do "data/harmonize-mics-reading-v1.1.do"
 ```
 
 <p class="code-lang code-lang-r">R</p>
 
 ```{r eval=FALSE}
-source("R/harmonize-mics-reading.R")
+source("data/harmonize-mics-reading-v1.1.R")
 ```
 
-Both write `data/mics6_reading_harmonized.dta`. The sections below explain what each stage does and why, so you
-can adapt the logic rather than treat it as a black box.
+Both write `data/mics6_reading_harmonized.dta`. The sections below explain what each stage does and why, so you can adapt the logic rather than treat it as a black box.
 
 ## Before you start
 
-You need `data/MICS_Datasets/<SURVEY>/fs.sav` in place, which is what
-`R/prepare-mics-fs.R` produces. The `fs.sav` file holds the Foundational
-Learning Skills questionnaire, administered to children aged 5–17, with the
-reading assessment itself targeted at ages 7–14.
+You need `data/MICS_Datasets/<SURVEY>/fs.sav` in place from
+[Download the MICS Data](#c01-download) (`prepare-mics-fs.R`). The
+`fs.sav` file holds the Foundational Learning Skills questionnaire,
+administered to children aged 5–17, with the reading assessment itself
+targeted at ages 7–14. The guide workspace looks like this:
 
-Eighteen country codes are supported:
+``` text
+mics-guide/
+└── data/
+    ├── MICS_Datasets/
+    │   └── BEN_2021_MICS6_v01_M/fs.sav
+    ├── harmonize-mics-reading-v1.1.R
+    └── harmonize-mics-reading-v1.1.do
+```
+
+Currently, 18 country codes are supported:
 
 ``` text
 BEN CAF COD COM GHA GMB GNB LSO MDG MWI NGA SLE STP SWZ TCD TGO TUN ZWE
@@ -63,22 +73,21 @@ BEN CAF COD COM GHA GMB GNB LSO MDG MWI NGA SLE STP SWZ TCD TGO TUN ZWE
 
 Any other survey folder in `data/MICS_Datasets/` is skipped with a message.
 
-## The pipeline at a glance
+## The harmonisation pipeline at a glance
 
 ``` text
 for each survey folder
   1.  identify the survey from its folder name
   2.  fix questionnaire numbering quirks
-  3.  harmonise variable names (slim list; country-specific comprehension)
+  3.  harmonise variable names 
   4.  repair known data problems (SLE swap; early refusal cleaning)
-  5.  assign passage language (incl. Tunisia Arabic)
+  5.  assign passage language
   6.  derive passage length from the data
-  7.  Malawi: move Chichewa-only attempts into the main slots
+  7.  Move Malawi's Chichewa-only attempts into the main slots
   8.  build reading, comprehension, and practice scores
   9.  build accuracy and foundational skills
-  10. collapse extra passages where needed (LSO, MDG)
-  11. classify the assessment outcome (codes 0–9)
-  12. add merge keys and keep the analysis variables
+  10. classify the assessment outcome (codes 0–9)
+  11. add merge keys and keep the analysis variables
 append all surveys, then label and save
 ```
 
@@ -184,7 +193,7 @@ capture rename FL20B words_incorrect
 d <- cap_rename(d, c(
   age = "CB3", consent = "FL1", child_consent = "FL3",
   likestory = "FL10", words_att = "FL20A", words_incorrect = "FL20B"
-  # ... full map in R/harmonize-mics-reading.R
+  # ... full map in data/harmonize-mics-reading-v1.1.R
 ))
 ```
 
@@ -600,8 +609,6 @@ supported surveys.
   estimated length is too short and accuracy can exceed 1.
 - Year differences within a country are not modelled. Tunisia appears
   twice (2018 and 2023) and both use the same language code.
-
-
 
 
 ## Checks after running

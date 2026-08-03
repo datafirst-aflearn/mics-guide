@@ -142,22 +142,18 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="divider"></li>
 <li class="chapter" data-level="1" data-path="c01-download.html"><a href="c01-download.html"><i class="fa fa-check"></i><b>1</b> Download the MICS Data</a>
 <ul>
-<li class="chapter" data-level="1.1" data-path="c01-download.html"><a href="c01-download.html#what-you-need-for-this-guide"><i class="fa fa-check"></i><b>1.1</b> What you need for this guide</a></li>
-<li class="chapter" data-level="1.2" data-path="c01-download.html"><a href="c01-download.html#download-the-data-from-unicef-mics"><i class="fa fa-check"></i><b>1.2</b> Download the data from UNICEF MICS</a></li>
-<li class="chapter" data-level="1.3" data-path="c01-download.html"><a href="c01-download.html#set-up-your-project-folders"><i class="fa fa-check"></i><b>1.3</b> Set up your project folders</a></li>
-<li class="chapter" data-level="1.4" data-path="c01-download.html"><a href="c01-download.html#run-the-prepare-script"><i class="fa fa-check"></i><b>1.4</b> Run the prepare script</a>
-<ul>
-<li class="chapter" data-level="1.4.1" data-path="c01-download.html"><a href="c01-download.html#option-a-run-from-the-guide-project"><i class="fa fa-check"></i><b>1.4.1</b> Option A: Run from the guide project</a></li>
-<li class="chapter" data-level="1.4.2" data-path="c01-download.html"><a href="c01-download.html#option-b-script-and-zip-in-the-same-folder"><i class="fa fa-check"></i><b>1.4.2</b> Option B: Script and zip in the same folder</a></li>
-</ul></li>
-<li class="chapter" data-level="1.5" data-path="c01-download.html"><a href="c01-download.html#step-4-confirm-everything-is-ready"><i class="fa fa-check"></i><b>1.5</b> Step 4: Confirm everything is ready</a></li>
+<li class="chapter" data-level="1.1" data-path="c01-download.html"><a href="c01-download.html#download-from-unicef"><i class="fa fa-check"></i><b>1.1</b> Download from UNICEF</a></li>
+<li class="chapter" data-level="1.2" data-path="c01-download.html"><a href="c01-download.html#messy-nested-survey-archives"><i class="fa fa-check"></i><b>1.2</b> Messy nested survey archives</a></li>
+<li class="chapter" data-level="1.3" data-path="c01-download.html"><a href="c01-download.html#prepare-the-folders-with-prepare-mics-fs.r"><i class="fa fa-check"></i><b>1.3</b> Prepare the folders with <code>prepare-mics-fs.R</code></a></li>
+<li class="chapter" data-level="1.4" data-path="c01-download.html"><a href="c01-download.html#guide-workspace"><i class="fa fa-check"></i><b>1.4</b> Guide workspace</a></li>
+<li class="chapter" data-level="1.5" data-path="c01-download.html"><a href="c01-download.html#quality-checks"><i class="fa fa-check"></i><b>1.5</b> Quality checks</a></li>
 <li class="chapter" data-level="1.6" data-path="c01-download.html"><a href="c01-download.html#next-steps"><i class="fa fa-check"></i><b>1.6</b> Next steps</a></li>
 </ul></li>
 <li class="chapter" data-level="2" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html"><i class="fa fa-check"></i><b>2</b> Understanding MICS Data</a></li>
 <li class="chapter" data-level="3" data-path="c05-harmonize.html"><a href="c05-harmonize.html"><i class="fa fa-check"></i><b>3</b> Harmonising MICS6 reading outcomes</a>
 <ul>
 <li class="chapter" data-level="3.1" data-path="c05-harmonize.html"><a href="c05-harmonize.html#before-you-start"><i class="fa fa-check"></i><b>3.1</b> Before you start</a></li>
-<li class="chapter" data-level="3.2" data-path="c05-harmonize.html"><a href="c05-harmonize.html#the-pipeline-at-a-glance"><i class="fa fa-check"></i><b>3.2</b> The pipeline at a glance</a></li>
+<li class="chapter" data-level="3.2" data-path="c05-harmonize.html"><a href="c05-harmonize.html#the-harmonisation-pipeline-at-a-glance"><i class="fa fa-check"></i><b>3.2</b> The harmonisation pipeline at a glance</a></li>
 <li class="chapter" data-level="3.3" data-path="c05-harmonize.html"><a href="c05-harmonize.html#identify-the-survey"><i class="fa fa-check"></i><b>3.3</b> Identify the survey</a></li>
 <li class="chapter" data-level="3.4" data-path="c05-harmonize.html"><a href="c05-harmonize.html#fix-questionnaire-numbering"><i class="fa fa-check"></i><b>3.4</b> Fix questionnaire numbering</a></li>
 <li class="chapter" data-level="3.5" data-path="c05-harmonize.html"><a href="c05-harmonize.html#harmonise-variable-names"><i class="fa fa-check"></i><b>3.5</b> Harmonise variable names</a>
@@ -213,25 +209,34 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <!--bookdown:title:start-->
 <div id="c01-download" class="section level1 hasAnchor" number="1">
 <h1><span class="header-section-number"> 1</span> Download the MICS Data<a href="c01-download.html#c01-download" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p>Before you can follow the R or Stata examples in this guide, you need
-the official MICS microdata on your computer in the right place.</p>
-<p>This chapter walks you through:</p>
+<p>This chapter shows how to download official MICS microdata from UNICEF
+and unpack it into a clean folder tree. MICS datasets are released as
+<strong>SPSS</strong> (<code>.sav</code>) files. They already carry variable and value labels,
+so you can open them directly in R or Stata without separate label codebooks or
+scripts, or a format conversion.</p>
+<div id="download-from-unicef" class="section level2 hasAnchor" number="1.1">
+<h2><span class="header-section-number">1.1</span> Download from UNICEF<a href="c01-download.html#download-from-unicef" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Official MICS microdata are published on the UNICEF MICS surveys page.</p>
 <ol style="list-style-type: decimal">
-<li>Where to download the official data</li>
-<li>Which files you need for this guide</li>
-<li>How to organise your folders with the prepare script</li>
-<li>A short checklist before you start analysing</li>
+<li>Open <a href="https://mics.unicef.org/surveys">https://mics.unicef.org/surveys</a>.</li>
+<li>Log in if the site asks you to (dataset downloads often require an
+account).</li>
+<li>Set the filters to match the surveys you want, for example, round
+(<strong>MICS6</strong>), region or countries, data type (<strong>MICS</strong>), and status
+(<strong>Completed</strong>).</li>
+<li>Click <strong>Download MICS datasets</strong>. The site packages every survey that
+matches your filters into one bulk zip (often named
+<code>MICS_Datasets.zip</code>).</li>
 </ol>
-<p>MICS datasets are released as <strong>SPSS</strong> (<code>.sav</code>) files. They already
-include variable and value labels, so you do not need separate label
-scripts, and you do not need to convert the files to Stata format before
-starting.</p>
-<div id="what-you-need-for-this-guide" class="section level2 hasAnchor" number="1.1">
-<h2><span class="header-section-number">1.1</span> What you need for this guide<a href="c01-download.html#what-you-need-for-this-guide" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The analysis chapters assume you are working from this guide’s project
-folder and that prepared survey folders exist under
-<code>data/MICS_Datasets/</code>. After you run the prepare script (Step 3), a
-typical layout looks like this:</p>
+<p>Save the zip somewhere easy to find, such as your Downloads folder.</p>
+</div>
+<div id="messy-nested-survey-archives" class="section level2 hasAnchor" number="1.2">
+<h2><span class="header-section-number">1.2</span> Messy nested survey archives<a href="c01-download.html#messy-nested-survey-archives" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>UNICEF’s bulk zip packs each survey in its own folder, and each folder
+usually holds another zip of SPSS files. Unpacking that by hand across
+many countries wastes time and invites path errors.</p>
+<p>What you want instead is a flat tree: one folder per survey, with the
+<code>.sav</code> files and readme sitting directly inside it.</p>
 <pre class="text"><code>data/MICS_Datasets/
 ├── BEN_2021_MICS6_v01_M/
 │   ├── bh.sav
@@ -246,128 +251,73 @@ typical layout looks like this:</p>
 ├── GHA_2017_MICS6_v01_M/
 │   └── ...
 └── ...</code></pre>
-<p>Each survey folder keeps <strong>all</strong> SPSS modules from that release, plus the
-readme. Module sets differ slightly by country (for example some surveys
-include <code>fg.sav</code>). The <strong>FS</strong> file (<code>fs.sav</code>) holds the questionnaire for
-children aged 5–17, which is the unit of analysis used in this guide’s
-worked examples.</p>
-<p>Because the <code>.sav</code> files are already labelled, you can open them directly
-in R with <code>haven::read_sav()</code> or in Stata with <code>import spss</code>.</p>
+<p>Each country-year folder keeps <strong>all</strong> SPSS modules from that release,
+plus the readme. The prepare script below produces this layout from
+whatever surveys sit inside your bulk zip.</p>
 </div>
-<div id="download-the-data-from-unicef-mics" class="section level2 hasAnchor" number="1.2">
-<h2><span class="header-section-number">1.2</span> Download the data from UNICEF MICS<a href="c01-download.html#download-the-data-from-unicef-mics" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Official MICS microdata are published on the UNICEF MICS surveys page.</p>
-<ol style="list-style-type: decimal">
-<li>Open <a href="https://mics.unicef.org/surveys">https://mics.unicef.org/surveys</a>.</li>
-<li>Log in if the site asks you to (dataset downloads often require an
-account).</li>
-<li>Set the filters to match the surveys you want. For this guide’s
-Africa MICS6 examples, use:
-<ul>
-<li>Round: <strong>MICS6</strong></li>
-<li>Region / countries: <strong>African countries</strong> (or the countries you
-need)</li>
-<li>Data type: <strong>MICS</strong></li>
-<li>Status: <strong>Completed</strong></li>
-</ul></li>
-<li>Click <strong>Download MICS datasets</strong>. The site packages all surveys that
-match your filters into one bulk zip (often named
-<code>MICS_Datasets.zip</code>).</li>
-</ol>
-<p>You can use other filters (for example MICS7 only, or a single country).
-The prepare script in Step 3 is <strong>not</strong> limited to one round or to a
-fixed list of countries: it organises whatever surveys are inside the
-bulk zip, as long as UNICEF uses the usual folder-and-nested-zip layout.</p>
-<p>Save the downloaded zip somewhere easy to find (for example your
-Downloads folder, or this guide’s project folder).</p>
+<div id="prepare-the-folders-with-prepare-mics-fs.r" class="section level2 hasAnchor" number="1.3">
+<h2><span class="header-section-number">1.3</span> Prepare the folders with <code>prepare-mics-fs.R</code><a href="c01-download.html#prepare-the-folders-with-prepare-mics-fs.r" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>AFLEARN’s
+<a href="https://github.com/datafirst-aflearn/mics-guide/blob/main/R/prepare-mics-fs.R"><code>prepare-mics-fs.R</code></a>
+turns UNICEF’s messy nested survey archives into that clean folder tree.
+The script finds <code>MICS_Datasets.zip</code> in your working directory, project,
+or Downloads; extracts the <code>.sav</code> files and readmes; strips nested
+archives and wrapper folders; and writes <code>data/MICS_Datasets/{SURVEY}/</code>.
+It needs only base R, and it runs beside the zip in any folder—Downloads,
+Desktop, a USB drive, or a project directory.</p>
+<p>Download the script, copy it next to <code>MICS_Datasets.zip</code>, set that folder
+as the working directory in R, and run:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="c01-download.html#cb2-1" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">&quot;C:/path/to/folder/with/zip/and/script&quot;</span>)</span>
+<span id="cb2-2"><a href="c01-download.html#cb2-2" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;prepare-mics-fs.R&quot;</span>)</span></code></pre></div>
+<p>The script writes path-ready survey files to <code>data/MICS_Datasets/</code> under
+that folder. The original bulk zip is <strong>kept</strong> by default. To delete it
+after a successful run:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="c01-download.html#cb3-1" tabindex="-1"></a><span class="fu">prepare_mics_data</span>(<span class="at">remove_zip =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p>If the zip lives elsewhere, source the script once to load the functions,
+then call:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="c01-download.html#cb4-1" tabindex="-1"></a><span class="fu">prepare_mics_data</span>(<span class="at">zip =</span> <span class="st">&quot;C:/path/to/MICS_Datasets.zip&quot;</span>)</span></code></pre></div>
 </div>
-<div id="set-up-your-project-folders" class="section level2 hasAnchor" number="1.3">
-<h2><span class="header-section-number">1.3</span> Set up your project folders<a href="c01-download.html#set-up-your-project-folders" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Work from this guide’s project root (the folder that contains <code>index.Rmd</code>
-and the chapter <code>.Rmd</code> files). Create a <code>data/</code> folder there if it does
-not already exist. The prepare script lives in <code>R/</code>:</p>
+<div id="guide-workspace" class="section level2 hasAnchor" number="1.4">
+<h2><span class="header-section-number">1.4</span> Guide workspace<a href="c01-download.html#guide-workspace" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>For this guide, run prepare so the survey folders land under the project’s
+<code>data/MICS_Datasets/</code>. The v1.1 harmonize scripts live in the same <code>data/</code>
+folder:</p>
 <pre class="text"><code>mics-guide/
-├── data/                         # created if needed; prepared surveys go here
-├── R/
-│   └── prepare-mics-fs.R         # already in the guide
-├── 01-download.Rmd
-├── 02-whats-in-the-data.Rmd
-├── 03-r.Rmd
-└── 04-stata.Rmd</code></pre>
-<p>Keeping prepared files under <code>mics-guide/data/MICS_Datasets/</code> means the
-analysis chapters can use short relative paths. If you prefer another
-location, that is fine, but then you must change the file paths in the R
-and Stata chapters to match.</p>
+└── data/
+    ├── MICS_Datasets/
+    │   └── BEN_2021_MICS6_v01_M/fs.sav
+    ├── harmonize-mics-reading-v1.1.R
+    └── harmonize-mics-reading-v1.1.do</code></pre>
+<p>Later chapters assume this layout and a working directory set to the
+<strong>mics-guide project root</strong>.</p>
 </div>
-<div id="run-the-prepare-script" class="section level2 hasAnchor" number="1.4">
-<h2><span class="header-section-number">1.4</span> Run the prepare script<a href="c01-download.html#run-the-prepare-script" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The bulk zip contains one folder per survey, and each of those folders
-contains another zip with the SPSS files. Unpacking every nested archive
-by hand is tedious. This guide includes an R script that does it for you:
-it finds <code>MICS_Datasets.zip</code>, extracts every <code>.sav</code> file and the readme
-for each survey, and writes a clean folder tree under
-<code>data/MICS_Datasets/</code>.</p>
-<div id="option-a-run-from-the-guide-project" class="section level3 hasAnchor" number="1.4.1">
-<h3><span class="header-section-number">1.4.1</span> Option A: Run from the guide project<a href="c01-download.html#option-a-run-from-the-guide-project" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="quality-checks" class="section level2 hasAnchor" number="1.5">
+<h2><span class="header-section-number">1.5</span> Quality checks<a href="c01-download.html#quality-checks" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Before you analyse, check that:</p>
 <ol style="list-style-type: decimal">
-<li>Put <code>MICS_Datasets.zip</code> in your <strong>mics-guide</strong> project root, or in <code>data/</code>.</li>
-<li>In R, set the working directory to the <strong>mics-guide</strong> project root.</li>
-<li>Run:</li>
-</ol>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="c01-download.html#cb3-1" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;R/prepare-mics-fs.R&quot;</span>)</span></code></pre></div>
-<p>The script searches for the zip in the working directory, the project
-<code>data/</code> folder and the project root. If you
-need to point to a zip in an unusual location, source the script once
-(so the functions are loaded), then call:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="c01-download.html#cb4-1" tabindex="-1"></a><span class="fu">prepare_mics_data</span>(<span class="at">zip =</span> <span class="st">&quot;C:/Users/you/path/MICS_Datasets.zip&quot;</span>)</span></code></pre></div>
-</div>
-<div id="option-b-script-and-zip-in-the-same-folder" class="section level3 hasAnchor" number="1.4.2">
-<h3><span class="header-section-number">1.4.2</span> Option B: Script and zip in the same folder<a href="c01-download.html#option-b-script-and-zip-in-the-same-folder" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>You can copy <code>R/prepare-mics-fs.R</code> next to <code>MICS_Datasets.zip</code> in any
-folder on your computer (Downloads, Desktop, a USB drive, and so on):</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="c01-download.html#cb5-1" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">&quot;C:/path/to/folder/with/zip/and/script&quot;</span>)</span>
-<span id="cb5-2"><a href="c01-download.html#cb5-2" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;prepare-mics-fs.R&quot;</span>)</span></code></pre></div>
-<p>Organised files are written to <code>data/MICS_Datasets/</code> under that folder
-(or under the mics-guide project root if the script can find the
-project).</p>
-<p>The original bulk zip is <strong>kept</strong> by default. To delete it after a
-successful run, call <code>prepare_mics_data(remove_zip = TRUE)</code>.</p>
-</div>
-</div>
-<div id="step-4-confirm-everything-is-ready" class="section level2 hasAnchor" number="1.5">
-<h2><span class="header-section-number">1.5</span> Step 4: Confirm everything is ready<a href="c01-download.html#step-4-confirm-everything-is-ready" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Before moving on to the R or Stata chapters, check that:</p>
-<ol style="list-style-type: decimal">
-<li><code>data/MICS_Datasets/</code> exists in the guide project folder.</li>
+<li><code>data/MICS_Datasets/</code> exists under the folder you used as the output
+root (for this guide, the project folder).</li>
 <li>At least one survey folder is present (for example
 <code>data/MICS_Datasets/BEN_2021_MICS6_v01_M/</code>).</li>
 <li>That folder contains <code>.sav</code> files (including <code>fs.sav</code> when the survey
 fielded the children 5–17 module) and usually a readme.</li>
 <li>You can open a <code>.sav</code> file in R (<code>haven::read_sav()</code>) or Stata
 (<code>import spss</code>).</li>
-<li>Your R or Stata working directory is the guide project root when you
-knit or run the examples.</li>
 </ol>
-<p>Quick checks:</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="c01-download.html#cb6-1" tabindex="-1"></a><span class="co"># R</span></span>
-<span id="cb6-2"><a href="c01-download.html#cb6-2" tabindex="-1"></a><span class="fu">dir.exists</span>(<span class="st">&quot;data/MICS_Datasets&quot;</span>)</span>
-<span id="cb6-3"><a href="c01-download.html#cb6-3" tabindex="-1"></a><span class="fu">list.files</span>(<span class="st">&quot;data/MICS_Datasets&quot;</span>)</span>
-<span id="cb6-4"><a href="c01-download.html#cb6-4" tabindex="-1"></a><span class="fu">file.exists</span>(<span class="st">&quot;data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav&quot;</span>)</span></code></pre></div>
+<span id="cb6-2"><a href="c01-download.html#cb6-2" tabindex="-1"></a><span class="fu">dir.exists</span>(<span class="st">&quot;data/MICS_Datasets&quot;</span>)     <span class="co"># 1</span></span>
+<span id="cb6-3"><a href="c01-download.html#cb6-3" tabindex="-1"></a><span class="fu">list.files</span>(<span class="st">&quot;data/MICS_Datasets&quot;</span>)     <span class="co"># 2</span></span>
+<span id="cb6-4"><a href="c01-download.html#cb6-4" tabindex="-1"></a><span class="fu">file.exists</span>(<span class="st">&quot;data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav&quot;</span>)  <span class="co"># 3</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb7-1"><a href="c01-download.html#cb7-1" tabindex="-1"></a>* Stata</span>
-<span id="cb7-2"><a href="c01-download.html#cb7-2" tabindex="-1"></a>confirmdir <span class="st">&quot;data/MICS_Datasets&quot;</span></span>
-<span id="cb7-3"><a href="c01-download.html#cb7-3" tabindex="-1"></a><span class="kw">confirm</span> file <span class="st">&quot;data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav&quot;</span></span></code></pre></div>
-<p>If these checks succeed (using a survey folder name that exists on your
-machine), you are ready for the analysis chapters.</p>
+<span id="cb7-2"><a href="c01-download.html#cb7-2" tabindex="-1"></a>confirmdir <span class="st">&quot;data/MICS_Datasets&quot;</span> # 1 and # 2</span>
+<span id="cb7-3"><a href="c01-download.html#cb7-3" tabindex="-1"></a><span class="kw">confirm</span> file <span class="st">&quot;data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav&quot;</span>  # 3</span></code></pre></div>
 </div>
 <div id="next-steps" class="section level2 hasAnchor" number="1.6">
 <h2><span class="header-section-number">1.6</span> Next steps<a href="c01-download.html#next-steps" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Once <code>data/MICS_Datasets/</code> is in place:</p>
-<ul>
-<li>Follow <a href="ch-whats-in-data.html#ch-whats-in-data">Understanding MICS Data</a> for survey design
-and file structure.</li>
-<li>Follow <a href="#c03-r">R Tutorial</a> if you work in R.</li>
-<li>Follow <a href="#c04-stata">Stata Tutorial</a> if you work in Stata.</li>
-</ul>
+<p>Once <code>data/MICS_Datasets/</code> is in place—and especially once the supported
+surveys have <code>fs.sav</code>—continue with
+<a href="c05-harmonize.html#c05-harmonize">Harmonising MICS6 reading outcomes</a>. For survey design and
+file structure, see <a href="ch-whats-in-data.html#ch-whats-in-data">Understanding MICS Data</a>.</p>
 
 </div>
 </div>
