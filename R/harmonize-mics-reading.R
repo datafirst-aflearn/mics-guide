@@ -3,12 +3,13 @@
 # Build one cross-country dataset of MICS6 foundational reading outcomes from
 # the per-survey fs.sav files produced by R/prepare-mics-fs.R.
 #
+# Logic follows do/harmonize-mics-reading.do (July 30 updates + guide fixes).
+#
 # Run from the mics-guide project root:
 #     source("R/harmonize-mics-reading.R")
 #
 # Input :  data/MICS_Datasets/<ISO>_<YEAR>_MICS6_v01_M/fs.sav
 # Output:  data/mics6_reading_harmonized.dta and .rds
-
 
 if (!require(pacman)) install.packages("pacman")
 pacman::p_load(tidyverse, haven, labelled)
@@ -17,14 +18,11 @@ root    <- "data/MICS_Datasets"
 outdir  <- "data"
 outfile <- "mics6_reading_harmonized"
 
-# Surveys whose reading passage language and length are defined below.
 supported <- c(
   "BEN", "CAF", "COD", "COM", "GHA", "GMB", "GNB", "LSO", "MDG",
   "MWI", "NGA", "SLE", "STP", "SWZ", "TCD", "TGO", "TUN", "ZWE"
 )
 
-# Variables the pipeline needs. Questionnaires differ, so any that a survey
-# does not carry are created as missing rather than stopping the run.
 required_vars <- c(
   "age", "consent", "child_consent", "enrolled", "ever_attended", "likestory",
   "lang_home", "lang_school", "interview_result", "words_att", "words_incorrect",
@@ -33,19 +31,14 @@ required_vars <- c(
 )
 
 # ---------------------------------------------------------------------------
-# Stata missing-value rules, written out explicitly
-#
-# In Stata, missing sorts above every number, so `x < .` means "non-missing"
-# and a comparison involving missing is usually FALSE rather than missing.
-# These helpers keep the R translation faithful to that behaviour.
+# Stata missing-value helpers
 # ---------------------------------------------------------------------------
 
-present <- function(x) !is.na(x)                       # Stata: x < .
-eq      <- function(x, v) !is.na(x) & x == v           # Stata: x == v
-ne_obs  <- function(x, v) !is.na(x) & x != v           # Stata: x != v & x < .
+present <- function(x) !is.na(x)
+eq      <- function(x, v) !is.na(x) & x == v
+ne_obs  <- function(x, v) !is.na(x) & x != v
 ge_obs  <- function(x, y) !is.na(x) & !is.na(y) & x >= y
 
-# Create any listed variables that the survey does not have.
 ensure <- function(df, vars) {
   gaps <- setdiff(vars, names(df))
   if (length(gaps) > 0) {
@@ -56,83 +49,11 @@ ensure <- function(df, vars) {
   df
 }
 
-# Rename one variable only if the old name exists and the new one is still
-# free. This reproduces Stata's `capture rename`: a survey that never asked a
-# question simply keeps its own names, and the first matching alternative for
-# a target name wins.
-rename_map <- c(
-  age                 = "CB3",
-  child_consent       = "FL3",
-  child_line_num      = "FS3",
-  consent             = "FL1",
-  edgrade_curr        = "CB8B",
-  edlevel_curr        = "CB8A",
-  enrolled            = "CB7",
-  ever_attended       = "CB4",
-  household_num       = "FS2",
-  interview_day       = "FS7D",
-  interview_month     = "FS7M",
-  interview_result    = "FS17",
-  interview_year      = "FS7Y",
-  lang_home           = "FL7",
-  lang_school         = "FL9",
-  lang_school         = "FL9A",
-  lang_school_fl9b    = "FL9B",
-  likestory           = "FL10",
-  practice_correct    = "FL14",
-  practice_question1  = "FL15",
-  practice_question2  = "FL17",
-  practiceB_correct   = "FL114",
-  practiceB_question1 = "FL115",
-  practiceB_question2 = "FL117",
-  practiceC_correct   = "FL214",
-  practiceB_correct   = "FL21H",
-  practiceC_question1 = "FL215",
-  practiceB_question1 = "FL21I",
-  practiceC_question2 = "FL217",
-  practiceB_question2 = "FL21K",
-  read_comp_1         = "FL22A",
-  read_comp_2         = "FL22B",
-  read_comp_3         = "FL22C",
-  read_comp_4         = "FL22D",
-  read_comp_5         = "FL22E",
-  read_compB_1        = "FL122A",
-  read_compB_2        = "FL122B",
-  read_compB_3        = "FL122C",
-  read_compB_4        = "FL122D",
-  read_compB_5        = "FL122E",
-  read_compC_1        = "FL222A",
-  read_compC_2        = "FL222B",
-  read_compC_3        = "FL222C",
-  read_compC_4        = "FL222D",
-  read_compC_5        = "FL222E",
-  read_compB_1        = "FLB22A",
-  read_compB_2        = "FLB22B",
-  read_compB_3        = "FLB22C",
-  read_compB_4        = "FLB22D",
-  read_compB_5        = "FLB22E",
-  read_compB_1        = "FL21BA",
-  read_compB_2        = "FL21BB",
-  read_compB_3        = "FL21BC",
-  read_compB_4        = "FL21BD",
-  read_compB_5        = "FL21BE",
-  words_att           = "FL20A",
-  words_incorrect     = "FL20B",
-  wordsB_att          = "FL21PA",
-  wordsB_att          = "FL120A",
-  wordsB_att          = "FLB20A",
-  wordsB_incorrect    = "FL21PB",
-  wordsB_incorrect    = "FL120B",
-  wordsB_incorrect    = "FLB20B",
-  wordsC_att          = "FL220A",
-  wordsC_incorrect    = "FL220B",
-  result              = "FL29"
-)
-
-apply_rename_map <- function(df, map = rename_map) {
-  for (i in seq_along(map)) {
-    new <- names(map)[i]
-    old <- unname(map[i])
+# Rename old -> new only if old exists and new is free (first match wins).
+cap_rename <- function(df, mapping) {
+  for (i in seq_along(mapping)) {
+    new <- names(mapping)[i]
+    old <- unname(mapping[i])
     if (old %in% names(df) && !(new %in% names(df))) {
       names(df)[names(df) == old] <- new
     }
@@ -140,8 +61,6 @@ apply_rename_map <- function(df, map = rename_map) {
   df
 }
 
-# Number of the five comprehension items answered correctly. Missing when the
-# first item was not asked.
 comp_score <- function(df, prefix) {
   first <- paste0(prefix, "_1")
   if (!first %in% names(df)) return(NULL)
@@ -150,7 +69,6 @@ comp_score <- function(df, prefix) {
   if_else(is.na(df[[first]]), NA_real_, as.numeric(correct))
 }
 
-# Passed the practice sentence and both practice questions.
 practice_outcome <- function(df, correct, q1, q2) {
   if (!correct %in% names(df)) return(NULL)
   if_else(
@@ -160,7 +78,6 @@ practice_outcome <- function(df, correct, q1, q2) {
   )
 }
 
-# Row-wise maximum across the passages a child attempted.
 row_max <- function(df, pattern) {
   cols <- grep(pattern, names(df), value = TRUE)
   if (length(cols) == 0) return(rep(NA_real_, nrow(df)))
@@ -170,106 +87,149 @@ row_max <- function(df, pattern) {
   }))
 }
 
+# Stata egen max(x), by(g): group max, NA group gets NA length
+passage_len_by_lang <- function(words, lang) {
+  out <- rep(NA_real_, length(words))
+  ok <- !is.na(lang)
+  if (!any(ok)) return(out)
+  tmp <- tapply(words[ok], lang[ok], function(x) {
+    if (all(is.na(x))) NA_real_ else max(x, na.rm = TRUE)
+  })
+  out[ok] <- unname(tmp[as.character(lang[ok])])
+  out
+}
+
 # ---------------------------------------------------------------------------
 # Harmonise a single survey
 # ---------------------------------------------------------------------------
 
 harmonize_survey <- function(path, iso, year) {
 
-  # zap_labels keeps the underlying numeric codes, so every comparison below
   d <- read_sav(path) %>% zap_labels()
 
-  # 1. Fix questionnaire numbering before harmonising -----------------------
+  # 1. Fix questionnaire numbering -----------------------------------------
   if (iso == "ZWE") {
     d <- d %>% rename(FL22D = "FL22E", FL22E = "FL22F")
   }
   if (iso == "COM") {
     d <- d %>% rename(FL21BD = "FL21BE", FL21BE = "FL21BF")
-    b_cols <- grep("^FL21B[A-Z]$", names(d), value = TRUE)
-    names(d)[match(b_cols, names(d))] <- sub("^FL21B", "FL22", b_cols)
   }
 
-  # 2. Harmonise variable names --------------------------------------------
-  d <- d %>% apply_rename_map() %>% ensure(required_vars)
+  # 2. Slim renames --------------------------------------------------------
+  d <- cap_rename(d, c(
+    age              = "CB3",
+    child_consent    = "FL3",
+    consent          = "FL1",
+    enrolled         = "CB7",
+    ever_attended    = "CB4",
+    interview_result = "FS17",
+    lang_home        = "FL7",
+    lang_school      = "FL9"
+  ))
 
-  # 3. Sierra Leone: attempted and incorrect are swapped for some records ---
-  # The guard is words_incorrect non-missing. Allowing missing here would copy
-  # words_att into words_incorrect and turn a missing score into a zero.
+  if (iso == "TCD") {
+    d <- cap_rename(d, c(lang_school = "FL9A"))
+    if ("FL9B" %in% names(d) && "lang_school" %in% names(d)) {
+      d <- d %>% mutate(
+        lang_school = if_else(present(FL9B), FL9B, lang_school)
+      )
+    }
+  }
+
+  d <- cap_rename(d, c(
+    likestory          = "FL10",
+    practice_correct   = "FL14",
+    practice_question1 = "FL15",
+    practice_question2 = "FL17",
+    words_att          = "FL20A",
+    words_incorrect    = "FL20B"
+  ))
+
+  # Default FL22 -> passage 1; SWZ/NGA/ZWE/COM use FL21BA + FL22 as B
+  if (!iso %in% c("SWZ", "NGA", "ZWE", "COM")) {
+    d <- cap_rename(d, c(
+      read_comp_1 = "FL22A", read_comp_2 = "FL22B", read_comp_3 = "FL22C",
+      read_comp_4 = "FL22D", read_comp_5 = "FL22E"
+    ))
+  }
+  if (iso %in% c("SWZ", "NGA", "ZWE", "COM")) {
+    d <- cap_rename(d, c(
+      read_comp_1  = "FL21BA", read_comp_2  = "FL21BB", read_comp_3 = "FL21BC",
+      read_comp_4  = "FL21BD", read_comp_5  = "FL21BE",
+      read_compB_1 = "FL22A",  read_compB_2 = "FL22B",  read_compB_3 = "FL22C",
+      read_compB_4 = "FL22D",  read_compB_5 = "FL22E"
+    ))
+  }
+
+  d <- cap_rename(d, c(
+    read_compB_1        = "FL122A", read_compB_2 = "FL122B",
+    read_compB_3        = "FL122C", read_compB_4 = "FL122D",
+    read_compB_5        = "FL122E",
+    read_compB_1        = "FLB22A", read_compB_2 = "FLB22B",
+    read_compB_3        = "FLB22C", read_compB_4 = "FLB22D",
+    read_compB_5        = "FLB22E",
+    practiceB_correct   = "FL114",
+    practiceB_question1 = "FL115",
+    practiceB_question2 = "FL117",
+    wordsB_att          = "FL21PA",
+    wordsB_att          = "FL120A",
+    wordsB_att          = "FLB20A",
+    wordsB_incorrect    = "FL21PB",
+    wordsB_incorrect    = "FL120B",
+    wordsB_incorrect    = "FLB20B",
+    practiceC_correct   = "FL214",
+    practiceB_correct   = "FL21H",
+    practiceC_question1 = "FL215",
+    practiceB_question1 = "FL21I",
+    practiceC_question2 = "FL217",
+    practiceB_question2 = "FL21K",
+    read_compC_1        = "FL222A", read_compC_2 = "FL222B",
+    read_compC_3        = "FL222C", read_compC_4 = "FL222D",
+    read_compC_5        = "FL222E",
+    wordsC_att          = "FL220A",
+    wordsC_incorrect    = "FL220B"
+  ))
+
+  d <- ensure(d, required_vars)
+
+  # 3. Sierra Leone swap ---------------------------------------------------
   if (iso == "SLE") {
     swap <- present(d$words_incorrect) & present(d$words_att) &
       d$words_att < d$words_incorrect
+    att <- d$words_att
+    inc <- d$words_incorrect
     d <- d %>% mutate(
-      words_att       = if_else(swap, d$words_incorrect, words_att),
-      words_incorrect = if_else(swap, d$words_att, words_incorrect)
+      words_att       = if_else(swap, inc, att),
+      words_incorrect = if_else(swap, att, inc)
     )
   }
 
-  # 4. Reading score: words attempted less words incorrect or missed --------
-  d <- d %>% mutate(reading_score = words_att - words_incorrect)
-
-  if ("wordsB_att" %in% names(d)) {
-    d <- d %>% ensure("wordsB_incorrect") %>%
-      mutate(readingB_score = wordsB_att - wordsB_incorrect)
-  }
-  if ("wordsC_att" %in% names(d)) {
-    d <- d %>% ensure("wordsC_incorrect") %>%
-      mutate(readingC_score = wordsC_att - wordsC_incorrect)
-  }
-
-  # 5. Surveys where refusers and practice failures still have word counts --
-  if (iso %in% c("STP", "CAF", "MDG")) {
+  # 4. Early refusal cleaning on word counts -------------------------------
+  if (iso %in% c("STP", "MDG", "CAF")) {
     drop1 <- !eq(d$likestory, 1) | ne_obs(d$practice_correct, 1)
     d <- d %>% mutate(
-      reading_score   = if_else(drop1, NA_real_, reading_score),
       words_att       = if_else(drop1, NA_real_, words_att),
       words_incorrect = if_else(drop1, NA_real_, words_incorrect)
     )
   }
   if (iso == "MDG") {
-    d <- d %>% ensure(c("FL110", "FL210", "practiceB_correct", "practiceC_correct"))
+    d <- d %>% ensure(c(
+      "FL110", "FL210", "practiceB_correct", "practiceC_correct",
+      "wordsB_att", "wordsB_incorrect", "wordsC_att", "wordsC_incorrect"
+    ))
     dropB <- !eq(d$FL110, 1) | ne_obs(d$practiceB_correct, 1)
     dropC <- !eq(d$FL210, 1) | ne_obs(d$practiceC_correct, 1)
     d <- d %>% mutate(
-      readingB_score   = if_else(dropB, NA_real_, readingB_score),
       wordsB_att       = if_else(dropB, NA_real_, wordsB_att),
       wordsB_incorrect = if_else(dropB, NA_real_, wordsB_incorrect),
-      readingC_score   = if_else(dropC, NA_real_, readingC_score),
       wordsC_att       = if_else(dropC, NA_real_, wordsC_att),
       wordsC_incorrect = if_else(dropC, NA_real_, wordsC_incorrect)
     )
   }
 
-  # 6. Comprehension scores ------------------------------------------------
-  d$read_comp_score <- comp_score(d, "read_comp")
-
-  scoreB <- comp_score(d, "read_compB")
-  if (!is.null(scoreB)) d$read_compB_score <- scoreB
-
-  scoreC <- comp_score(d, "read_compC")
-  if (!is.null(scoreC)) d$read_compC_score <- scoreC
-
-  # 7. Practice outcomes ---------------------------------------------------
-  d$practice_outcome <- practice_outcome(d, "practice_correct",
-                                         "practice_question1", "practice_question2")
-  d$fail_practice <- 1 - d$practice_outcome
-
-  if ("practiceB_correct" %in% names(d)) {
-    d <- d %>% ensure(c("practiceB_question1", "practiceB_question2"))
-    d$practiceB_outcome <- practice_outcome(d, "practiceB_correct",
-                                            "practiceB_question1", "practiceB_question2")
-    d$fail_practice <- if_else(eq(d$practiceB_outcome, 0), 1, d$fail_practice)
-  }
-  if ("practiceC_correct" %in% names(d)) {
-    d <- d %>% ensure(c("practiceC_question1", "practiceC_question2"))
-    d$practiceC_outcome <- practice_outcome(d, "practiceC_correct",
-                                            "practiceC_question1", "practiceC_question2")
-    d$fail_practice <- if_else(eq(d$practiceC_outcome, 0), 1, d$fail_practice)
-  }
-
-  # 8. Passage language and length -----------------------------------------
-  # Accuracy needs a denominator, so every survey needs passage_length.
+  # 5. Passage language ----------------------------------------------------
   if (iso == "NGA") {
-    d <- d %>% ensure(c("lang1", "lang2", "FL10C", "wordsB_att")) %>% mutate(
+    d <- d %>% ensure(c("lang1", "lang2")) %>% mutate(
       passage_language = case_when(
         eq(lang1, 11) ~ 1010, eq(lang1, 12) ~ 3190,
         eq(lang1, 13) ~ 4101, eq(lang1, 14) ~ 4102,
@@ -279,58 +239,27 @@ harmonize_survey <- function(path, iso, year) {
         eq(lang2, 11) ~ 1010, eq(lang2, 12) ~ 3190,
         eq(lang2, 13) ~ 4101, eq(lang2, 14) ~ 4102,
         TRUE ~ as.numeric(lang2)
-      ),
-      passage_length = case_when(
-        eq(passage_language, 1010) & present(words_att) ~ 72,
-        eq(passage_language, 3190) & present(words_att) ~ 76,
-        eq(passage_language, 4101) & present(words_att) ~ 88,
-        eq(passage_language, 4102) & present(words_att) ~ 81,
-        TRUE ~ NA_real_
-      ),
-      passageB_length = case_when(
-        eq(passageB_language, 1010) & present(wordsB_att) ~ 61,
-        (eq(passageB_language, 3190) | eq(passageB_language, 4102)) &
-          present(wordsB_att) ~ 63,
-        eq(passageB_language, 4101) & present(wordsB_att) ~ 59,
-        TRUE ~ NA_real_
       )
     )
   }
   if (iso == "SWZ") {
-    d <- d %>% ensure(c("langS1", "langS2", "FL10C", "FL21D", "wordsB_att")) %>% mutate(
+    d <- d %>% ensure(c("langS1", "langS2")) %>% mutate(
       passage_language = case_when(
         eq(langS1, 11) ~ 1010, eq(langS1, 12) ~ 3220, TRUE ~ as.numeric(langS1)
       ),
       passageB_language = case_when(
         eq(langS2, 11) ~ 1010, eq(langS2, 12) ~ 3220, TRUE ~ as.numeric(langS2)
-      ),
-      passage_length = case_when(
-        eq(passage_language, 1010) & present(words_att) ~ 74,
-        eq(passage_language, 3220) & present(words_att) ~ 41,
-        TRUE ~ NA_real_
-      ),
-      passageB_length = case_when(
-        eq(passageB_language, 1010) & present(wordsB_att) ~ 74,
-        eq(passageB_language, 3220) & present(wordsB_att) ~ 41,
-        TRUE ~ NA_real_
       )
     )
   }
   if (iso == "LSO") {
-    d <- d %>% ensure(c("FL100", "FL110", "FL210", "wordsB_att", "wordsC_att")) %>% mutate(
+    d <- d %>% ensure(c("FL100", "wordsB_att", "wordsC_att")) %>% mutate(
       passage_language = case_when(
         eq(FL100, 1) ~ 3080, eq(FL100, 2) ~ 1010, eq(FL100, 3) ~ NA_real_,
         TRUE ~ as.numeric(FL100)
       ),
-      passage_length = case_when(
-        eq(passage_language, 3080) & present(words_att) ~ 64,
-        eq(passage_language, 1010) & present(words_att) ~ 71,
-        TRUE ~ NA_real_
-      ),
       passageB_language = if_else(present(wordsB_att), 1010, NA_real_),
-      passageC_language = if_else(present(wordsC_att), 3080, NA_real_),
-      passageB_length   = if_else(present(wordsB_att), 64, NA_real_),
-      passageC_length   = if_else(present(wordsC_att), 71, NA_real_)
+      passageC_language = if_else(present(wordsC_att), 3080, NA_real_)
     )
   }
   if (iso == "MDG") {
@@ -339,27 +268,18 @@ harmonize_survey <- function(path, iso, year) {
         eq(FL100, 1) ~ 6020, eq(FL100, 2) ~ 1020, eq(FL100, 3) ~ NA_real_,
         TRUE ~ as.numeric(FL100)
       ),
-      passage_length = case_when(
-        eq(passage_language, 6020) & present(words_att) ~ 84,
-        eq(passage_language, 1020) & present(words_att) ~ 64,
-        TRUE ~ NA_real_
-      ),
       passageB_language = if_else(present(wordsB_att), 6020, NA_real_),
-      passageB_length   = if_else(present(wordsB_att), 84, NA_real_),
-      passageC_language = if_else(present(wordsC_att), 1020, NA_real_),
-      passageC_length   = if_else(present(wordsC_att), 64, NA_real_)
+      passageC_language = if_else(present(wordsC_att), 1020, NA_real_)
     )
   }
   if (iso == "MWI") {
     d <- d %>% ensure("wordsB_att") %>% mutate(
       passage_language  = if_else(present(words_att), 1010, NA_real_),
-      passageB_language = if_else(present(wordsB_att), 3160, NA_real_),
-      passage_length    = if_else(present(words_att), 61, NA_real_),
-      passageB_length   = if_else(present(wordsB_att), 74, NA_real_)
+      passageB_language = if_else(present(wordsB_att), 3160, NA_real_)
     )
   }
   if (iso == "ZWE") {
-    d <- d %>% ensure(c("FL10C", "FL21D", "wordsB_att")) %>% mutate(
+    d <- d %>% ensure(c("FL10C", "FL21D")) %>% mutate(
       passage_language = case_when(
         eq(lang_school, 1) ~ 1010,
         eq(lang_school, 2) ~ 3140,
@@ -383,36 +303,106 @@ harmonize_survey <- function(path, iso, year) {
       passageB_language = case_when(
         eq(FL21D, 1) ~ 1010, eq(FL21D, 2) ~ 3140, eq(FL21D, 3) ~ 3150,
         eq(FL21D, 5) ~ NA_real_, TRUE ~ as.numeric(FL21D)
-      ),
-      passage_length  = if_else(present(words_att), 72, NA_real_),
-      passageB_length = if_else(present(wordsB_att), 62, NA_real_)
+      )
     )
   }
 
-  # Single-language surveys: one passage length, one language.
-  one_length <- c(TUN = 72, SLE = 72, GNB = 72, GMB = 72,
-                  BEN = 81, TCD = 81, COM = 81, TGO = 81,
-                  GHA = 69, CAF = 87, COD = 85, STP = 76)
-  if (iso %in% names(one_length)) {
-    len <- unname(one_length[iso])
-    d <- d %>% mutate(passage_length = if_else(present(words_att), len, NA_real_))
+  if (iso %in% c("GHA", "SLE", "GMB")) {
+    d <- d %>% mutate(passage_language = if_else(present(words_att), 1010, NA_real_))
+  }
+  if (iso %in% c("BEN", "CAF", "TCD", "COM", "COD", "TGO")) {
+    d <- d %>% mutate(passage_language = if_else(present(words_att), 1020, NA_real_))
+  }
+  if (iso %in% c("STP", "GNB")) {
+    d <- d %>% mutate(passage_language = if_else(present(words_att), 1040, NA_real_))
+  }
+  if (iso == "TUN") {
+    d <- d %>% mutate(passage_language = if_else(present(words_att), 2010, NA_real_))
   }
 
-  one_language <- c(GHA = 1010, SLE = 1010, GMB = 1010,
-                    BEN = 1020, CAF = 1020, TCD = 1020,
-                    COM = 1020, COD = 1020, TGO = 1020,
-                    STP = 1040, GNB = 1040)
-  if (iso %in% names(one_language)) {
-    lng <- unname(one_language[iso])
+  d <- ensure(d, "passage_language")
+
+  # 6. Passage length from the data ----------------------------------------
+  d$passage_length <- passage_len_by_lang(d$words_att, d$passage_language)
+
+  if ("wordsB_att" %in% names(d)) {
+    d <- ensure(d, "passageB_language")
+    d$passageB_length <- passage_len_by_lang(d$wordsB_att, d$passageB_language)
+  }
+  if ("wordsC_att" %in% names(d)) {
+    d <- ensure(d, "passageC_language")
+    d$passageC_length <- passage_len_by_lang(d$wordsC_att, d$passageC_language)
+  }
+
+  # 7. Malawi: Chichewa-only -> move B into main ---------------------------
+  if (iso == "MWI") {
+    d <- d %>% ensure(c(
+      "wordsB_att", "wordsB_incorrect", "passageB_language", "passageB_length",
+      paste0("read_compB_", 1:5)
+    ))
+    tmp <- is.na(d$words_att) & present(d$wordsB_att)
     d <- d %>% mutate(
-      passage_language = if_else(present(reading_score), lng, NA_real_)
+      words_att        = if_else(tmp, wordsB_att, words_att),
+      words_incorrect  = if_else(tmp, wordsB_incorrect, words_incorrect),
+      passage_language = if_else(tmp, passageB_language, passage_language),
+      passage_length   = if_else(tmp, passageB_length, passage_length),
+      read_comp_1 = if_else(tmp, read_compB_1, read_comp_1),
+      read_comp_2 = if_else(tmp, read_compB_2, read_comp_2),
+      read_comp_3 = if_else(tmp, read_compB_3, read_comp_3),
+      read_comp_4 = if_else(tmp, read_compB_4, read_comp_4),
+      read_comp_5 = if_else(tmp, read_compB_5, read_comp_5),
+      wordsB_att        = if_else(tmp, NA_real_, wordsB_att),
+      wordsB_incorrect  = if_else(tmp, NA_real_, wordsB_incorrect),
+      read_compB_1 = if_else(tmp, NA_real_, read_compB_1),
+      read_compB_2 = if_else(tmp, NA_real_, read_compB_2),
+      read_compB_3 = if_else(tmp, NA_real_, read_compB_3),
+      read_compB_4 = if_else(tmp, NA_real_, read_compB_4),
+      read_compB_5 = if_else(tmp, NA_real_, read_compB_5),
+      passageB_language = if_else(tmp, NA_real_, passageB_language),
+      passageB_length   = if_else(tmp, NA_real_, passageB_length)
     )
   }
 
-  # Tunisia has a passage length but no language code in this scheme.
-  d <- d %>% ensure(c("passage_language", "passage_length"))
+  # 8. Reading scores ------------------------------------------------------
+  d <- d %>% mutate(reading_score = words_att - words_incorrect)
+  if ("wordsB_att" %in% names(d)) {
+    d <- d %>% ensure("wordsB_incorrect") %>%
+      mutate(readingB_score = wordsB_att - wordsB_incorrect)
+  }
+  if ("wordsC_att" %in% names(d)) {
+    d <- d %>% ensure("wordsC_incorrect") %>%
+      mutate(readingC_score = wordsC_att - wordsC_incorrect)
+  }
 
-  # 9. Accuracy and foundational reading skills -----------------------------
+  # 9. Comprehension scores ------------------------------------------------
+  d$read_comp_score <- comp_score(d, "read_comp")
+  scoreB <- comp_score(d, "read_compB")
+  if (!is.null(scoreB)) d$read_compB_score <- scoreB
+  scoreC <- comp_score(d, "read_compC")
+  if (!is.null(scoreC)) d$read_compC_score <- scoreC
+
+  # 10. Practice outcomes --------------------------------------------------
+  d$practice_outcome <- practice_outcome(
+    d, "practice_correct", "practice_question1", "practice_question2"
+  )
+  d$fail_practice <- 1 - d$practice_outcome
+
+  if ("practiceB_correct" %in% names(d)) {
+    d <- d %>% ensure(c("practiceB_question1", "practiceB_question2"))
+    d$practiceB_outcome <- practice_outcome(
+      d, "practiceB_correct", "practiceB_question1", "practiceB_question2"
+    )
+    d$fail_practice <- if_else(eq(d$practiceB_outcome, 0), 1, d$fail_practice)
+  }
+  if ("practiceC_correct" %in% names(d)) {
+    d <- d %>% ensure(c("practiceC_question1", "practiceC_question2"))
+    d$practiceC_outcome <- practice_outcome(
+      d, "practiceC_correct", "practiceC_question1", "practiceC_question2"
+    )
+    d$fail_practice <- if_else(eq(d$practiceC_outcome, 0), 1, d$fail_practice)
+  }
+
+  # 11. Accuracy and foundational skills -----------------------------------
   d <- d %>% mutate(
     reading_accuracy = reading_score / passage_length,
     cutoff = trunc(0.9 * passage_length),
@@ -446,7 +436,7 @@ harmonize_survey <- function(path, iso, year) {
     )
   }
 
-  # 10. Lesotho and Madagascar: fold the third passage into the B slots -----
+  # 12. LSO/MDG: fold C into B ---------------------------------------------
   if (iso %in% c("LSO", "MDG")) {
     pairs <- c(
       wordsB_att = "wordsC_att", wordsB_incorrect = "wordsC_incorrect",
@@ -467,11 +457,13 @@ harmonize_survey <- function(path, iso, year) {
         d[[b]] <- if_else(present(d[[cc]]), d[[cc]], d[[b]])
       }
     }
-    d <- d %>% select(-matches("^(read_compC|passageC_|readingC_|wordsC_|practiceC)"),
-                      -any_of("cutoffC"))
+    d <- d %>% select(
+      -matches("^(read_compC|passageC_|readingC_|wordsC_|practiceC)"),
+      -any_of("cutoffC")
+    )
   }
 
-  # 11. Outcome of the reading assessment ----------------------------------
+  # 13. reading_status -----------------------------------------------------
   d <- d %>% mutate(
     lang_mismatch = as.numeric(
       eq(child_consent, 1) &
@@ -483,32 +475,43 @@ harmonize_survey <- function(path, iso, year) {
   )
 
   if (iso == "SWZ") {
-    d <- d %>% mutate(child_refuses_read = if_else(
-      eq(FL10C, 95) | (present(FL21D) & FL21D >= 95), 1, child_refuses_read))
+    d <- d %>% ensure(c("FL10C", "FL21D")) %>% mutate(
+      child_refuses_read = if_else(
+        eq(FL10C, 95) | (present(FL21D) & FL21D >= 95), 1, child_refuses_read
+      )
+    )
   }
   if (iso %in% c("LSO", "MDG")) {
-    d <- d %>% mutate(child_refuses_read = if_else(
-      ne_obs(FL110, 1) | ne_obs(FL210, 1), 1, child_refuses_read))
+    d <- d %>% ensure(c("FL110", "FL210")) %>% mutate(
+      child_refuses_read = if_else(
+        ne_obs(FL110, 1) | ne_obs(FL210, 1), 1, child_refuses_read
+      )
+    )
   }
   if (iso == "NGA") {
-    d <- d %>% mutate(child_refuses_read = if_else(
-      eq(FL10C, 95), 1, child_refuses_read))
+    d <- d %>% ensure("FL10C") %>% mutate(
+      child_refuses_read = if_else(eq(FL10C, 95), 1, child_refuses_read)
+    )
   }
   if (iso == "ZWE") {
-    d <- d %>% mutate(child_refuses_read = if_else(
-      eq(FL10C, 5) | eq(FL21D, 5), 1, child_refuses_read))
+    d <- d %>% ensure(c("FL10C", "FL21D")) %>% mutate(
+      child_refuses_read = if_else(
+        eq(FL10C, 5) | eq(FL21D, 5), 1, child_refuses_read
+      )
+    )
   }
   if (iso == "COM") {
-    d <- d %>% mutate(child_refuses_read = if_else(
-      present(FL10C) & FL10C >= 95 & FL10C <= 99, 1, child_refuses_read))
+    d <- d %>% ensure("FL10C") %>% mutate(
+      child_refuses_read = if_else(
+        present(FL10C) & FL10C >= 95 & FL10C <= 99, 1, child_refuses_read
+      )
+    )
   }
 
-  # Best result across the passages a child attempted.
   d$max_reading_score    <- row_max(d, "^reading[A-Za-z]*_score$")
   d$max_reading_accuracy <- row_max(d, "^reading[A-Za-z]*_accuracy$")
   d$max_reading_skills   <- row_max(d, "^reading[A-Za-z]*_skills$")
 
-  # Ordered classification. Codes 2 to 4 only fill gaps; 5 to 8 overwrite.
   d <- d %>% mutate(
     reading_status = if_else(present(interview_result) & interview_result > 1,
                              0, NA_real_),
@@ -523,36 +526,33 @@ harmonize_survey <- function(path, iso, year) {
     reading_status = if_else(eq(child_refuses_read, 1), 5, reading_status),
     reading_status = if_else(eq(fail_practice, 1), 6, reading_status),
     reading_status = if_else(present(max_reading_score), 7, reading_status),
-    reading_status = if_else(eq(max_reading_skills, 1), 8, reading_status)
+    reading_status = if_else(eq(max_reading_skills, 1), 8, reading_status),
+    reading_status = if_else(is.na(reading_status), 9, reading_status)
   )
 
-  # 12. Keys for merging with IPUMS-MICS -----------------------------------
+  # 14. Keys ---------------------------------------------------------------
   keys <- c("HH1", "HH2", "LN")
-  if (!all(keys %in% names(d))) {
-    stop("Missing identifier columns in ", path)
-  }
+  if (!all(keys %in% names(d))) stop("Missing identifier columns in ", path)
   if (anyDuplicated(d[keys]) > 0) {
     stop("HH1 HH2 LN do not uniquely identify children in ", path)
   }
 
   d <- d %>% mutate(
-    cluster       = HH1,
-    hhno          = HH2,
-    linech        = LN,
-    country_iso3  = iso,
-    year          = as.numeric(year)
+    cluster      = HH1,
+    hhno         = HH2,
+    linech       = LN,
+    country_iso3 = iso,
+    year         = as.numeric(year)
   )
 
-  # 13. Keep the analysis variables that this survey actually has ----------
+  # Slim keep list
   d %>% select(
-    any_of(c("country_iso3", "year", "cluster", "hhno", "linech",
-             "HH1", "HH2", "LN", "reading_status",
-             "age", "consent", "child_consent", "enrolled", "ever_attended",
-             "lang_home", "lang_school", "lang_mismatch", "child_refuses_read",
-             "fail_practice")),
-    matches("^words"), matches("^cutoff"), matches("^max_reading_"),
+    any_of(c(
+      "country_iso3", "year", "cluster", "hhno", "linech",
+      "HH1", "HH2", "LN", "reading_status"
+    )),
     matches("^reading"), matches("^read_comp"), matches("^practice"),
-    matches("^passage")
+    matches("^passage"), matches("^words.*_att$"), matches("^words.*_incorrect$")
   )
 }
 
@@ -578,12 +578,14 @@ apply_labels <- function(df) {
       "Child does not want to read story"            = 5,
       "Failed practice sentence and questions"       = 6,
       "Attempted passage"                            = 7,
-      "90% of words and all comp. questions correct" = 8
+      "90% of words and all comp. questions correct" = 8,
+      "Not classified - data inconsistent"           = 9
     )) %>%
     set_labels_if_present(c("passage_language", "passageB_language"), c(
-      English = 1010, French = 1020, Portuguese = 1040, Sesotho = 3080,
-      Shona = 3140, Ndebele = 3150, Chichewa = 3160, Hausa = 3190,
-      Siswati = 3220, Igbo = 4101, Yoruba = 4102, Malagasy = 6020
+      English = 1010, French = 1020, Portuguese = 1040, Arabic = 2010,
+      Sesotho = 3080, Shona = 3140, Ndebele = 3150, Chichewa = 3160,
+      Hausa = 3190, Siswati = 3220, Igbo = 4101, Yoruba = 4102,
+      Malagasy = 6020
     )) %>%
     set_labels_if_present(c("practice_correct", "practiceB_correct"), c(
       Yes = 1, No = 2, "No response" = 9
@@ -611,6 +613,9 @@ apply_labels <- function(df) {
     cluster            = "Cluster number",
     hhno               = "Household number",
     linech             = "Line number",
+    HH1                = "Cluster number",
+    HH2                = "Household number",
+    LN                 = "Line number",
     reading_status     = "Reading assessment outcome",
     practice_correct   = "Practice 1: Child read every word correctly",
     practice_question1 = "Practice 1: Comprehension question 1",
@@ -652,7 +657,7 @@ apply_labels <- function(df) {
 }
 
 # ---------------------------------------------------------------------------
-# Driver: loop over survey folders and append
+# Driver
 # ---------------------------------------------------------------------------
 
 harmonize_mics_reading <- function(root = "data/MICS_Datasets",
@@ -701,6 +706,7 @@ harmonize_mics_reading <- function(root = "data/MICS_Datasets",
 
   if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
   write_dta(harmonized, file.path(outdir, paste0(outfile, ".dta")))
+  write_rds(harmonized, file.path(outdir, paste0(outfile, ".rds")))
 
   message("")
   message("Saved ", file.path(outdir, paste0(outfile, ".dta")))

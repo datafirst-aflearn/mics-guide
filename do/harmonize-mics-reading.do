@@ -4,6 +4,10 @@
 * Build one cross-country dataset of MICS6 foundational reading outcomes from
 * the per-survey fs.sav files produced by R/prepare-mics-fs.R.
 *
+* Logic follows do/reading_variables_harmonize_20260730.do, with guide fixes:
+* relative paths, CAF (not CAR), SLE swap guard, LSO/MDG practice Q2
+* condition, no append force, and correct final labels.
+*
 * Run from the mics-guide project root:
 *     do "do/harmonize-mics-reading.do"
 *
@@ -24,12 +28,8 @@ local root    "data/MICS_Datasets"
 local outpath "data"
 local outfile "mics6_reading_harmonized"
 
-* Surveys whose reading passage language and length are defined below. Any
-* other survey folder is skipped instead of failing part-way through.
 local supported "BEN CAF COD COM GHA GMB GNB LSO MDG MWI NGA SLE STP SWZ TCD TGO TUN ZWE"
 
-* Variables the pipeline needs. Questionnaires differ, so any that a survey
-* does not carry are created as missing rather than stopping the run.
 local required ///
     age consent child_consent enrolled ever_attended likestory              ///
     lang_home lang_school interview_result words_att words_incorrect        ///
@@ -38,7 +38,6 @@ local required ///
 
 capture program drop ensure
 program define ensure
-    * Create each listed variable as system missing if it is not in the data.
     foreach v of local 0 {
         capture confirm variable `v'
         if _rc {
@@ -56,7 +55,6 @@ local n = 0
 
 foreach c of local countries {
 
-    *--- Identify the survey from the folder name -----------------------------
     if !regexm("`c'", "^([A-Za-z]{3})_([0-9]{4})_") {
         display as text "skip `c': cannot read ISO3 code and year from folder name"
         continue
@@ -76,96 +74,101 @@ foreach c of local countries {
     }
 
     display as result _newline "== `c'  (`iso' `year')"
-    import spss using "`root'/`c'/fs.sav", clear
+    quietly import spss using "`root'/`c'/fs.sav", clear
 
     *--- Fix questionnaire numbering before harmonising -----------------------
-    * These must succeed: a silent failure would misalign comprehension items.
     if "`iso'" == "ZWE" {
-        rename FL22E  FL22D
-        rename FL22F  FL22E
+        rename FL22E FL22D
+        rename FL22F FL22E
     }
     if "`iso'" == "COM" {
         rename FL21BE FL21BD
         rename FL21BF FL21BE
-        rename FL21B? FL22?
     }
 
-    *--- Harmonise variable names --------------------------------------------
-    * capture: a survey that never asked a question simply keeps its own names.
-    * Suffix B and C denote the second and third reading passages.
-    capture rename CB3    age
-    capture rename FL3    child_consent
-    capture rename FS3    child_line_num
-    capture rename FL1    consent
-    capture rename CB8B   edgrade_curr
-    capture rename CB8A   edlevel_curr
-    capture rename CB7    enrolled
-    capture rename CB4    ever_attended
-    capture rename FS2    household_num
-    capture rename FS7D   interview_day
-    capture rename FS7M   interview_month
-    capture rename FS17   interview_result
-    capture rename FS7Y   interview_year
-    capture rename FL7    lang_home
-    capture rename FL9    lang_school
-    capture rename FL9A   lang_school
-    capture rename FL9B   lang_school_fl9b
-    capture rename FL10   likestory
-    capture rename FL14   practice_correct
-    capture rename FL15   practice_question1
-    capture rename FL17   practice_question2
-    capture rename FL114  practiceB_correct
-    capture rename FL115  practiceB_question1
-    capture rename FL117  practiceB_question2
-    capture rename FL214  practiceC_correct
-    capture rename FL21H  practiceB_correct
-    capture rename FL215  practiceC_question1
-    capture rename FL21I  practiceB_question1
-    capture rename FL217  practiceC_question2
-    capture rename FL21K  practiceB_question2
-    capture rename FL22A  read_comp_1
-    capture rename FL22B  read_comp_2
-    capture rename FL22C  read_comp_3
-    capture rename FL22D  read_comp_4
-    capture rename FL22E  read_comp_5
+    *--- Harmonise variable names (slim list) --------------------------------
+    capture rename CB3  age
+    capture rename FL3  child_consent
+    capture rename FL1  consent
+    capture rename CB7  enrolled
+    capture rename CB4  ever_attended
+    capture rename FS17 interview_result
+    capture rename FL7  lang_home
+    capture rename FL9  lang_school
+
+    * Chad: alternative school-language items
+    if "`iso'" == "TCD" {
+        capture rename FL9A lang_school
+        capture replace lang_school = FL9B if FL9B < .
+    }
+
+    capture rename FL10  likestory
+    capture rename FL14  practice_correct
+    capture rename FL15  practice_question1
+    capture rename FL17  practice_question2
+    capture rename FL20A words_att
+    capture rename FL20B words_incorrect
+
+    * Default: FL22A-E are passage-1 comprehension.
+    * SWZ/NGA/ZWE/COM: FL21BA-E are passage 1; FL22A-E are passage 2.
+    * Exclude COM from the default block so FL22 remains available for passage B.
+    if !inlist("`iso'", "SWZ", "NGA", "ZWE", "COM") {
+        capture rename FL22A read_comp_1
+        capture rename FL22B read_comp_2
+        capture rename FL22C read_comp_3
+        capture rename FL22D read_comp_4
+        capture rename FL22E read_comp_5
+    }
+
+    if inlist("`iso'", "SWZ", "NGA", "ZWE", "COM") {
+        capture rename FL21BA read_comp_1
+        capture rename FL21BB read_comp_2
+        capture rename FL21BC read_comp_3
+        capture rename FL21BD read_comp_4
+        capture rename FL21BE read_comp_5
+        capture rename FL22A  read_compB_1
+        capture rename FL22B  read_compB_2
+        capture rename FL22C  read_compB_3
+        capture rename FL22D  read_compB_4
+        capture rename FL22E  read_compB_5
+    }
+
     capture rename FL122A read_compB_1
     capture rename FL122B read_compB_2
     capture rename FL122C read_compB_3
     capture rename FL122D read_compB_4
     capture rename FL122E read_compB_5
-    capture rename FL222A read_compC_1
-    capture rename FL222B read_compC_2
-    capture rename FL222C read_compC_3
-    capture rename FL222D read_compC_4
-    capture rename FL222E read_compC_5
     capture rename FLB22A read_compB_1
     capture rename FLB22B read_compB_2
     capture rename FLB22C read_compB_3
     capture rename FLB22D read_compB_4
     capture rename FLB22E read_compB_5
-    capture rename FL21BA read_compB_1
-    capture rename FL21BB read_compB_2
-    capture rename FL21BC read_compB_3
-    capture rename FL21BD read_compB_4
-    capture rename FL21BE read_compB_5
-    capture rename FL20A  words_att
-    capture rename FL20B  words_incorrect
+    capture rename FL114  practiceB_correct
+    capture rename FL115  practiceB_question1
+    capture rename FL117  practiceB_question2
     capture rename FL21PA wordsB_att
     capture rename FL120A wordsB_att
     capture rename FLB20A wordsB_att
     capture rename FL21PB wordsB_incorrect
     capture rename FL120B wordsB_incorrect
     capture rename FLB20B wordsB_incorrect
+    capture rename FL214  practiceC_correct
+    capture rename FL21H  practiceB_correct
+    capture rename FL215  practiceC_question1
+    capture rename FL21I  practiceB_question1
+    capture rename FL217  practiceC_question2
+    capture rename FL21K  practiceB_question2
+    capture rename FL222A read_compC_1
+    capture rename FL222B read_compC_2
+    capture rename FL222C read_compC_3
+    capture rename FL222D read_compC_4
+    capture rename FL222E read_compC_5
     capture rename FL220A wordsC_att
     capture rename FL220B wordsC_incorrect
-    capture rename FL29   result
 
     ensure `required'
 
     *--- Sierra Leone: attempted and incorrect are swapped for some records ---
-    * The guard is words_incorrect < . (non-missing). Writing <= . would always
-    * be true and would copy words_att into words_incorrect for children whose
-    * incorrect count is missing.
     if "`iso'" == "SLE" {
         generate tmp  = words_att       if words_att < words_incorrect & words_incorrect < .
         generate tmp2 = words_incorrect if words_att < words_incorrect & words_incorrect < .
@@ -174,37 +177,119 @@ foreach c of local countries {
         drop tmp tmp2
     }
 
-    *--- Reading score: words attempted less words incorrect or missed -------
+    *--- Early refusal / practice cleaning on word counts --------------------
+    if inlist("`iso'", "STP", "MDG", "CAF") {
+        replace words_att       = . if likestory != 1 | (practice_correct != 1 & practice_correct < .)
+        replace words_incorrect = . if likestory != 1 | (practice_correct != 1 & practice_correct < .)
+    }
+    if "`iso'" == "MDG" {
+        ensure FL110 FL210 practiceB_correct practiceC_correct wordsB_att wordsB_incorrect wordsC_att wordsC_incorrect
+        replace wordsB_att       = . if FL110 != 1 | (practiceB_correct != 1 & practiceB_correct < .)
+        replace wordsB_incorrect = . if FL110 != 1 | (practiceB_correct != 1 & practiceB_correct < .)
+        replace wordsC_att       = . if FL210 != 1 | (practiceC_correct != 1 & practiceC_correct < .)
+        replace wordsC_incorrect = . if FL210 != 1 | (practiceC_correct != 1 & practiceC_correct < .)
+    }
+
+    *--- Passage language ----------------------------------------------------
+    if "`iso'" == "NGA" {
+        ensure lang1 lang2
+        recode lang1 (11 = 1010 "English") (12 = 3190 "Hausa") ///
+                     (13 = 4101 "Igbo") (14 = 4102 "Yoruba"), gen(passage_language)
+        recode lang2 (11 = 1010 "English") (12 = 3190 "Hausa") ///
+                     (13 = 4101 "Igbo") (14 = 4102 "Yoruba"), gen(passageB_language)
+    }
+    if "`iso'" == "SWZ" {
+        ensure langS1 langS2
+        recode langS1 (11 = 1010 "English") (12 = 3220 "Siswati"), gen(passage_language)
+        recode langS2 (11 = 1010 "English") (12 = 3220 "Siswati"), gen(passageB_language)
+    }
+    if "`iso'" == "LSO" {
+        ensure FL100 wordsB_att wordsC_att
+        recode FL100 (1 = 3080 "Sesotho") (2 = 1010 "English") (3 = .), gen(passage_language)
+        generate passageB_language = 1010 if wordsB_att < .
+        generate passageC_language = 3080 if wordsC_att < .
+    }
+    if "`iso'" == "MDG" {
+        ensure FL100 wordsB_att wordsC_att
+        recode FL100 (1 = 6020 "Malagasy") (2 = 1020 "French") (3 = .), gen(passage_language)
+        generate passageB_language = 6020 if wordsB_att < .
+        generate passageC_language = 1020 if wordsC_att < .
+    }
+    if "`iso'" == "MWI" {
+        ensure wordsB_att
+        generate passage_language  = 1010 if words_att  < .
+        generate passageB_language = 3160 if wordsB_att < .
+    }
+    if "`iso'" == "ZWE" {
+        ensure FL10C FL21D
+        recode lang_school (1 = 1010 "English") (2 = 3140 "Shona") ///
+                           (3 = 3150 "Ndebele") (7/9 = .), gen(passage_language)
+        replace passage_language = .    if words_att >= .
+        replace passage_language = 1010 if lang_home == 1 & passage_language >= . & words_att < .
+        replace passage_language = 3140 if lang_home == 2 & passage_language >= . & words_att < .
+        replace passage_language = 3150 if lang_home == 3 & passage_language >= . & words_att < .
+        replace passage_language = 1010 if FL10C == 1 & words_att < .
+        replace passage_language = 3140 if FL10C == 2 & words_att < .
+        replace passage_language = 3150 if FL10C == 3 & words_att < .
+        recode FL21D (1 = 1010 "English") (2 = 3140 "Shona") ///
+                     (3 = 3150 "Ndebele") (5 = .), gen(passageB_language)
+    }
+
+    if inlist("`iso'", "GHA", "SLE", "GMB") generate passage_language = 1010 if words_att < .
+    if inlist("`iso'", "BEN", "CAF", "TCD", "COM", "COD", "TGO") generate passage_language = 1020 if words_att < .
+    if inlist("`iso'", "STP", "GNB") generate passage_language = 1040 if words_att < .
+    if "`iso'" == "TUN" generate passage_language = 2010 if words_att < .
+
+    ensure passage_language
+
+    *--- Passage length from the data ----------------------------------------
+    egen passage_length = max(words_att), by(passage_language)
+
+    capture confirm variable wordsB_att
+    if _rc == 0 {
+        ensure passageB_language
+        egen passageB_length = max(wordsB_att), by(passageB_language)
+    }
+    capture confirm variable wordsC_att
+    if _rc == 0 {
+        ensure passageC_language
+        egen passageC_length = max(wordsC_att), by(passageC_language)
+    }
+
+    *--- Malawi: Chichewa-only children -> move B into main slots ------------
+    if "`iso'" == "MWI" {
+        ensure wordsB_att wordsB_incorrect passageB_language passageB_length ///
+            read_compB_1 read_compB_2 read_compB_3 read_compB_4 read_compB_5
+        generate tmp = words_att >= . & wordsB_att < .
+        replace words_att          = wordsB_att          if tmp == 1
+        replace words_incorrect    = wordsB_incorrect    if tmp == 1
+        replace passage_language   = passageB_language   if tmp == 1
+        replace passage_length     = passageB_length     if tmp == 1
+        forvalues i = 1/5 {
+            replace read_comp_`i' = read_compB_`i' if tmp == 1
+        }
+        foreach var of varlist wordsB_att wordsB_incorrect read_compB_? ///
+            passageB_language passageB_length {
+            replace `var' = . if tmp == 1
+        }
+        drop tmp
+    }
+
+    *--- Reading score -------------------------------------------------------
     generate reading_score = words_att - words_incorrect
 
     capture confirm variable wordsB_att
-    if _rc == 0 generate readingB_score = wordsB_att - wordsB_incorrect
-
+    if _rc == 0 {
+        ensure wordsB_incorrect
+        generate readingB_score = wordsB_att - wordsB_incorrect
+    }
     capture confirm variable wordsC_att
-    if _rc == 0 generate readingC_score = wordsC_att - wordsC_incorrect
-
-    *--- Surveys where refusers and practice failures still have word counts --
-    if "`iso'" == "STP" | "`iso'" == "CAF" {
-        replace reading_score = . if likestory != 1 | (practice_correct != 1 & practice_correct < .)
-        replace words_att       = . if reading_score == .
-        replace words_incorrect = . if reading_score == .
-    }
-    if "`iso'" == "MDG" {
-        replace reading_score = . if likestory != 1 | (practice_correct != 1 & practice_correct < .)
-        replace words_att       = . if reading_score == .
-        replace words_incorrect = . if reading_score == .
-
-        ensure FL110 FL210
-        replace readingB_score = . if FL110 != 1 | (practiceB_correct != 1 & practiceB_correct < .)
-        replace wordsB_att       = . if readingB_score == .
-        replace wordsB_incorrect = . if readingB_score == .
-
-        replace readingC_score = . if FL210 != 1 | (practiceC_correct != 1 & practiceC_correct < .)
-        replace wordsC_att       = . if readingC_score == .
-        replace wordsC_incorrect = . if readingC_score == .
+    if _rc == 0 {
+        ensure wordsC_incorrect
+        generate readingC_score = wordsC_att - wordsC_incorrect
     }
 
-    *--- Comprehension scores: number of the five items answered correctly ---
+    *--- Comprehension scores ------------------------------------------------
     generate read_comp_score = 0 if read_comp_1 < .
     foreach var of varlist read_comp_? {
         replace read_comp_score = read_comp_score + 1 if `var' == 1
@@ -235,6 +320,7 @@ foreach c of local countries {
 
     capture confirm variable practiceB_correct
     if _rc == 0 {
+        ensure practiceB_question1 practiceB_question2
         generate practiceB_outcome = practiceB_correct == 1 &    ///
                                      practiceB_question1 == 1 &  ///
                                      practiceB_question2 == 1 if practiceB_correct < .
@@ -243,107 +329,12 @@ foreach c of local countries {
 
     capture confirm variable practiceC_correct
     if _rc == 0 {
+        ensure practiceC_question1 practiceC_question2
         generate practiceC_outcome = practiceC_correct == 1 &    ///
                                      practiceC_question1 == 1 &  ///
                                      practiceC_question2 == 1 if practiceC_correct < .
         replace fail_practice = 1 if practiceC_outcome == 0
     }
-
-    *--- Passage language and length -----------------------------------------
-    * Accuracy needs a denominator, so every survey needs passage_length.
-    if "`iso'" == "NGA" {
-        ensure lang1 lang2 FL10C
-        recode lang1 (11 = 1010 "English") (12 = 3190 "Hausa") ///
-                     (13 = 4101 "Igbo") (14 = 4102 "Yoruba"), gen(passage_language)
-        recode lang2 (11 = 1010 "English") (12 = 3190 "Hausa") ///
-                     (13 = 4101 "Igbo") (14 = 4102 "Yoruba"), gen(passageB_language)
-
-        generate passage_length = 72 if passage_language == 1010 & words_att < .
-        replace  passage_length = 76 if passage_language == 3190 & words_att < .
-        replace  passage_length = 88 if passage_language == 4101 & words_att < .
-        replace  passage_length = 81 if passage_language == 4102 & words_att < .
-
-        generate passageB_length = 61 if passageB_language == 1010 & wordsB_att < .
-        replace  passageB_length = 63 if (passageB_language == 3190 | passageB_language == 4102) & wordsB_att < .
-        replace  passageB_length = 59 if passageB_language == 4101 & wordsB_att < .
-    }
-    if "`iso'" == "SWZ" {
-        ensure langS1 langS2 FL10C FL21D
-        recode langS1 (11 = 1010 "English") (12 = 3220 "Siswati"), gen(passage_language)
-        recode langS2 (11 = 1010 "English") (12 = 3220 "Siswati"), gen(passageB_language)
-
-        generate passage_length  = 74 if passage_language  == 1010 & words_att  < .
-        replace  passage_length  = 41 if passage_language  == 3220 & words_att  < .
-        generate passageB_length = 74 if passageB_language == 1010 & wordsB_att < .
-        replace  passageB_length = 41 if passageB_language == 3220 & wordsB_att < .
-    }
-    if "`iso'" == "LSO" {
-        ensure FL100 FL110 FL210
-        recode FL100 (1 = 3080 "Sesotho") (2 = 1010 "English") (3 = .), gen(passage_language)
-
-        generate passage_length = 64 if passage_language == 3080 & words_att < .
-        replace  passage_length = 71 if passage_language == 1010 & words_att < .
-
-        generate passageB_language = 1010 if wordsB_att < .
-        generate passageC_language = 3080 if wordsC_att < .
-        generate passageB_length   = 64   if wordsB_att < .
-        generate passageC_length   = 71   if wordsC_att < .
-    }
-    if "`iso'" == "MDG" {
-        ensure FL100
-        recode FL100 (1 = 6020 "Malagasy") (2 = 1020 "French") (3 = .), gen(passage_language)
-
-        generate passage_length = 84 if passage_language == 6020 & words_att < .
-        replace  passage_length = 64 if passage_language == 1020 & words_att < .
-
-        generate passageB_language = 6020 if wordsB_att < .
-        generate passageB_length   = 84   if wordsB_att < .
-        generate passageC_language = 1020 if wordsC_att < .
-        generate passageC_length   = 64   if wordsC_att < .
-    }
-    if "`iso'" == "MWI" {
-        generate passage_language  = 1010 if words_att  < .
-        generate passageB_language = 3160 if wordsB_att < .
-        generate passage_length    = 61   if words_att  < .
-        generate passageB_length   = 74   if wordsB_att < .
-    }
-    if "`iso'" == "ZWE" {
-        ensure FL10C FL21D
-        recode lang_school (1 = 1010 "English") (2 = 3140 "Shona") ///
-                           (3 = 3150 "Ndebele") (7/9 = .), gen(passage_language)
-
-        replace passage_language = .    if words_att >= .
-        replace passage_language = 1010 if lang_home == 1 & passage_language >= . & words_att < .
-        replace passage_language = 3140 if lang_home == 2 & passage_language >= . & words_att < .
-        replace passage_language = 3150 if lang_home == 3 & passage_language >= . & words_att < .
-        replace passage_language = 1010 if FL10C == 1 & words_att < .
-        replace passage_language = 3140 if FL10C == 2 & words_att < .
-        replace passage_language = 3150 if FL10C == 3 & words_att < .
-
-        recode FL21D (1 = 1010 "English") (2 = 3140 "Shona") ///
-                     (3 = 3150 "Ndebele") (5 = .), gen(passageB_language)
-
-        generate passage_length  = 72 if words_att  < .
-        generate passageB_length = 62 if wordsB_att < .
-    }
-
-    * Single-language surveys: one passage length, one language.
-    if inlist("`iso'", "TUN", "SLE", "GNB", "GMB") generate passage_length = 72 if words_att < .
-    if inlist("`iso'", "BEN", "TCD", "COM", "TGO") generate passage_length = 81 if words_att < .
-    if "`iso'" == "GHA" generate passage_length = 69 if words_att < .
-    if "`iso'" == "CAF" generate passage_length = 87 if words_att < .
-    if "`iso'" == "COD" generate passage_length = 85 if words_att < .
-    if "`iso'" == "STP" generate passage_length = 76 if words_att < .
-
-    * English
-    if inlist("`iso'", "GHA", "SLE", "GMB") generate passage_language = 1010 if reading_score < .
-    * French
-    if inlist("`iso'", "BEN", "CAF", "TCD", "COM", "COD", "TGO") generate passage_language = 1020 if reading_score < .
-    * Portuguese
-    if inlist("`iso'", "STP", "GNB") generate passage_language = 1040 if reading_score < .
-
-    * Tunisia has a passage length but no language code in this scheme.
-    ensure passage_language passage_length
 
     *--- Accuracy and foundational reading skills ----------------------------
     generate reading_accuracy = reading_score / passage_length
@@ -367,7 +358,7 @@ foreach c of local countries {
                                    (readingC_score >= cutoffC & readingC_score < .) if readingC_score < .
     }
 
-    *--- Lesotho and Madagascar: fold the third passage into the B slots -----
+    *--- Lesotho and Madagascar: fold C into B -------------------------------
     if "`iso'" == "LSO" | "`iso'" == "MDG" {
         replace wordsB_att          = wordsC_att          if wordsC_att          < .
         replace wordsB_incorrect    = wordsC_incorrect    if wordsC_incorrect    < .
@@ -395,19 +386,35 @@ foreach c of local countries {
 
     generate child_refuses_read = likestory != 1 & likestory < .
 
-    if "`iso'" == "SWZ" replace child_refuses_read = 1 if FL10C == 95 | (FL21D >= 95 & FL21D < .)
-    if "`iso'" == "LSO" replace child_refuses_read = 1 if (FL110 != 1 & FL110 < .) | (FL210 != 1 & FL210 < .)
-    if "`iso'" == "NGA" replace child_refuses_read = 1 if FL10C == 95
-    if "`iso'" == "ZWE" replace child_refuses_read = 1 if FL10C == 5 | FL21D == 5
-    if "`iso'" == "COM" replace child_refuses_read = 1 if FL10C >= 95 & FL10C <= 99
-    if "`iso'" == "MDG" replace child_refuses_read = 1 if (FL110 != 1 & FL110 < .) | (FL210 != 1 & FL210 < .)
+    if "`iso'" == "SWZ" {
+        ensure FL10C FL21D
+        replace child_refuses_read = 1 if FL10C == 95 | (FL21D >= 95 & FL21D < .)
+    }
+    if "`iso'" == "LSO" {
+        ensure FL110 FL210
+        replace child_refuses_read = 1 if (FL110 != 1 & FL110 < .) | (FL210 != 1 & FL210 < .)
+    }
+    if "`iso'" == "NGA" {
+        ensure FL10C
+        replace child_refuses_read = 1 if FL10C == 95
+    }
+    if "`iso'" == "ZWE" {
+        ensure FL10C FL21D
+        replace child_refuses_read = 1 if FL10C == 5 | FL21D == 5
+    }
+    if "`iso'" == "COM" {
+        ensure FL10C
+        replace child_refuses_read = 1 if FL10C >= 95 & FL10C <= 99
+    }
+    if "`iso'" == "MDG" {
+        ensure FL110 FL210
+        replace child_refuses_read = 1 if (FL110 != 1 & FL110 < .) | (FL210 != 1 & FL210 < .)
+    }
 
-    * Best result across the passages a child attempted.
     egen max_reading_score    = rowmax(reading*_score)
     egen max_reading_accuracy = rowmax(reading*_accuracy)
     egen max_reading_skills   = rowmax(reading*_skills)
 
-    * Ordered classification. Codes 2 to 4 only fill gaps; 5 to 8 overwrite.
     generate reading_status = 0 if interview_result > 1 & interview_result < .
     replace  reading_status = 1 if age < 7 | (age > 14 & age < .)
     replace  reading_status = 2 if consent != 1 & consent < . & reading_status >= .
@@ -417,6 +424,7 @@ foreach c of local countries {
     replace  reading_status = 6 if fail_practice == 1
     replace  reading_status = 7 if max_reading_score < .
     replace  reading_status = 8 if max_reading_skills == 1
+    replace  reading_status = 9 if reading_status >= .
 
     *--- Keys for merging with IPUMS-MICS ------------------------------------
     isid HH1 HH2 LN
@@ -427,21 +435,12 @@ foreach c of local countries {
     generate country_iso3 = "`iso'"
     generate year = `year'
 
-    *--- Keep the analysis variables that this survey actually has -----------
-    local wanted                                                            ///
-        country_iso3 year cluster hhno linech HH1 HH2 LN                    ///
-        age consent child_consent enrolled ever_attended                    ///
-        lang_home lang_school lang_mismatch child_refuses_read              ///
-        fail_practice words* cutoff* max_reading_*                          ///
-        reading* read_comp* practice* passage*
-
-    local tokeep ""
-    foreach v of local wanted {
-        capture unab match : `v'
-        if _rc == 0 local tokeep "`tokeep' `match'"
-    }
-    keep `tokeep'
-    order country_iso3 year cluster hhno linech HH1 HH2 LN reading_status
+    * Slim keep list (matches July 30 output)
+    keep country_iso3 year cluster hhno linech HH1 HH2 LN ///
+        reading_status reading* read_comp* practice* passage* ///
+        words*_att words*_incorrect
+    order country_iso3 year cluster hhno linech HH1 HH2 LN reading_status ///
+        practice* reading* passage* read_comp* words*_att words*_incorrect
 
     local ++n
     tempfile part`n'
@@ -474,11 +473,13 @@ label define reading_status                             ///
     5 "Child does not want to read story"               ///
     6 "Failed practice sentence and questions"          ///
     7 "Attempted passage"                               ///
-    8 "90% of words and all comp. questions correct"
+    8 "90% of words and all comp. questions correct"    ///
+    9 "Not classified - data inconsistent"
 label values reading_status reading_status
 
 label define passage_lang                               ///
     1010 "English"  1020 "French"   1040 "Portuguese"   ///
+    2010 "Arabic"                                       ///
     3080 "Sesotho"  3140 "Shona"    3150 "Ndebele"      ///
     3160 "Chichewa" 3190 "Hausa"    3220 "Siswati"      ///
     4101 "Igbo"     4102 "Yoruba"   6020 "Malagasy"
@@ -517,6 +518,9 @@ label variable year           "Survey year"
 label variable cluster        "Cluster number"
 label variable hhno           "Household number"
 label variable linech         "Line number"
+label variable HH1            "Cluster number"
+label variable HH2            "Household number"
+label variable LN             "Line number"
 label variable reading_status "Reading assessment outcome"
 
 label variable practice_correct   "Practice 1: Child read every word correctly"
