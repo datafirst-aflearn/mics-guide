@@ -145,9 +145,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="1.1" data-path="c01-download.html"><a href="c01-download.html#download-from-unicef"><i class="fa fa-check"></i><b>1.1</b> Download from UNICEF</a></li>
 <li class="chapter" data-level="1.2" data-path="c01-download.html"><a href="c01-download.html#messy-nested-survey-archives"><i class="fa fa-check"></i><b>1.2</b> Messy nested survey archives</a></li>
 <li class="chapter" data-level="1.3" data-path="c01-download.html"><a href="c01-download.html#prepare-the-folders-with-prepare-mics-fs.r"><i class="fa fa-check"></i><b>1.3</b> Prepare the folders with <code>prepare-mics-fs.R</code></a></li>
-<li class="chapter" data-level="1.4" data-path="c01-download.html"><a href="c01-download.html#guide-workspace"><i class="fa fa-check"></i><b>1.4</b> Guide workspace</a></li>
-<li class="chapter" data-level="1.5" data-path="c01-download.html"><a href="c01-download.html#quality-checks"><i class="fa fa-check"></i><b>1.5</b> Quality checks</a></li>
-<li class="chapter" data-level="1.6" data-path="c01-download.html"><a href="c01-download.html#next-steps"><i class="fa fa-check"></i><b>1.6</b> Next steps</a></li>
+<li class="chapter" data-level="1.4" data-path="c01-download.html"><a href="c01-download.html#quality-checks"><i class="fa fa-check"></i><b>1.4</b> Quality checks</a></li>
+<li class="chapter" data-level="1.5" data-path="c01-download.html"><a href="c01-download.html#next-steps"><i class="fa fa-check"></i><b>1.5</b> Next steps</a></li>
 </ul></li>
 <li class="chapter" data-level="2" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html"><i class="fa fa-check"></i><b>2</b> Understanding MICS Data</a></li>
 <li class="chapter" data-level="3" data-path="c05-harmonize.html"><a href="c05-harmonize.html"><i class="fa fa-check"></i><b>3</b> Harmonising MICS6 reading outcomes</a>
@@ -277,22 +276,8 @@ after a successful run:</p>
 then call:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="c01-download.html#cb4-1" tabindex="-1"></a><span class="fu">prepare_mics_data</span>(<span class="at">zip =</span> <span class="st">&quot;C:/path/to/MICS_Datasets.zip&quot;</span>)</span></code></pre></div>
 </div>
-<div id="guide-workspace" class="section level2 hasAnchor" number="1.4">
-<h2><span class="header-section-number">1.4</span> Guide workspace<a href="c01-download.html#guide-workspace" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>For this guide, run prepare so the survey folders land under the project’s
-<code>data/MICS_Datasets/</code>. The v1.1 harmonize scripts live in the same <code>data/</code>
-folder:</p>
-<pre class="text"><code>mics-guide/
-└── data/
-    ├── MICS_Datasets/
-    │   └── BEN_2021_MICS6_v01_M/fs.sav
-    ├── harmonize-mics-reading-v1.1.R
-    └── harmonize-mics-reading-v1.1.do</code></pre>
-<p>Later chapters assume this layout and a working directory set to the
-<strong>mics-guide project root</strong>.</p>
-</div>
-<div id="quality-checks" class="section level2 hasAnchor" number="1.5">
-<h2><span class="header-section-number">1.5</span> Quality checks<a href="c01-download.html#quality-checks" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="quality-checks" class="section level2 hasAnchor" number="1.4">
+<h2><span class="header-section-number">1.4</span> Quality checks<a href="c01-download.html#quality-checks" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Before you analyse, check that:</p>
 <ol style="list-style-type: decimal">
 <li><code>data/MICS_Datasets/</code> exists under the folder you used as the output
@@ -304,16 +289,16 @@ fielded the children 5–17 module) and usually a readme.</li>
 <li>You can open a <code>.sav</code> file in R (<code>haven::read_sav()</code>) or Stata
 (<code>import spss</code>).</li>
 </ol>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="c01-download.html#cb6-1" tabindex="-1"></a><span class="co"># R</span></span>
-<span id="cb6-2"><a href="c01-download.html#cb6-2" tabindex="-1"></a><span class="fu">dir.exists</span>(<span class="st">&quot;data/MICS_Datasets&quot;</span>)     <span class="co"># 1</span></span>
-<span id="cb6-3"><a href="c01-download.html#cb6-3" tabindex="-1"></a><span class="fu">list.files</span>(<span class="st">&quot;data/MICS_Datasets&quot;</span>)     <span class="co"># 2</span></span>
-<span id="cb6-4"><a href="c01-download.html#cb6-4" tabindex="-1"></a><span class="fu">file.exists</span>(<span class="st">&quot;data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav&quot;</span>)  <span class="co"># 3</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb7-1"><a href="c01-download.html#cb7-1" tabindex="-1"></a>* Stata</span>
-<span id="cb7-2"><a href="c01-download.html#cb7-2" tabindex="-1"></a>confirmdir <span class="st">&quot;data/MICS_Datasets&quot;</span> # 1 and # 2</span>
-<span id="cb7-3"><a href="c01-download.html#cb7-3" tabindex="-1"></a><span class="kw">confirm</span> file <span class="st">&quot;data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav&quot;</span>  # 3</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="c01-download.html#cb5-1" tabindex="-1"></a><span class="co"># R</span></span>
+<span id="cb5-2"><a href="c01-download.html#cb5-2" tabindex="-1"></a><span class="fu">dir.exists</span>(<span class="st">&quot;data/MICS_Datasets&quot;</span>)     <span class="co"># 1</span></span>
+<span id="cb5-3"><a href="c01-download.html#cb5-3" tabindex="-1"></a><span class="fu">list.files</span>(<span class="st">&quot;data/MICS_Datasets&quot;</span>)     <span class="co"># 2</span></span>
+<span id="cb5-4"><a href="c01-download.html#cb5-4" tabindex="-1"></a><span class="fu">file.exists</span>(<span class="st">&quot;data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav&quot;</span>)  <span class="co"># 3</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb6-1"><a href="c01-download.html#cb6-1" tabindex="-1"></a>* Stata</span>
+<span id="cb6-2"><a href="c01-download.html#cb6-2" tabindex="-1"></a>confirmdir <span class="st">&quot;data/MICS_Datasets&quot;</span> # 1 and # 2</span>
+<span id="cb6-3"><a href="c01-download.html#cb6-3" tabindex="-1"></a><span class="kw">confirm</span> file <span class="st">&quot;data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav&quot;</span>  # 3</span></code></pre></div>
 </div>
-<div id="next-steps" class="section level2 hasAnchor" number="1.6">
-<h2><span class="header-section-number">1.6</span> Next steps<a href="c01-download.html#next-steps" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="next-steps" class="section level2 hasAnchor" number="1.5">
+<h2><span class="header-section-number">1.5</span> Next steps<a href="c01-download.html#next-steps" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Once <code>data/MICS_Datasets/</code> is in place—and especially once the supported
 surveys have <code>fs.sav</code>—continue with
 <a href="c05-harmonize.html#c05-harmonize">Harmonising MICS6 reading outcomes</a>. For survey design and

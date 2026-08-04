@@ -2,7 +2,6 @@ c01-download
 download-from-unicef
 messy-nested-survey-archives
 prepare-the-folders-with-prepare-mics-fs.r
-guide-workspace
 quality-checks
 next-steps
 ch-whats-in-data
