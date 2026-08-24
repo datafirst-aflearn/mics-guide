@@ -23,31 +23,23 @@ require), derives passage length from the data, builds scores and skills on
 a common footing, and writes `data/mics6_reading_harmonized.dta` with merge
 keys so you can still link background variables from an IPUMS extract.
 
-Two complete **v1.1** scripts accompany the chapter. They live in `data/`
-next to `MICS_Datasets/`, implement identical definitions, and work in either language:
+One complete **v1.1** R script accompanies the chapter. It lives in `data/`
+next to `MICS_Datasets/`:
 
 | Script | Language |
 |---|---|
-| `data/harmonize-mics-reading-v1.1.do` | Stata 16 or later |
 | `data/harmonize-mics-reading-v1.1.R` | R, using the tidyverse |
 
-Download the files from AFLEARN's GitHub page, set the working directory to `data/` folder, and then run
-either script. Throughout the chapter, code is shown in pairs labelled
-**Stata** then **R**, so you can follow in either language.
-
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-do "data/harmonize-mics-reading-v1.1.do"
-```
-
-<p class="code-lang code-lang-r">R</p>
+Download the file from AFLEARN's GitHub page, set the working directory to the
+`data/` folder, and run:
 
 ```{r eval=FALSE}
 source("data/harmonize-mics-reading-v1.1.R")
 ```
 
-Both write `data/mics6_reading_harmonized.dta`. The sections below explain what each stage does and why, so you can adapt the logic rather than treat it as a black box.
+It writes `data/mics6_reading_harmonized.dta`. The sections below explain what
+each stage does and why, so you can adapt the logic rather than treat it as a
+black box.
 
 ## Before you start
 
@@ -62,8 +54,7 @@ mics-guide/
 └── data/
     ├── MICS_Datasets/
     │   └── BEN_2021_MICS6_v01_M/fs.sav
-    ├── harmonize-mics-reading-v1.1.R
-    └── harmonize-mics-reading-v1.1.do
+    └── harmonize-mics-reading-v1.1.R
 ```
 
 Currently, 18 country codes are supported:
@@ -98,29 +89,6 @@ Folder names carry an ISO3 country code and a year, as in
 `BEN_2021_MICS6_v01_M`. A regular expression pulls both out. Anything that
 does not match, is not in the supported list, or has no `fs.sav`, is skipped.
 
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-local countries : dir "`root'" dirs "*"
-
-foreach c of local countries {
-    if !regexm("`c'", "^([A-Za-z]{3})_([0-9]{4})_") {
-        display as text "skip `c': cannot read ISO3 code and year from folder name"
-        continue
-    }
-    local iso  = upper(regexs(1))
-    local year = regexs(2)
-
-    if strpos(" `supported' ", " `iso' ") == 0 {
-        display as text "skip `c': `iso' is not covered by the passage rules"
-        continue
-    }
-
-    quietly import spss using "`root'/`c'/fs.sav", clear
-```
-
-<p class="code-lang code-lang-r">R</p>
-
 ```{r eval=FALSE}
 for (folder in list.dirs(root, recursive = FALSE, full.names = FALSE)) {
   m <- regmatches(folder, regexec("^([A-Za-z]{3})_([0-9]{4})_", folder))[[1]]
@@ -133,7 +101,7 @@ for (folder in list.dirs(root, recursive = FALSE, full.names = FALSE)) {
 }
 ```
 
-`zap_labels()` in the R version strips the SPSS value labels but keeps the
+`zap_labels()` strips the SPSS value labels but keeps the
 underlying numeric codes. Fresh labels are applied at the very end.
 
 ## Fix questionnaire numbering
@@ -141,21 +109,6 @@ underlying numeric codes. Fresh labels are applied at the very end.
 Two surveys need repairs before renaming. Zimbabwe stores five comprehension
 items in `FL22B` through `FL22F`. Comoros shifts `FL21BE`/`FL21BF` by one
 position (it does **not** rename the whole `FL21B*` series onto `FL22*`).
-
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-if "`iso'" == "ZWE" {
-    rename FL22E FL22D
-    rename FL22F FL22E
-}
-if "`iso'" == "COM" {
-    rename FL21BE FL21BD
-    rename FL21BF FL21BE
-}
-```
-
-<p class="code-lang code-lang-r">R</p>
 
 ```{r eval=FALSE}
 if (iso == "ZWE") {
@@ -176,20 +129,6 @@ downstream. Each rename is conditional: a survey that never asked a question
 keeps its own variables and the script carries on. A `B` or `C` suffix marks
 the second or third reading passage.
 
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-capture rename CB3  age
-capture rename FL1  consent
-capture rename FL3  child_consent
-capture rename FL10 likestory
-capture rename FL20A words_att
-capture rename FL20B words_incorrect
-* ... practice items, interview_result, lang_home, lang_school, ...
-```
-
-<p class="code-lang code-lang-r">R</p>
-
 ```{r eval=FALSE}
 d <- cap_rename(d, c(
   age = "CB3", consent = "FL1", child_consent = "FL3",
@@ -202,17 +141,6 @@ d <- cap_rename(d, c(
 
 For Chad only, `FL9A` can supply `lang_school`, and non-missing `FL9B` values
 are copied in afterwards:
-
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-if "`iso'" == "TCD" {
-    capture rename FL9A lang_school
-    capture replace lang_school = FL9B if FL9B < .
-}
-```
-
-<p class="code-lang code-lang-r">R</p>
 
 ```{r eval=FALSE}
 if (iso == "TCD") {
@@ -236,21 +164,18 @@ store passage 1 in `FL21BA`–`FL21BE` and passage 2 in `FL22A`–`FL22E`:
 COM is excluded from the default `FL22` rename so those items remain available
 for passage B.
 
-After renaming, both scripts guarantee that the variables the pipeline needs
+After renaming, the script guarantees that the variables the pipeline needs
 exist, creating them as missing where a survey omitted them (`ensure`).
 
 ### A note on missing values
 
-Stata treats missing as larger than any number, and comparisons involving
-missing usually evaluate to false rather than to missing. R does neither. The
-R translation makes those rules explicit:
-
-<p class="code-lang code-lang-r">R</p>
+In R, comparisons with `NA` yield `NA`, not `FALSE`. Helpers make the
+intended tests explicit:
 
 ```{r eval=FALSE}
-present <- function(x) !is.na(x)              # Stata: x < .
-eq      <- function(x, v) !is.na(x) & x == v  # Stata: x == v
-ne_obs  <- function(x, v) !is.na(x) & x != v  # Stata: x != v & x < .
+present <- function(x) !is.na(x)
+eq      <- function(x, v) !is.na(x) & x == v
+ne_obs  <- function(x, v) !is.na(x) & x != v
 ```
 
 ## Repair known data problems
@@ -259,8 +184,8 @@ ne_obs  <- function(x, v) !is.na(x) & x != v  # Stata: x != v & x < .
 
 Some Sierra Leone records have words-attempted and words-incorrect stored the
 wrong way round. The fix swaps them where attempted is smaller than incorrect,
-and only where the incorrect count is actually recorded (`words_incorrect < .`).
-Using `<= .` would always be true in Stata and would create false zeros.
+and only where the incorrect count is actually recorded (not missing).
+A careless “less than or equal to missing” style check would create false zeros.
 
 ### Early refusal cleaning
 
@@ -268,17 +193,6 @@ In São Tomé and Príncipe, Madagascar, and the Central African Republic
 (`CAF`, not `CAR`), children who refused the story or failed practice can
 still have non-missing word counts. Those counts are cleared before
 scores are built:
-
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-if inlist("`iso'", "STP", "MDG", "CAF") {
-    replace words_att       = . if likestory != 1 | (practice_correct != 1 & practice_correct < .)
-    replace words_incorrect = . if likestory != 1 | (practice_correct != 1 & practice_correct < .)
-}
-```
-
-<p class="code-lang code-lang-r">R</p>
 
 ```{r eval=FALSE}
 if (iso %in% c("STP", "MDG", "CAF")) {
@@ -307,7 +221,6 @@ Language is assigned next, before length. Languages for the single-language surv
 For Nigeria, Eswatini, Lesotho, Madagascar, Malawi, and Zimbabwe, the variables used to identify the passage language differ across surveys. The harmonisation process takes this into account (see the scripts). For instance, Zimbabwe is the most involved, because the passage language has to be inferred from the language of instruction, then from the language spoken at home, then from the child's own choice of story 
 
 
-<p class="code-lang code-lang-r">R</p>
 ```{r eval = FALSE}
 if (iso == "ZWE") {
   d <- d %>% ensure(c("FL10C", "FL21D")) %>% mutate(
@@ -348,17 +261,6 @@ words attempted among children who read that language:
 \max(\text{words_att} \mid \text{passage_language})
 \]
 
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-egen passage_length = max(words_att), by(passage_language)
-
-capture confirm variable wordsB_att
-if _rc == 0 egen passageB_length = max(wordsB_att), by(passageB_language)
-```
-
-<p class="code-lang code-lang-r">R</p>
-
 ```{r eval=FALSE}
 d$passage_length <- passage_len_by_lang(d$words_att, d$passage_language)
 # same idea for B/C when those passages exist
@@ -376,21 +278,6 @@ In Malawi, English is passage A and Chichewa is passage B. Some children
 attempt only Chichewa. Those records are moved into the main slots so the
 pooled file treats them as the child’s primary attempt, and the B slots are
 cleared:
-
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-if "`iso'" == "MWI" {
-    generate tmp = words_att >= . & wordsB_att < .
-    replace words_att        = wordsB_att        if tmp == 1
-    replace words_incorrect  = wordsB_incorrect  if tmp == 1
-    replace passage_language = passageB_language if tmp == 1
-    replace passage_length   = passageB_length   if tmp == 1
-    * ... copy read_compB_* into read_comp_*, then blank the B variables
-}
-```
-
-<p class="code-lang code-lang-r">R</p>
 
 ```{r eval=FALSE}
 if (iso == "MWI") {
@@ -417,24 +304,6 @@ Comprehension scores count how many of the five items are coded 1 (correct),
 and are missing when the first item was never asked. Practice is passed only
 if the practice sentence and both practice questions are correct.
 `fail_practice` is set if any passage’s practice was failed.
-
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-generate reading_score = words_att - words_incorrect
-
-generate read_comp_score = 0 if read_comp_1 < .
-foreach var of varlist read_comp_? {
-    replace read_comp_score = read_comp_score + 1 if `var' == 1
-}
-
-generate practice_outcome = practice_correct == 1 &     ///
-                            practice_question1 == 1 &   ///
-                            practice_question2 == 1 if practice_correct < .
-generate fail_practice = 1 - practice_outcome
-```
-
-<p class="code-lang code-lang-r">R</p>
 
 ```{r eval=FALSE}
 d <- d %>% mutate(reading_score = words_att - words_incorrect)
@@ -481,17 +350,6 @@ with a reading score):
 \end{cases}
 \]
 
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-generate reading_accuracy = reading_score / passage_length
-generate cutoff = int(0.9 * passage_length)
-generate reading_skills = read_comp_score == 5 &                    ///
-                          (reading_score >= cutoff & reading_score < .) if reading_score < .
-```
-
-<p class="code-lang code-lang-r">R</p>
-
 ```{r eval=FALSE}
 d <- d %>% mutate(
   reading_accuracy = reading_score / passage_length,
@@ -525,23 +383,6 @@ counts):
 | 8 | Read 90% of words and answered all comprehension questions correctly |
 | 9 | Not classified — data inconsistent |
 
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-generate reading_status = 0 if interview_result > 1 & interview_result < .
-replace  reading_status = 1 if age < 7 | (age > 14 & age < .)
-replace  reading_status = 2 if consent != 1 & consent < . & reading_status >= .
-replace  reading_status = 3 if child_consent != 1 & child_consent < . & reading_status >= .
-replace  reading_status = 4 if lang_mismatch == 1 & reading_status >= .
-replace  reading_status = 5 if child_refuses_read == 1
-replace  reading_status = 6 if fail_practice == 1
-replace  reading_status = 7 if max_reading_score < .
-replace  reading_status = 8 if max_reading_skills == 1
-replace  reading_status = 9 if reading_status >= .
-```
-
-<p class="code-lang code-lang-r">R</p>
-
 ```{r eval=FALSE}
 d <- d %>% mutate(
   reading_status = if_else(present(interview_result) & interview_result > 1, 0, NA_real_),
@@ -562,16 +403,6 @@ d <- d %>% mutate(
 Each survey is uniquely identified by cluster, household and line number.
 Those are copied to the IPUMS-MICS names `cluster`, `hhno`, and `linech`.
 Country and year are added, then the file is cut to a **slim** analysis set:
-
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-keep country_iso3 year cluster hhno linech HH1 HH2 LN ///
-    reading_status reading* read_comp* practice* passage* ///
-    words*_att words*_incorrect
-```
-
-<p class="code-lang code-lang-r">R</p>
 
 ```{r eval=FALSE}
 d %>% select(
@@ -613,18 +444,6 @@ supported surveys.
 
 
 ## Checks after running
-
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-use "data/mics6_reading_harmonized.dta", clear
-
-tabulate country_iso3 year
-tabulate reading_status, missing
-summarize reading_accuracy
-```
-
-<p class="code-lang code-lang-r">R</p>
 
 ```{r eval=FALSE}
 library(tidyverse)

@@ -101,17 +101,12 @@ Before you analyse, check that:
     (`import spss`).
 
 ```{r eval=FALSE}
-# R
+
 dir.exists("data/MICS_Datasets")     # 1
 list.files("data/MICS_Datasets")     # 2
 file.exists("data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav")  # 3
 ```
 
-```{stata eval=FALSE}
-* Stata
-confirmdir "data/MICS_Datasets" # 1 and # 2
-confirm file "data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav"  # 3
-```
 
 ## Next steps
 

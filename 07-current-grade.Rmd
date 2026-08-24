@@ -306,8 +306,6 @@ vocational or tertiary years onto the primary–secondary ladder.
 Restrict to currently enrolled children with a usable grade. Compute shares with
 `srvyr`. Build the administrative year with country-specific offsets.
 
-<p class="code-lang code-lang-r">R</p>
-
 ```{r recipe-r, eval=FALSE}
 library(tidyverse)
 library(srvyr)
@@ -345,24 +343,6 @@ gha %>%
     p = survey_mean(vartype = NULL),
     n = unweighted(n())
   )
-```
-
-<p class="code-lang code-lang-stata">Stata</p>
-
-```{stata eval=FALSE}
-use "data/mics6_fs_harmonized.dta", clear
-keep if country_iso3 == "GHA"
-keep if enrolled == 1
-keep if inrange(current_grade, 1, 20)
-keep if inlist(current_level_h, 1, 2, 3)
-
-generate admin_grade = .
-replace admin_grade = current_grade if current_level_h == 1
-replace admin_grade = 6 + current_grade if current_level_h == 2
-replace admin_grade = 9 + current_grade if current_level_h == 3
-
-svyset HH1 [pw = fsweight]
-svy: tabulate admin_grade
 ```
 
 ## Next steps
