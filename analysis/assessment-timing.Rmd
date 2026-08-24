@@ -1,0 +1,609 @@
+---
+title: "Assessment timing relative to the school year"
+subtitle: "Harmonised MICS6 foundational learning (FS) module"
+author: "AFLEARN / MICS guide analysis"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 9,
+  fig.height = 5
+)
+```
+
+# Purpose
+
+Cross-country comparisons of MICS foundational learning often treat children in the same administrative grade as having similar schooling exposure. Fieldwork calendars differ, so children labelled "grade 3" in one country may have completed far more (or less) of the school year at assessment than peers elsewhere.
+
+This notebook:
+
+1.  Infers **months after the school-year start** at the FS interview.
+2.  Summarises timing by country with survey weights (`srvyr`).
+3.  Shows that children assigned to the **same administrative grade** often differ substantially in months of schooling before assessment.
+4.  Adds an **exploratory** within-country link to reading skills (not causal).
+5.  Compares numeracy score **densities by timing tercile** for **Eswatini (SWZ) 2021** as a first country case.
+
+Not part of the bookdown guide — knit locally from `analysis/`.
+
+# Inference method
+
+Assessment timing is **not** stored relative to the school year in MICS. We construct it as:
+
+| Ingredient | Source |
+|----|----|
+| Assessment date | FS interview `interview_year`, `interview_month`, `interview_day` (`FS7Y`/`FS7M`/`FS7D`) in `data/mics6_fs_harmonized.rds` |
+| School-year start | External lookup `analysis/school_year_start.csv` — UNESCO UIS / World Bank EdStats indicator `UIS.YR.ST.MON.01T5` (start month, pre-primary to post-secondary non-tertiary), matched to each survey year |
+| Exposure | Months elapsed since the most recent school-year start on or before the interview |
+
+$$
+\text{months\_after\_start} = (m_{\text{interview}} - m_{\text{start}}) \bmod 12
+$$
+
+with a fractional refinement when day-of-month is valid (1–31). Interpret as **exposure within the current school year at assessment**, not cumulative lifetime schooling.
+
+**Caveats:** UIS months are national approximations; calendars can shift year to year; regional/private calendars are ignored; grade codes remain country-specific (not cross-harmonised).
+
+# Setup
+
+```{r packages}
+library(tidyverse)
+library(srvyr)
+library(haven)
+library(knitr)
+```
+
+```{r paths}
+fs_path <- file.path("data", "mics6_fs_harmonized.rds")
+rd_path <- file.path("data", "mics6_reading_harmonized.rds")
+cal_path <- file.path("analysis", "school_year_start.csv")
+
+# Allow knitting from repo root or from analysis/
+if (!file.exists(fs_path) && file.exists(file.path("..", fs_path))) {
+  fs_path <- file.path("..", fs_path)
+  rd_path <- file.path("..", rd_path)
+  cal_path <- file.path("..", cal_path)
+}
+```
+
+# Data
+
+```{r load}
+fs <- readRDS(fs_path)
+cal <- read_csv(cal_path, show_col_types = FALSE)
+rd <- readRDS(rd_path) %>%
+  select(
+    any_of(c(
+      "country_iso3", "year", "HH1", "HH2", "LN",
+      "reading_skills", "readingB_skills", "reading_status"
+    ))
+  )
+if (!"readingB_skills" %in% names(rd)) {
+  rd$readingB_skills <- NA_real_
+}
+
+cal_tbl <- cal %>%
+  select(
+    country_iso3, year, country_name,
+    school_start_month, school_start_day, uis_year, notes
+  )
+
+kable(
+  cal_tbl %>%
+    transmute(
+      country_iso3, year, country_name,
+      school_start_month,
+      uis_year,
+      notes = str_trunc(notes, 70)
+    ),
+  caption = "School-year start months used (UIS.YR.ST.MON.01T5)"
+)
+```
+
+```{r derive}
+valid_md <- function(x, lo, hi) {
+  # Harmonised FS dates may be haven_labelled
+  if (inherits(x, "haven_labelled") || inherits(x, "labelled")) {
+    x <- haven::zap_labels(x)
+  }
+  x <- suppressWarnings(as.integer(x))
+  if_else(!is.na(x) & x >= lo & x <= hi, x, NA_integer_)
+}
+
+# Months after start: modular month difference + day fraction when available.
+months_after_school_start <- function(iy, im, id, sm, sd = 1L) {
+  im <- valid_md(im, 1L, 12L)
+  sm <- valid_md(sm, 1L, 12L)
+  id <- valid_md(id, 1L, 31L)
+  sd <- coalesce(valid_md(sd, 1L, 28L), 1L)
+  month_gap <- if_else(!is.na(im) & !is.na(sm), (im - sm) %% 12, NA_real_)
+  day_frac <- if_else(
+    !is.na(id),
+    (as.numeric(id) - as.numeric(sd)) / 30,
+    0
+  )
+  # Keep result in [0, 12)
+  out <- month_gap + day_frac
+  if_else(out < 0, out + 12, if_else(out >= 12, out - 12, out))
+}
+
+numeracy_item_vars <- c(
+  paste0("number_id_", 1:6),
+  paste0("number_compare_", 1:5),
+  paste0("number_add_", 1:5),
+  paste0("number_pattern_", 1:5)
+)
+
+# Sum of correct items (code 1); NA if no item attempted
+numeracy_score_from_items <- function(df, vars) {
+  present <- intersect(vars, names(df))
+  if (length(present) == 0) {
+    return(rep(NA_real_, nrow(df)))
+  }
+  mat <- df %>%
+    select(all_of(present)) %>%
+    mutate(across(everything(), ~ {
+      x <- .
+      if (inherits(x, "haven_labelled") || inherits(x, "labelled")) {
+        x <- haven::zap_labels(x)
+      }
+      as.integer(x == 1)
+    })) %>%
+    as.matrix()
+  n_nonmiss <- rowSums(!is.na(mat))
+  score <- rowSums(mat, na.rm = TRUE)
+  if_else(n_nonmiss > 0, as.numeric(score), NA_real_)
+}
+
+d <- fs %>%
+  left_join(cal_tbl, by = c("country_iso3", "year")) %>%
+  left_join(rd, by = c("country_iso3", "year", "HH1", "HH2", "LN")) %>%
+  mutate(
+    survey = paste(country_iso3, year),
+    interview_month_n = valid_md(interview_month, 1L, 12L),
+    interview_day_n = valid_md(interview_day, 1L, 31L),
+    interview_year_n = suppressWarnings(as.integer(interview_year)),
+    months_after_start = months_after_school_start(
+      interview_year_n, interview_month_n, interview_day_n,
+      school_start_month, school_start_day
+    ),
+    enrolled_now = enrolled == 1,
+    grade_ok = !is.na(current_grade) & current_grade %in% 1:20,
+    # Primary grades for same-grade contrasts (raw country codes)
+    primary_g2_4 = grade_ok & current_level_h == 1 & current_grade %in% 2:4,
+    grade3 = grade_ok & current_level_h == 1 & current_grade == 3,
+    reading_foundational = coalesce(reading_skills, readingB_skills)
+  )
+
+d$numeracy_score <- numeracy_score_from_items(d, numeracy_item_vars)
+
+# Analysis sample: enrolled, valid interview month, calendar matched, positive weight
+an <- d %>%
+  filter(
+    enrolled_now,
+    !is.na(months_after_start),
+    !is.na(fsweight),
+    fsweight > 0
+  )
+
+cat(
+  "FS rows:", nrow(fs), "\n",
+  "Enrolled with timing + weight:", nrow(an), "\n",
+  "Surveys:", n_distinct(an$survey), "\n"
+)
+```
+
+# Survey design
+
+No explicit stratum variable is retained in the harmonised FS file. Designs use **cluster (`HH1`) + child weight (`fsweight`)** within each survey. Country estimates are computed survey-by-survey then stacked.
+
+```{r design-helper}
+design_one <- function(df) {
+  df %>%
+    as_survey_design(
+      ids = HH1,
+      weights = fsweight,
+      nest = TRUE
+    )
+}
+```
+
+# Fieldwork vs school-year start
+
+```{r fieldwork-unweighted}
+field_uw <- an %>%
+  group_by(country_iso3, year, country_name, school_start_month) %>%
+  summarise(
+    n = n(),
+    interview_month_median = median(interview_month_n, na.rm = TRUE),
+    interview_month_p25 = quantile(interview_month_n, 0.25, na.rm = TRUE),
+    interview_month_p75 = quantile(interview_month_n, 0.75, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(country_iso3, year)
+
+kable(
+  field_uw,
+  digits = 1,
+  caption = "Unweighted interview-month distribution among currently enrolled children"
+)
+```
+
+```{r timing-country-srvyr}
+timing_svy <- an %>%
+  group_by(survey, country_iso3, year, country_name, school_start_month) %>%
+  group_modify(~ {
+    des <- design_one(.x)
+    med <- des %>%
+      summarise(
+        months_median = survey_median(months_after_start, na.rm = TRUE),
+        months_mean = survey_mean(months_after_start, na.rm = TRUE),
+        months_p25 = survey_quantile(months_after_start, quantiles = 0.25, na.rm = TRUE),
+        months_p75 = survey_quantile(months_after_start, quantiles = 0.75, na.rm = TRUE),
+        n = unweighted(n())
+      )
+    med
+  }) %>%
+  ungroup() %>%
+  arrange(months_median)
+
+kable(
+  timing_svy %>%
+    transmute(
+      country_iso3, year, country_name,
+      school_start_month,
+      n,
+      months_median = round(months_median, 1),
+      months_p25 = round(months_p25_q25, 1),
+      months_p75 = round(months_p75_q75, 1),
+      months_mean = round(months_mean, 1)
+    ),
+  caption = "Weighted months after school-year start at FS assessment (enrolled children)"
+)
+```
+
+```{r plot-timing-country, fig.height=6}
+timing_svy %>%
+  mutate(
+    label = paste0(country_iso3, " ", year),
+    label = fct_reorder(label, months_median)
+  ) %>%
+  ggplot(aes(x = months_median, y = label)) +
+  geom_errorbarh(
+    aes(xmin = months_p25_q25, xmax = months_p75_q75),
+    height = 0.25,
+    colour = "grey50"
+  ) +
+  geom_point(size = 2.5, colour = "#1B4F72") +
+  labs(
+    title = "Months of schooling before assessment vary widely by country",
+    subtitle = "Weighted median (points) and IQR (bars); currently enrolled children",
+    x = "Months after school-year start",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(panel.grid.major.y = element_blank())
+```
+
+# Same administrative grade, different exposure
+
+Restrict to children in **primary** (`current_level_h == 1`) **grades 2–4** (raw country grade codes). Grades are not cross-country equivalent, but this still shows that children labelled similarly at interview can face very different within-year exposure.
+
+```{r same-grade-band}
+g24 <- an %>% filter(primary_g2_4)
+
+timing_g24 <- g24 %>%
+  group_by(survey, country_iso3, year, country_name) %>%
+  group_modify(~ {
+    des <- design_one(.x)
+    des %>%
+      summarise(
+        months_median = survey_median(months_after_start, na.rm = TRUE),
+        months_p25 = survey_quantile(months_after_start, quantiles = 0.25, na.rm = TRUE),
+        months_p75 = survey_quantile(months_after_start, quantiles = 0.75, na.rm = TRUE),
+        n = unweighted(n())
+      )
+  }) %>%
+  ungroup() %>%
+  arrange(months_median)
+
+kable(
+  timing_g24 %>%
+    transmute(
+      country_iso3, year, country_name,
+      n,
+      months_median = round(months_median, 1),
+      months_p25 = round(months_p25_q25, 1),
+      months_p75 = round(months_p75_q75, 1)
+    ),
+  caption = "Weighted months after school start — primary grades 2–4 only"
+)
+
+spread_g24 <- timing_g24 %>%
+  summarise(
+    min_median = min(months_median, na.rm = TRUE),
+    max_median = max(months_median, na.rm = TRUE),
+    range = max_median - min_median,
+    earliest = survey[which.min(months_median)],
+    latest = survey[which.max(months_median)]
+  )
+
+cat(
+  sprintf(
+    "Among primary grades 2–4, country medians of months after start range from %.1f (%s) to %.1f (%s) — a gap of %.1f months.\n",
+    spread_g24$min_median, spread_g24$earliest,
+    spread_g24$max_median, spread_g24$latest,
+    spread_g24$range
+  )
+)
+```
+
+```{r plot-g24, fig.height=6}
+timing_g24 %>%
+  mutate(label = fct_reorder(paste(country_iso3, year), months_median)) %>%
+  ggplot(aes(x = months_median, y = label)) +
+  geom_errorbarh(
+    aes(xmin = months_p25_q25, xmax = months_p75_q75),
+    height = 0.25,
+    colour = "grey50"
+  ) +
+  geom_point(size = 2.5, colour = "#117A65") +
+  labs(
+    title = "Same grade band, different schooling before assessment",
+    subtitle = "Primary grades 2–4 (raw country codes); weighted median and IQR",
+    x = "Months after school-year start",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(panel.grid.major.y = element_blank())
+```
+
+```{r grade3-optional}
+g3 <- an %>% filter(grade3)
+
+timing_g3 <- g3 %>%
+  group_by(survey, country_iso3, year, country_name) %>%
+  group_modify(~ {
+    if (nrow(.x) < 30) {
+      return(tibble(
+        months_median = NA_real_,
+        months_p25_q25 = NA_real_,
+        months_p75_q75 = NA_real_,
+        n = nrow(.x)
+      ))
+    }
+    des <- design_one(.x)
+    des %>%
+      summarise(
+        months_median = survey_median(months_after_start, na.rm = TRUE),
+        months_p25 = survey_quantile(months_after_start, quantiles = 0.25, na.rm = TRUE),
+        months_p75 = survey_quantile(months_after_start, quantiles = 0.75, na.rm = TRUE),
+        n = unweighted(n())
+      )
+  }) %>%
+  ungroup() %>%
+  filter(!is.na(months_median)) %>%
+  arrange(months_median)
+
+kable(
+  timing_g3 %>%
+    transmute(
+      country_iso3, year,
+      n,
+      months_median = round(months_median, 1),
+      months_p25 = round(months_p25_q25, 1),
+      months_p75 = round(months_p75_q75, 1)
+    ),
+  caption = "Weighted months after school start — primary grade 3 only (n ≥ 30)"
+)
+```
+
+# Exploratory: timing and reading skills within country
+
+Merge reading outcomes from `mics6_reading_harmonized`. Compare foundational reading skills (`reading_skills`, coalesced with `readingB_skills` when needed) across **within-country terciles** of `months_after_start`. This is illustrative only — fieldwork timing is not randomly assigned, and composition differs by month.
+
+```{r reading-terciles}
+rd_an <- an %>%
+  filter(
+    primary_g2_4,
+    !is.na(reading_foundational),
+    reading_foundational %in% c(0, 1)
+  ) %>%
+  group_by(survey) %>%
+  mutate(
+    timing_tercile = ntile(months_after_start, 3),
+    timing_tercile = factor(
+      timing_tercile,
+      levels = 1:3,
+      labels = c("Earliest third", "Middle third", "Latest third")
+    )
+  ) %>%
+  ungroup()
+
+reading_by_timing <- rd_an %>%
+  group_by(survey, country_iso3, year, timing_tercile) %>%
+  group_modify(~ {
+    if (nrow(.x) < 20 || n_distinct(.x$HH1) < 5) {
+      return(tibble(
+        skills_mean = NA_real_,
+        skills_se = NA_real_,
+        months_mean = NA_real_,
+        n = nrow(.x)
+      ))
+    }
+    des <- design_one(.x)
+    des %>%
+      summarise(
+        skills_mean = survey_mean(reading_foundational, na.rm = TRUE),
+        months_mean = survey_mean(months_after_start, na.rm = TRUE),
+        n = unweighted(n())
+      )
+  }) %>%
+  ungroup() %>%
+  filter(!is.na(skills_mean))
+
+kable(
+  reading_by_timing %>%
+    transmute(
+      country_iso3, year, timing_tercile,
+      n,
+      months_mean = round(months_mean, 1),
+      skills_pct = round(100 * skills_mean, 1)
+    ),
+  caption = "Weighted % with foundational reading skills by within-country timing tercile (primary grades 2–4)"
+)
+```
+
+```{r plot-reading-timing, fig.height=7}
+reading_by_timing %>%
+  mutate(label = paste(country_iso3, year)) %>%
+  ggplot(aes(x = timing_tercile, y = 100 * skills_mean, group = label)) +
+  geom_line(alpha = 0.35, colour = "grey40") +
+  geom_point(aes(colour = timing_tercile), size = 1.8, show.legend = FALSE) +
+  facet_wrap(~label, ncol = 4) +
+  scale_colour_manual(values = c("#5D6D7E", "#1B4F72", "#117A65")) +
+  labs(
+    title = "Reading skills by within-country assessment timing (exploratory)",
+    subtitle = "Primary grades 2–4; each panel is one survey; lines connect terciles",
+    x = NULL,
+    y = "% with foundational reading skills"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    panel.grid.minor = element_blank()
+  )
+```
+
+# Numeracy score vs months after start (Swaziland)
+
+There is no pre-built numeracy composite in `mics6_fs_harmonized`. We construct `numeracy_score` as the **count of correct items** (code `1`) across all 21 FL numeracy items: number recognition (6), discrimination (5), addition (5), and patterns (5). Range is 0–21. Children with no attempted item remain `NA`.
+
+Eswatini (SWZ) 2021 uses a **January** school-year start. Fieldwork for enrolled children is typically late in that year (median months after start ≈ 9), but the timing distribution is wide. Because scores are discrete (0–21), we compare **score densities by within-country timing tercile** rather than a scatter.
+
+```{r swz-numeracy-sample}
+swz <- an %>%
+  filter(
+    country_iso3 == "NGA",
+    year == 2021,
+    !is.na(numeracy_score)
+  ) %>%
+  mutate(
+    timing_tercile = ntile(months_after_start, 3),
+    timing_tercile = factor(
+      timing_tercile,
+      levels = 1:3,
+      labels = c("Earliest third", "Middle third", "Latest third")
+    )
+  )
+
+swz_sum <- swz %>%
+  summarise(
+    n = n(),
+    months_median = median(months_after_start, na.rm = TRUE),
+    months_p25 = quantile(months_after_start, 0.25, na.rm = TRUE),
+    months_p75 = quantile(months_after_start, 0.75, na.rm = TRUE),
+    score_mean = mean(numeracy_score, na.rm = TRUE),
+    score_median = median(numeracy_score, na.rm = TRUE),
+    score_p25 = quantile(numeracy_score, 0.25, na.rm = TRUE),
+    score_p75 = quantile(numeracy_score, 0.75, na.rm = TRUE)
+  )
+
+swz_by_tercile <- swz %>%
+  group_by(timing_tercile) %>%
+  summarise(
+    n = n(),
+    months_mean = mean(months_after_start, na.rm = TRUE),
+    months_median = median(months_after_start, na.rm = TRUE),
+    score_mean = mean(numeracy_score, na.rm = TRUE),
+    score_median = median(numeracy_score, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+kable(
+  swz_sum %>%
+    mutate(across(where(is.numeric), ~ round(.x, 1))),
+  caption = "Eswatini 2021: enrolled children with timing and numeracy score (unweighted descriptives)"
+)
+
+kable(
+  swz_by_tercile %>%
+    mutate(across(where(is.numeric), ~ round(.x, 1))),
+  caption = "Eswatini 2021: unweighted numeracy score by within-country timing tercile"
+)
+
+cat(
+  sprintf(
+    "SWZ 2021 analysis n = %d enrolled children with numeracy score.\n",
+    swz_sum$n
+  )
+)
+```
+
+```{r plot-swz-numeracy-density, fig.height=5.5}
+swz %>%
+  ggplot(aes(x = numeracy_score, fill = timing_tercile, colour = timing_tercile)) +
+  geom_density(alpha = 0.25, adjust = 1.1, linewidth = 0.8) +
+  scale_x_continuous(breaks = seq(0, 21, by = 3), limits = c(0, 21)) +
+  scale_fill_manual(values = c("#5D6D7E", "#1B4F72", "#117A65")) +
+  scale_colour_manual(values = c("#5D6D7E", "#1B4F72", "#117A65")) +
+  labs(
+    title = "Numeracy score density by assessment timing",
+    subtitle = "Eswatini (SWZ) 2021 — enrolled children; score = sum of 21 correct FL items (0–21)",
+    x = "Numeracy score (0–21)",
+    y = "Density",
+    fill = "Timing tercile",
+    colour = "Timing tercile",
+    caption = "Unweighted densities (exploratory). Terciles of months after school-year start within SWZ. School year starts in January (UIS)."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+```{r plot-swz-numeracy-violin, fig.height=5}
+swz %>%
+  ggplot(aes(x = timing_tercile, y = numeracy_score, fill = timing_tercile)) +
+  geom_violin(alpha = 0.35, colour = "grey40", linewidth = 0.4) +
+  geom_boxplot(width = 0.15, outlier.size = 0.8, alpha = 0.85, show.legend = FALSE) +
+  scale_y_continuous(breaks = seq(0, 21, by = 3), limits = c(0, 21)) +
+  scale_fill_manual(values = c("#5D6D7E", "#1B4F72", "#117A65")) +
+  labs(
+    title = "Numeracy score distribution by assessment timing",
+    subtitle = "Eswatini (SWZ) 2021 — violin + boxplot; same sample as density plot",
+    x = NULL,
+    y = "Numeracy score (0–21)",
+    fill = "Timing tercile",
+    caption = "Unweighted. Exploratory only — timing is not randomly assigned."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  )
+```
+
+# Takeaways
+
+-   Months after school-year start at FS assessment differ sharply across surveys once UIS calendars are attached to interview dates.
+-   Restricting to the same primary grade band (2–4) does **not** remove those gaps: children with the same administrative grade label can still be assessed many months apart in the school year.
+-   Cross-country grade-specific learning comparisons should therefore treat assessment timing as a design feature of the pooled file, not as a wash.
+-   Within-country associations between timing terciles and reading skills are exploratory only.
+-   For Eswatini 2021, numeracy score densities / violins by timing tercile show whether later assessment coincides with a shifted score distribution; any difference is descriptive only.
+
+# Session info
+
+```{r session}
+sessionInfo()
+```

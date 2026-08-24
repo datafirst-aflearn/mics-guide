@@ -116,6 +116,7 @@ confirm file "data/MICS_Datasets/BEN_2021_MICS6_v01_M/fs.sav"  # 3
 ## Next steps
 
 Once `data/MICS_Datasets/` is in place—and especially once the supported
-surveys have `fs.sav`—continue with
-[Harmonising MICS6 reading outcomes](#c05-harmonize). For survey design and
-file structure, see [Understanding MICS Data](#ch-whats-in-data).
+surveys have `fs.sav` (and `hl.sav` for parent education)—continue with
+[Harmonising MICS6 reading outcomes](#c05-harmonize) and
+[Harmonising MICS6 FS background themes](#c06-harmonize-fs). For survey design
+and file structure, see [Understanding MICS Data](#ch-whats-in-data).

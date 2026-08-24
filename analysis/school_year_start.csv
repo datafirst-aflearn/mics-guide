@@ -1,0 +1,20 @@
+country_iso3,year,country_name,school_start_month,school_start_day,uis_year,source,notes
+BEN,2021,Benin,10,1,2020,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,No UIS value for survey year 2021; used nearest available UIS year 2020
+CAF,2018,Central African Republic,10,1,2018,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2018
+COD,2017,"Congo, Dem. Rep.",9,1,2017,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2017
+COM,2022,Comoros,10,1,2020,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,No UIS value for survey year 2022; used nearest available UIS year 2020
+GHA,2017,Ghana,9,1,2017,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2017
+GMB,2018,Gambia,9,1,2018,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2018
+GNB,2018,Guinea-Bissau,10,1,2018,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2018
+LSO,2018,Lesotho,3,1,2018,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2018
+MDG,2018,Madagascar,10,1,2018,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2018
+MWI,2019,Malawi,10,1,2019,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2019
+NGA,2021,Nigeria,9,1,2020,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,No UIS value for survey year 2021; used nearest available UIS year 2020
+SLE,2017,Sierra Leone,9,1,2017,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2017
+STP,2019,Sao Tome and Principe,10,1,2019,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2019
+SWZ,2021,Eswatini,1,1,2020,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,No UIS value for survey year 2021; used nearest available UIS year 2020
+TCD,2019,Chad,10,1,2019,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2019
+TGO,2017,Togo,10,1,2017,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2017
+TUN,2018,Tunisia,9,1,2018,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2018
+TUN,2023,Tunisia,9,1,2020,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,No UIS value for survey year 2023; used nearest available UIS year 2020
+ZWE,2019,Zimbabwe,1,1,2019,World Bank EdStats / UNESCO UIS indicator UIS.YR.ST.MON.01T5,UIS start month for calendar year 2019

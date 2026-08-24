@@ -1,3 +1,1772 @@
-# Stata Tutorial {#c04-stata}
+# Analyzing MICS6 data in Stata {#c04-stata}
 
-Content coming soon.
+This chapter is a practical introduction to analysing the African MICS6
+harmonised file in Stata. It follows a three-module lab: getting to know
+the data, regression, and a short replication exercise. You should already
+have a basic working knowledge of Stata.
+
+The MICS examples use `data/mics6-harmonized-v1.dta`, the pooled African
+file built in this guide (~166,980 children aged 5–17 across 19 surveys;
+Tunisia appears in both 2018 and 2023). Download and harmonisation steps
+are covered in [Download the MICS Data](#c01-download),
+[Harmonising MICS6 reading outcomes](#c05-harmonize), and
+[Harmonising MICS6 FS background themes](#c06-harmonize-fs). This is not
+an IPUMS extract.
+
+```{r setup-stata, include=FALSE}
+library(Statamarkdown)
+
+stataexe <- "C:/Program Files/Stata18/StataMP-64.exe"
+
+# Prefer the root recorded in index.Rmd; fall back to _bookdown.yml location.
+root_dir <- getOption("mics.guide.root")
+if (is.null(root_dir) || !nzchar(root_dir) || !dir.exists(root_dir)) {
+  root_dir <- if (file.exists("_bookdown.yml")) {
+    normalizePath(".", winslash = "/", mustWork = TRUE)
+  } else if (file.exists("../_bookdown.yml")) {
+    normalizePath("..", winslash = "/", mustWork = TRUE)
+  } else {
+    normalizePath(".", winslash = "/", mustWork = TRUE)
+  }
+  options(mics.guide.root = root_dir)
+}
+setwd(root_dir)
+knitr::opts_knit$set(root.dir = root_dir)
+
+knitr::opts_chunk$set(
+  engine.path = list(stata = stataexe),
+  cache = FALSE,
+  comment = NA,
+  error = TRUE
+)
+
+# Statamarkdown collectcode uses profile.do from the process working
+# directory. Under bookdown that directory can drift after earlier chapters,
+# so chaining fails with empty Stata sessions ("no variables defined").
+# Disable that hook and chain by prepending prior code into each do-file.
+knitr::knit_hooks$set(collectcode = function(before, options, envir) NULL)
+if (file.exists(file.path(root_dir, "profile.do"))) {
+  unlink(file.path(root_dir, "profile.do"))
+}
+state_file <- file.path(root_dir, "mics_stata_state.do")
+if (file.exists(state_file)) unlink(state_file)
+.mics_stata_collected <- character()
+.mics_stata_engine <- knitr::knit_engines$get("stata")
+
+knitr::knit_engines$set(stata = function(options) {
+  chunk_code <- options$code
+  collect <- isTRUE(options$collectcode)
+  options$collectcode <- NULL
+
+  preamble <- sprintf('cd "%s"', root_dir)
+  if (length(.mics_stata_collected) > 0) {
+    writeLines(.mics_stata_collected, state_file)
+    # quietly: hide setup output the way profile.do output is stripped
+    preamble <- c(preamble, sprintf('quietly do "%s"', state_file))
+  }
+
+  run_opts <- options
+  run_opts$code <- c(preamble, chunk_code)
+  run_opts$echo <- FALSE
+  result <- .mics_stata_engine(run_opts)
+
+  if (collect) {
+    .mics_stata_collected <<- c(.mics_stata_collected, chunk_code)
+  }
+
+  src <- ""
+  if (!identical(options$echo, FALSE)) {
+    src <- knitr::knit_hooks$get("source")(
+      paste(chunk_code, collapse = "\n"),
+      options
+    )
+  }
+  paste(c(src, result), collapse = "\n")
+})
+
+# knitr message=FALSE / warning=FALSE only affect R. Stata noise (r(111),
+# "variables out of order", temp-file notes from profile.do) is written
+# into the .log and must be filtered from chunk output explicitly.
+clean_stata_log <- function(x) {
+  if (is.null(x) || !nzchar(x)) return(x)
+  lines <- unlist(strsplit(x, "\n", fixed = TRUE))
+  drop <- grepl(
+    paste(
+      "^[[:space:]]*variables out of order[[:space:]]*$",
+      "^[[:space:]]*r\\([0-9]+\\);[[:space:]]*$",
+      "^[[:space:]]*\\(file .+\\.tmp not found\\)[[:space:]]*$",
+      "^[[:space:]]*file .+\\.tmp saved[[:space:]]*$",
+      "^[[:space:]]*Running .+profile\\.do",
+      sep = "|"
+    ),
+    lines,
+    ignore.case = TRUE,
+    perl = TRUE
+  )
+  lines <- lines[!drop]
+  while (length(lines) > 0 && !nzchar(trimws(lines[1]))) {
+    lines <- lines[-1]
+  }
+  paste(lines, collapse = "\n")
+}
+
+stata_output_hook <- knitr::knit_hooks$get("output")
+knitr::knit_hooks$set(output = function(x, options) {
+  if (!is.null(options$engine) && identical(options$engine, "stata")) {
+    x <- clean_stata_log(x)
+  }
+  if (is.function(stata_output_hook)) {
+    stata_output_hook(x, options)
+  } else {
+    x
+  }
+})
+
+has_mics <- file.exists("data/mics6-harmonized-v1.dta")
+has_glss <- file.exists("data/data_glss7.dta")
+has_rct  <- file.exists("data/rctprac1.dta")
+```
+
+```{stata mics-setup, include=FALSE, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+use "data/mics6-harmonized-v1.dta", clear
+egen childid = group(country_iso3 year HH1 HH2 LN)
+* Rebuild private like the shipped variable (COD taxonomy differs — leave missing)
+capture drop private
+gen private = .
+replace private = 1 if school_type == 3 & country_iso3 != "COD"
+replace private = 0 if inlist(school_type, 1, 2, 4, 6) & country_iso3 != "COD"
+label define PS 0 "Non-private" 1 "Private", replace
+label values private PS
+capture confirm variable numeracy_score
+if _rc {
+    egen numeracy_score = rowtotal(number_id_1-number_id_6 ///
+        number_compare_1-number_compare_5 ///
+        number_add_1-number_add_5 ///
+        number_pattern_1-number_pattern_5), missing
+}
+gen mysample = !missing(numeracy_score) & !missing(private) & ///
+    age >= 7 & age <= 14
+svyset HH1 [pw=fsweight], strata(urban)
+```
+
+## Getting to know your data
+
+**OBJECTIVES:** By the end of this lab, you should have:
+
+1. Learned some of the foundations of using Stata
+2. Gained skills related to getting to know your data and preparing it for application of a research design
+
+### Getting started in Stata
+
+Stata is one type of statistical program that economists use to manage, look at and analyse economic data. It is particularly suited to the analysis of complex survey data — in our case, data from household education surveys and assessments. It has a library of pre-programmed commands, which are useful for creating summary statistics from the data, and for performing more detailed statistical analyses. Stata is also programmable (we can write programs to tell Stata to perform a specific task), but we will not be learning how to program in Stata in this course.
+
+Open up Stata by navigating to **Start → Programs → Stata**.
+
+You should now have the Stata window open. Note that there is a set of pull-down menus, as well as four smaller windows, named: **History**, **Variables**, **Stata Command**, and **Stata Results**. When we want to tell Stata to do something (execute some command), we type it into the Stata Command line window. The results of our command show up in the Stata Results window. In any session, all commands that we give to the program show up in the History window once we execute them. The History window is useful because it allows us to recall commands quickly (by clicking on the relevant command in the History window it will reappear in the Stata Command line) and can be saved for editing later into a do-file.[^dofile-note]
+
+Right now the Variables window is empty — this is because we have not loaded any data. Whenever you have a data set open, the variable names will show up in this window.
+
+[^dofile-note]: A Stata do-file is a short program file which runs a set of commands at once. We will learn about these later.
+
+### Looking at some of the data, and how it is captured in Stata
+
+The file for this lab already sits in the guide repository. From the project root, load it with:
+
+```{stata m1-use, eval=FALSE}
+clear
+use "data/mics6-harmonized-v1.dta", clear
+```
+
+You should now see the list of variables appear in the Variables window. Do you notice a line has appeared in your History window starting with the word `use` and then a file path?
+
+Let's go over again how to load data because you will do this many times. First, remove the data by typing in the command line:
+
+```{stata m1-clear, eval=FALSE}
+clear
+```
+
+The variables are gone in the Variables window. You can reload your data in two ways. Either click on the `use` command that appeared in your History window. Or type in the command line (note the quotation marks):
+
+```{stata m1-use-again, eval=FALSE}
+use "data/mics6-harmonized-v1.dta", clear
+```
+
+The dataset we are using is a harmonised version of several African MICS6 surveys. MICS stands for the Multiple Indicator Cluster Survey and is a household survey run by UNICEF in many different countries around the world with a focus on health and education outcomes. If you go to the [MICS website](https://mics.unicef.org/) and navigate to the surveys tab, you will only find individual country datasets available for download. The file you have now loaded was built for this guide by pooling the African MICS6 Foundational Skills (FS) modules and related household information, with shared names and value codes across surveys (see [Download](#c01-download), [Harmonising reading](#c05-harmonize), and [Harmonising FS](#c06-harmonize-fs)).
+
+First let's take a more detailed look at what variables are stored in the data set. In the Stata command line, type:
+
+```{stata m1-describe, eval=FALSE}
+describe
+```
+
+You should see a list of what variables are contained in the data, how many observations there are, how many variables there are, what kind of variables they are (e.g. `byte`, `float`, `int`, `str` or `long`), and any comments which are attached.[^more-note]
+
+Now type:
+
+```{stata m1-count, eval=FALSE}
+count
+```
+
+This command counts the number of observations in your dataset. This information (the number of variables and observations) can also be seen in the Properties window in Stata. You should see around **166,980** children.
+
+Next, type:
+
+```{stata m1-browse, eval=FALSE}
+browse
+```
+
+This command directs you to a spreadsheet, where the data appears. You should note the following:
+
+- Each **observation** (in this case, each child between the ages of 5 and 17 in the household for which there is recorded information) appears on a separate **row** of the spreadsheet. If you move along the row, you can see the rest of their data recorded for each question. For example, the first person in the dataset is from **Benin 2021**, in cluster (`HH1`) 1, household (`HH2`) 1, line (`LN`) 6 — a girl aged 15 living in an urban area.
+
+- Each **variable** appears in a separate **column** of the spreadsheet. What is the age and gender variable called? (`age` and `sex`)
+
+Using the `browse` command, find the 420th observation. What is this child's age? Their gender?
+
+[^more-note]: If you see `--more--` at the bottom of your screen, you need to press the space bar to continue scrolling.
+
+### Simple summarising commands
+
+A frequency distribution table lists all the observed values for a given variable and the number of observations that take on each of these values. `tabulate` produces one- and two-way tables of frequency counts. In this first class, we will use this command to produce summary tables of data, to answer the general question: how much of our data set falls into different categories of each variable. We can see what `tab` does easily by example. We know our MICS dataset has more than one country so we can type the following to find out a little more about our dataset:
+
+```{stata m1-tab-country, eval=FALSE}
+tab country_iso3
+```
+
+How many observations are from Lesotho (`LSO`)?
+
+If you are interested in exactly how a particular command works, you can always use the help function. Type:
+
+```{stata m1-help-tab, eval=FALSE}
+help tab
+```
+
+and click on **tabulate oneway**. This will tell you all about the different kinds of `tab` commands.
+
+Similarly, we can describe the time dimension of our dataset by typing:
+
+```{stata m1-tab-year, eval=FALSE}
+tab year
+```
+
+For coded numeric variables, number labels can clutter a table. A useful command to remove number labels is:
+
+```{stata m1-numlabel-remove, eval=FALSE}
+numlabel, remove
+```
+
+`country_iso3` is already a string ISO3 code (e.g. `"GHA"` for Ghana), so `numlabel` does not change that table — but it is very useful for variables such as `urban` and `school_type`. Try:
+
+```{stata m1-tab-urban-labels, eval=FALSE}
+tab urban
+numlabel, remove
+tab urban
+numlabel, add
+```
+
+Hopefully more readable. In other circumstances you might want to see the number labels so it is helpful being able to turn the labels on and off.
+
+The `tab` command is also able to produce two-way tables. We can see which countries were surveyed in which year by typing:
+
+```{stata m1-tab-country-year, eval=FALSE}
+tab country_iso3 year
+```
+
+Which country appears more than once in our dataset? (Tunisia — `TUN` — with both 2018 and 2023.) Consider another two-way table:
+
+```{stata m1-tab-country-urban, eval=FALSE}
+tab country_iso3 urban
+```
+
+::: alternativebox-header
+`r if (knitr:::is_html_output()) '### BOX: TAB WITH ROW, COL, CELL {- #box-tab-row-col}'`
+:::
+
+::: {.alternativebox data-latex="{Note}"}
+The `tab` command is versatile for describing data. If we are interested in the percentages, we can specify which type of percentages we want:
+
+```{stata eval=FALSE}
+tab country_iso3 urban, row
+```
+
+will give a frequency table which generates the percentage of the **row** observations which are in each **column** category (i.e. the percentages across each row sum to 100). Run this and read the output for the country you care about — for example, what share of Benin learners in our sample live in urban areas? At the bottom of each column, note that you will see the percentage of the entire data set that fall into that particular column category.
+
+However, this table might not be very readable and you might only be interested in percentages and not want to see the frequencies. In which case, type:
+
+```{stata eval=FALSE}
+tab country_iso3 urban, row nofreq
+```
+
+This is much more readable. Similarly, `tab` can be extended in the following ways (with or without the `nofreq` option):
+
+```{stata eval=FALSE}
+tab country_iso3 urban, column nofreq
+```
+
+will give a frequency table which generates the percentage of the **column** observations which are in each **row** category. At the end of each row, you will find the percentage of the entire data set that fall into that particular row category.
+
+```{stata eval=FALSE}
+tab country_iso3 urban, cell nofreq
+```
+
+will give a frequency table which gives the percentage of the sample in each possible cell. For example, what share of the sample are Malawian (`MWI`) learners from rural areas?
+
+To learn more about two-way tables, remember you can always use the help file:
+
+```{stata eval=FALSE}
+help tab
+```
+
+And this time click on **tabulate twoway**.
+:::
+
+### Finding a unique identifier
+
+An important first step in getting to know your dataset is finding out the unit of analysis and what uniquely identifies observations. Remember when we used the `count` command, we saw there were about 166,980 observations in this dataset. It is important to know which variable or combination of variables will uniquely identify these observations and what each row represents (a person, a classroom, a school?) when we browse our data.
+
+This file does **not** include a convenience variable such as `unitanalysis`. Each row is a child aged 5–17 from the MICS6 Foundational Skills (FS) module, pooled across the African surveys in this guide. Typically, datasets include some type of “ID” variable or “unique number” variable. The way to confirm this is by using the `isid` command. This command confirms whether the variable(s) you list after it uniquely identify your observations.
+
+Use the `codebook` command to learn about the identifying variables:
+
+```{stata m1-codebook-ids, eval=FALSE}
+codebook country_iso3 year HH1 HH2 LN
+```
+
+This command gives you information about each variable. It tells you the variable type (string, numeric), the variable label; how many unique values there are; the range of these values; the number of missing observations; value label information, and the numeric range. How many country–year surveys are there? `HH1` is the cluster (PSU), `HH2` the household number within cluster, and `LN` the child's line number within the household.
+
+Try:
+
+```{stata m1-isid-fail, eval=FALSE}
+isid country_iso3 HH1 HH2 LN
+```
+
+What do you find? We get an error telling us we have not yet found the right combination of variables — Tunisia appears twice, so we also need `year`. Try again:
+
+```{stata m1-isid-ok, eval=FALSE}
+isid country_iso3 year HH1 HH2 LN
+```
+
+No news is good news with `isid`. If there is no error output, it means you have a combination of variables that uniquely identify the children in the dataset.
+
+In order to make it easier to browse the dataset, we are going to create a single unique identifier variable. We will go over creating variables again later in more detail, but we are jumping ahead for this one step here because it is so helpful to have an ID variable. To do this we are going to use an `egen` command which we will cover again later. For now, all you have to understand is that this command creates a single unique identifier from the combination of variables we have identified using `isid`. Type:
+
+```{stata m1-childid, eval=FALSE}
+egen childid = group(country_iso3 year HH1 HH2 LN)
+codebook childid
+isid childid
+```
+
+The codebook shows you that there are as many unique values of our new `childid` variable as there are observations in the dataset. We can see this is a numeric variable that ranges from 1 to the number of children; there are no missings; and the `isid` command confirms this variable works as a unique identifier.
+
+When browsing, it is often easiest to read the dataset if the unique identifier is the first column. To change the order of your variables in the dataset and the browse window, use the `order` command. Typing the following command will place `childid` as the first variable in our dataset:
+
+```{stata m1-order, eval=FALSE}
+order childid
+desc
+br
+```
+
+### Examining variables
+
+Often, we are interested in whether a dataset contains a certain variable and reading a long list of variables from the `desc` command can be tedious. There is an efficient way to find the names of variables that you are interested in. Imagine you are interested in studying the effect of private schooling on numeracy scores. The first variable you want to find is one about school type (private or not). Type in:
+
+```{stata m1-lookfor-type, eval=FALSE}
+lookfor type
+```
+
+This should give you a list of all the variables which have “type” in their name or label. We see there is a variable called `school_type`. Let's tab this variable to see if it's what we are looking for:
+
+```{stata m1-tab-school-type, eval=FALSE}
+tab school_type
+```
+
+Great, this first look suggests this is a variable we might be able to use for our research. Next, we are interested in numeracy scores. Let's lookfor any words that might bring up such a variable:
+
+```{stata m1-lookfor-number, eval=FALSE}
+lookfor number
+```
+
+This brings up variables like `number_compare_1` and `number_add_1`. Do you notice that they all have `number_` in the prefix? A common practice by dataset processors (or harmonisers) is to use prefixes or suffixes for variables in the same module of the questionnaire or if they all apply to a particular unit of analysis. This is therefore a hint. Type:
+
+```{stata m1-lookfor-number-underscore, eval=FALSE}
+lookfor number_
+```
+
+Now we see a full range of assessment variables for foundational numeracy: number identification (`number_id_1`–`number_id_6`), comparison (`number_compare_1`–`number_compare_5`), addition (`number_add_1`–`number_add_5`), and pattern recognition (`number_pattern_1`–`number_pattern_5`) — **21 items** in total. The file also already ships a ready-made `numeracy_score` (0–21). Let's use the browse command to take a closer look at these variables. A useful trick when you have similarly named variables with numbers in the name is linking them with a hyphen or using an asterisk so you don't have to type them all out. We are going to browse our unique identifier and all of these numeracy variables:
+
+```{stata m1-browse-numeracy, eval=FALSE}
+browse childid number_id_1-number_id_6 number_compare* number_add* number_pattern*
+```
+
+You can see that some set of children have missing data for the tests. In Stata, missing data is indicated with a period `.`. Pick a `childid` from the browse window and inspect that child's item responses, for example:
+
+```{stata m1-browse-one-child, eval=FALSE}
+browse childid number_id_1-number_id_6 number_compare* number_add* number_pattern* ///
+    if childid == 17502
+```
+
+::: alternativebox-header
+`r if (knitr:::is_html_output()) '### BOX: IF STATEMENTS {- #box-if-statements}'`
+:::
+
+::: {.alternativebox data-latex="{Note}"}
+The `if` is a very intuitive way to limit your data to particular groups of interest and can be added to almost any command (including the `tab` command we've already used). The `if` is combined with comparison or logical operators. These operators are listed below:
+
+| Comparison operators | | Logical operators | |
+|---|---|---|---|
+| `==` | Equal to | `\|` | or |
+| `~=` and `!=` | Not equal to | `&` | and |
+| `>` | Greater than | `~` | not |
+| `<` | Less than | | |
+| `>=` | Greater than/equal to | | |
+| `<=` | Less than/equal to | | |
+
+Let's practise interpreting two-way tab commands with conditional statements. Interpret the first cell of each of the following:
+
+```{stata eval=FALSE}
+tab age sex if urban == 1, r nofreq
+tab age sex if urban == 2, col nofreq
+tab age sex if urban == 1, cell nofreq
+```
+
+Use your knowledge of the commands we have learned so far to answer the following questions:
+
+- What percentage of the sample from Benin (`BEN`) lives in urban areas?
+- What percentage of 15-year-old boys live in rural areas?
+- What percentage of the sample are girls living in Malawi (`MWI`)?
+:::
+
+### Examining variables further
+
+Imagine you are interested in the distribution of age for Grade 2s. Use the `lookfor` command to find variables relevant to age and grade. Type:
+
+```{stata m1-tab-grade, eval=FALSE}
+tab current_grade
+```
+
+This looks like the right variable for grade. What about age?
+
+A very useful command for describing your data is the `sum` command which provides sample summary statistics. Type:
+
+```{stata m1-sum-age, eval=FALSE}
+sum age
+```
+
+Here we can see the mean, standard deviation, min, max and number of non-missing observations. What is the average age of children in this dataset? What is the standard deviation? What is the answer when we limit this to Grade 2s? Here we use a conditional statement like we have just learned about to limit the `sum` command to only children in Grade 2. Type:
+
+```{stata m1-sum-age-g2, eval=FALSE}
+sum age if current_grade == 2
+```
+
+Again, we want to go back to the trusty `tab` command since it provides a table showing the distribution of age in Grade 2 which can be particularly helpful when trying to get to know your data. This is because any suspicious parts of the data jump out in a more obvious way when looking at distributions than just high-level summary statistics. Let's type:
+
+```{stata m1-tab-age-g2, eval=FALSE}
+tab age if current_grade == 2
+```
+
+Comparing the `tab` and `sum` results illustrates another good reason to look at distributions. The mean of the distribution as reported by `sum` may sit well above where most children cluster. Why? Let's inspect the distribution again but this time use a histogram to inspect it visually. A histogram is an appropriate way to describe age because it is a continuous variable. Type the following code:
+
+```{stata m1-hist-g2, eval=FALSE}
+hist age if current_grade == 2
+```
+
+Hmm, this is not a great plot. The bars are very skinny and not evenly spaced out. If you look at the output in the Stata command window you see something like `(bin=44, start=5, width=.27272727)`. This tells you Stata created many bins of a fractional width. It would be much more helpful if age was divided into bins that were a width of 1 because age ticks up one year at a time. In other words, although age is a continuous variable, it is a type of continuous variable called **discrete**. It increases continuously in “chunks” as opposed to smaller, more continuous, fractions. An example of a more continuous variable is income or price which can increase by the cent or the 0.01 decimal point.
+
+The help file on histogram will tell you more about how to plot a histogram that is appropriate for your data. Since we have discrete data, we can tell Stata this and it will produce a histogram that uses discrete bins of one unit instead of some fraction of more or less than one. Type:
+
+```{stata m1-hist-g2-discrete, eval=FALSE}
+hist age if current_grade == 2, discrete
+```
+
+This plot looks a lot better. And also notice that in the Stata output window Stata tells you it has produced this histogram with bins of width 1. This plot is evenly spaced, and each bin clearly represents one year of age.
+
+Now that we have a readable plot, let's return to our original question about why the mean of the age distribution may sit higher than where the main share of children are clustered. What do you notice about this plot? There may be heaping both around younger ages and also higher up in the distribution — a bimodal shape. Does this seem right to you?
+
+One way to sense-check a pattern like this is to explore to what extent it might exist across other dimensions. Using the `hist` command, we can see whether this pattern exists across countries by using the `by()` option. Type:
+
+```{stata m1-hist-by-country, eval=FALSE}
+hist age if current_grade == 2, discrete by(country_iso3)
+```
+
+With some exceptions, a bimodal shape may appear across most of the countries in this dataset. What about different grades? To test this, we need to change our conditional statement from limiting to just Grade 2s to limiting to children with non-missing Grade information. Type:
+
+```{stata m1-hist-by-grade, eval=FALSE}
+hist age if !missing(current_grade), discrete by(current_grade)
+```
+
+What do you notice when looking across grades? Take a closer look at the MICS household questionnaire in order to check whether we are using the `current_grade` variable correctly. It turns out we are not quite getting this right. The question first specifies education **level** and then **grade**, meaning we need to use a combination of a level and grade variable. The variable we need is `current_level_h`. Let's look at this variable and how it corresponds with `current_grade`. Type:
+
+```{stata m1-tab-level-grade, eval=FALSE}
+tab current_level_h
+tab current_level_h current_grade
+```
+
+What do you notice? Grade 2 counts as primary when `current_level_h == 1`. Most children with `current_grade == 2` are clustered in the primary level. But there are children who have a value of 2 in the grade variable but are in secondary (or other) levels. These children are older than those in primary levels. This is the **sawtooth** pattern discussed in [Current grade and age](#c07-current-grade): a bare `current_grade == 2` mixes cycles.
+
+Let's use this information to more accurately capture Grade 2s when plotting the age distribution. Type:
+
+```{stata m1-hist-g2-primary, eval=FALSE}
+hist age if current_grade == 2 & current_level_h == 1, discrete
+```
+
+Now we have a more sensible single-peaked age distribution with lower density at older ages. This exercise has hopefully demonstrated the usefulness of inspecting distributions to learn about your data and the importance of checking questionnaires.
+
+### Quick introduction to do files
+
+Open Stata and type the following commands:
+
+```{stata m1-dofile-example, eval=FALSE}
+clear all
+use "data/mics6-harmonized-v1.dta", clear
+numlabel, add
+tab country_iso3 urban
+```
+
+Often, we will want to execute commands repetitively in Stata, or we'll want to save the set of commands for a particular procedure so that we can run them on a different data set or replicate results in the same dataset. We can write simple programs in Stata's do-file editor that will run a set of commands at once.
+
+As an example, suppose we wanted to repeat the process of looking at the variables above. We can save the commands we have already used using the History window. Select all the commands in the History window, Right click and select **Send to Do-file Editor**. This will open up the do file editor and a do file with all the commands you have used in your Stata session. You can now save this do file by selecting **File → Save** within the do file editor. Save the do file to your home directory and call it `Example.do`. Close the do file editor.
+
+Open the do file editor, clicking on the envelope-button on the toolbar. Open the file you just created called `Example.do`.
+
+In the do file editor, click on the button with the arrow that says **Execute**. If you just want to run some of the commands in a do file then highlight those commands and click on the **Execute** button. `Ctrl+L` is a shortcut that highlights a line in Windows and `Ctrl+D` executes the highlighted command (or entire do file if no line is specially highlighted).
+
+You can copy and paste and write new commands in the do file, and then save the do file to run again on this data set or other data sets. If you made any mistakes in your Stata session the do file will end and an error message will appear. You will need to edit the do file by correcting or deleting invalid commands. Note that if you generate new variables in a do file, you cannot run the do file again without dropping those variables or loading the data set again.
+
+### Missing data codes
+
+Let's return to our research question, which was about private school and numeracy scores. To study this question, we want to learn a little more about the `school_type` variable. Let's describe this variable with some of the commands we have already learned. Type:
+
+```{stata m1-tab-school-type2, eval=FALSE}
+tab school_type
+```
+
+Tabbing `school_type` gives us a break down of which children are in which type of school. In this harmonised file the usual codes are:
+
+| Code | Meaning |
+|---|---|
+| 1 | Public / government |
+| 2 | Religious / faith |
+| 3 | Private |
+| 4 | Community |
+| 6 | Other |
+| 8 | Don't know |
+| 9 | No response |
+
+How many children are in private school (`school_type == 3`)? Note that **COD** (DR Congo) uses a different taxonomy, so the shipped `private` indicator is missing there. If we try to `sum school_type` we get something like this:
+
+```{stata m1-sum-school-type, eval=FALSE}
+sum school_type
+```
+
+The mean of `school_type` is not meaningful. What does this mean? Can you interpret this? The reason you cannot interpret this like we could the `sum` for age is because `school_type` is a categorical variable.
+
+::: alternativebox-header
+`r if (knitr:::is_html_output()) '### BOX: TYPES OF VARIABLES {- #box-types-of-variables}'`
+:::
+
+::: {.alternativebox data-latex="{Note}"}
+Let's take a moment to review different types of variables. The statistical and graphical tools used to understand the distributions of the various types of variables are quite different, so it is important to understand the differences between these measures.
+
+**Continuous variables.** Continuous variables have an infinite number of possible values that fall between any two observed values. For example, consider age. In our data, age is recorded in years. But it could have been recorded in months, days, minutes, or even seconds. A continuous variable is ordinal in the sense that its values have an inherent order. In the age example, an age of 16 years is one year older than the age of 15 years, thus the unit of measurement in between these two values is itself meaningful. Examples of continuous variables in this MICS file include `age` and `numeracy_score`. Recall when we discussed age above, we also differentiated between truly continuous variables (like price or income) and discrete variables (like age recorded in years) that tick up in larger, more distinct units. This file does **not** include a household wealth score (`wscore`) or wealth quintile (`windex5`).
+
+**Categorical variables.** These are made up of separate and distinct categories which do not have an inherent order. To code these variables, each category is typically assigned a value, but this assignment is arbitrary. Take for example the `school_type` variable. Each learner is assigned an arbitrary value used to indicate whether they went to government school or private school. But the value of the number (e.g. 1 or 3) is meaningless. This is why you cannot calculate the mean of a categorical variable in the same way as you can for a continuous variable. Another example of a categorical variable is the gender variable, `sex`, where boys are coded 1 and females are coded 2.
+
+There are two special cases of categorical variables. The first is categorical variables where the order does matter, but it is still incorrect to treat them like continuous variables and calculate a mean using `sum`. These are called **ordinal categorical** variables — for example mother's education `mother_edu_h` (0–5, with special codes 8 and 9).
+
+Another special case of a categorical variable is a **dummy** variable, also called an indicator variable. Dummies only take on the values of one or zero. For example, a dummy for girls would be coded 0 for boys and 1 for girls. As we will show shortly, you can interpret the mean from a `sum` command when using a dummy. But the interpretation changes from a mean to a share. The mean for a dummy for girls, for example, will be the share of the sample that are girls.
+:::
+
+Let's look again at our frequency table for `school_type`:
+
+```{stata m1-tab-school-type3, eval=FALSE}
+tab school_type
+```
+
+An important part of working with data is knowing how to deal with missing data. Generally, we would call codes 1–6 “non-missing” valid school types, and codes 8–9 special missing / non-response. But there are different types of missing data and it's important to know where they all come from in order to assess the quality of your variable.
+
+Something to notice about missing data is it does not always crop up in a value code — sometimes it is just coded as a period as we saw previously. Do you notice that the total number of observations in the `tab` is less than that in the whole dataset (if you have forgotten how many there are in the whole dataset, use `count`)? The `tab` command allows us to add these extra missings to our table using the option `m`. Type:
+
+```{stata m1-tab-school-type-m, eval=FALSE}
+tab school_type, m
+```
+
+This table now has the total number of observations in the whole dataset and reveals children with true unspecified missing information for `school_type`. This is large enough that we should investigate why.
+
+Only children who attend school are asked about school type. So, let's find the attendance question.
+
+```{stata m1-lookfor-attend, eval=FALSE}
+lookfor attend
+```
+
+And see if this explains the missings. Type:
+
+```{stata m1-tab-school-enrolled, eval=FALSE}
+tab school_type enrolled
+```
+
+From this table, we can see that children who are not currently attending school (`enrolled`) are missing (or out of universe) for school type. Being missing for `enrolled` is another hint that there might be a prior skip code. Indeed, prior to being asked if a child currently attends school, households are asked if the child has ever attended school. If they answer negatively, the enumerator does not have to ask whether they are currently attending. From our previous `lookfor` we know the relevant variable is `ever_attended`. Type:
+
+```{stata m1-tab-school-ever, eval=FALSE}
+tab school_type ever_attended
+```
+
+Indeed, children who have never attended school were skipped for all the school characteristic questions including current attendance and school type. To show the enrolled ever-attenders:
+
+```{stata m1-tab-school-eligible, eval=FALSE}
+tab school_type enrolled if ever_attended == 1
+tab school_type if ever_attended == 1 & enrolled == 1
+```
+
+Even once we have accounted for school attendance, some children remain missing on `school_type`. Checking the questionnaire again, we see there is also a skip related to Early Childhood Education. Children who are in ECE are not asked questions related to school characteristics. Recall the level variable from earlier — in this file ECE / less than primary is `current_level_h == 0` (not an IPUMS-style 100). We can type:
+
+```{stata m1-tab-level-school, eval=FALSE}
+tab current_level_h school_type
+tab school_type if ever_attended == 1 & enrolled == 1 & current_level_h != 0
+```
+
+Great! So now we have pretty much removed the skip-driven missings and know who is in our sample: children attending school at a level greater than ECE. But don't forget the `, m` option for true `.` missings:
+
+```{stata m1-tab-school-eligible-m, eval=FALSE}
+tab school_type if ever_attended == 1 & enrolled == 1 & current_level_h != 0, m
+```
+
+There are still children who have truly missing (`.`) information for this variable that cannot be explained by them not being in school or in ECE. Since we know there are meant to be codes for missing data, the fact that this data is totally missing suggests the question wasn't even asked at all in the questionnaire for some countries. To test this theory:
+
+```{stata m1-tab-missing-countries, eval=FALSE}
+tab country_iso3 if missing(school_type)
+tab country_iso3
+```
+
+Aha — **GMB** (The Gambia) and **TGO** (Togo) have `school_type` entirely missing (the question was not fielded / not retained in those questionnaires for this extract). **COD** is present but uses a different taxonomy, so treat `private` with care there. This is a useful piece of information about our sample.
+
+### Creating new variables
+
+Now we want to create a “clean” version of `school_type`; meaning a version we can easily use and interpret in our data analysis. More specifically, we want to create a dummy variable. The file already ships a `private` indicator — we will rebuild it from scratch so you learn the commands, then compare.
+
+First, we will use the `generate` command. Let's start by typing:
+
+```{stata m1-gen-private, eval=FALSE}
+capture drop private
+gen private = 1 if school_type == 3
+replace private = 0 if school_type != 3 & !missing(school_type)
+replace private = . if inlist(school_type, 8, 9) | missing(school_type)
+tab school_type private, m
+```
+
+Great! However, Stata provides a shortcut for creating dummies. Let's recreate the same variable to learn this shortcut. First, we need to drop the old variable:
+
+```{stata m1-gen-private-shortcut, eval=FALSE}
+drop private
+gen private = (school_type == 3) if !missing(school_type)
+replace private = . if inlist(school_type, 8, 9)
+tab school_type private, m
+```
+
+That looks right. Let's learn one last way to create the same variable using the `recode` command. Again, we will drop the existing `private` variable and recreate it with this new command. This command now takes what we did in three lines originally and reduces it to one line:
+
+```{stata m1-recode-private, eval=FALSE}
+drop private
+recode school_type (1 2 4 6 = 0) (3 = 1) (8/max = .), gen(private)
+tab school_type private, m
+```
+
+With the `recode` command, you do not have to use the `gen()` option. If you left that out, the command would recode the original `school_type` variable. Generally, this would not be a good idea in case you actually need the original values again. Good practice is to maintain the original version and create a separate new version of the variable you need.
+
+Now we have a dummy that indicates private school attendance for children with non-missing `school_type` data and what's important is we also have a good grip on who is and is not in this sample (e.g. Gambia and Togo) and that it is the right sample (e.g. only children attending school). Now we can use the `sum` command on our dummy and confirm we can interpret this as a share (instead of a mean) by comparing it to the relevant `tab`. Type:
+
+```{stata m1-sum-private, eval=FALSE}
+sum private
+tab school_type if ever_attended == 1 & enrolled == 1 & current_level_h != 0
+```
+
+The mean of `private` can be interpreted as the share of the (eligible) sample in private school. Hopefully you can see how important it is to limit to the right sample, since this number will be sensitive to who is and isn't in the denominator (i.e. the number of zeroes).
+
+Let's move on to labelling our variable so it is a bit more readable. The `lab var` command gives the variable a label that appears when you describe your data or use `codebook`. Type:
+
+```{stata m1-label-private, eval=FALSE}
+codebook private
+lab var private "Attends a private school"
+codebook private
+```
+
+Now we may also want to label the value codes (the 0 and the 1) with what they mean. This takes two steps. First, defining a label scheme and then applying that scheme to the variable. We are going to call our scheme `PS`. Type:
+
+```{stata m1-label-values-private, eval=FALSE}
+lab define PS 0 "Non-private" 1 "Private"
+lab val private PS
+tab private
+numlabel, add
+tab private
+```
+
+Finally, compare your rebuilt indicator to the version already on the file (reload if you overwrote it without a backup, or keep a copy before dropping):
+
+```{stata m1-compare-private, eval=FALSE}
+* If you kept the shipped variable as private_shipped before rebuilding:
+* tab private private_shipped, m
+```
+
+### Extensions to creating new variables
+
+We have gone over three ways to create a simple dummy variable. Sometimes we want to create more complicated variables. Consider a numeracy score. Let's assume you have gone ahead and read the questionnaire and used the `lookfor` command to find the relevant variables in your dataset. You now know there are **21** different questions in the numeracy test. Our goal is to combine these 21 separate questions into a single variable capturing the score out of 21 of how many questions a child answered correctly. One way to do this is to add up 21 separate dummy variables. To begin, let's just browse our data again and focus on the components for each child.
+
+```{stata m1-browse-items, eval=FALSE}
+browse childid number_id_1-number_id_6 number_compare* number_add* number_pattern*
+```
+
+What you will notice is firstly there is a bunch of missing data. We will come to dealing with that. But also that the components themselves are not yet dummies we can easily add up. Let's exit the browse and take a closer look at the value codes of one of these components:
+
+```{stata m1-tab-compare1, eval=FALSE}
+tab number_compare_1
+```
+
+As you can see, `number_compare_1` is not a dummy and includes options such as incorrect / inconsistent / no attempt. It is your job as the researcher to decide whether those codes count as 1's, 0's or missings in your dummy variable. This is a decision that must be based on the questionnaire and your research question priorities. Let's say we decide to code a correct answer as 1 and everything else as a 0 unless the item is missing / DK / NR. You have already learned how to do that manually for each variable — doing so for 21 variables is a lot of work. A fast way to do this is using a loop. Loops are powerful tools for repetitive tasks. Here is the generic version of the `forval` loop logic from the Stata help file:
+
+```stata
+forvalues lname = range {
+    Stata commands referring to `lname'
+}
+```
+
+Here `lname` is a local. A local is a temporary placeholder that can take on changing values that you have prespecified. Also take note of the curly braces. In order to clean our numeracy test components, we might write loops that look like the following (run from a do file — it's much harder to run loops from the command window):
+
+```{stata m1-loop-clean-items, eval=FALSE}
+* Number identification: 6 items
+forval y = 1/6 {
+    gen number_id_`y'_clean = (number_id_`y' == 1) if !missing(number_id_`y')
+    replace number_id_`y'_clean = . if inlist(number_id_`y', 8, 9)
+}
+
+* Comparison, addition, pattern: 5 items each
+forval y = 1/5 {
+    gen number_compare_`y'_clean = (number_compare_`y' == 1) if !missing(number_compare_`y')
+    replace number_compare_`y'_clean = . if inlist(number_compare_`y', 8, 9)
+
+    gen number_add_`y'_clean = (number_add_`y' == 1) if !missing(number_add_`y')
+    replace number_add_`y'_clean = . if inlist(number_add_`y', 8, 9)
+
+    gen number_pattern_`y'_clean = (number_pattern_`y' == 1) if !missing(number_pattern_`y')
+    replace number_pattern_`y'_clean = . if inlist(number_pattern_`y', 8, 9)
+}
+```
+
+If we were to describe this loop in words, it would say: for each item index, generate a new `_clean` dummy that equals 1 when the original equals 1 (correct), 0 otherwise, and set to missing for DK / NR codes.
+
+Let's now use these dummies we have created to make a test score variable called `numscore`. We can use `generate` to do this (complete-case sum — any missing item makes the total missing):
+
+```{stata m1-gen-numscore, eval=FALSE}
+gen numscore = number_id_1_clean + number_id_2_clean + number_id_3_clean + ///
+    number_id_4_clean + number_id_5_clean + number_id_6_clean + ///
+    number_compare_1_clean + number_compare_2_clean + number_compare_3_clean + ///
+    number_compare_4_clean + number_compare_5_clean + ///
+    number_add_1_clean + number_add_2_clean + number_add_3_clean + ///
+    number_add_4_clean + number_add_5_clean + ///
+    number_pattern_1_clean + number_pattern_2_clean + number_pattern_3_clean + ///
+    number_pattern_4_clean + number_pattern_5_clean
+sum numscore
+```
+
+It ranges 0–21 which is correct, but looking at the number of observations there are still quite a few missing children. Remember to check the questionnaire for skip codes and eligibility requirements. Only children aged 7–14 years did the numeracy test and only if consent was granted from both the parent and the child (`fl_consent` and `child_consent`). Let's tab using this conditional statement:
+
+```{stata m1-tab-numscore-eligible, eval=FALSE}
+tab numscore if age >= 7 & age <= 14 & fl_consent == 1 & child_consent == 1, m
+```
+
+There are very few missings here that ordinarily we would not worry about. For now, let's learn a different way to make the same variable. We created this variable by manually typing out the sum. But we could use a command from the `egen` suite of commands. `egen` is an extension of `generate` and is very versatile. Type:
+
+```{stata m1-help-egen, eval=FALSE}
+help egen
+```
+
+As you scroll through the help file you might notice an option called `rowtotal` that sums the values of the variable list in the bracket. That is exactly what we did! Great, we could use this command. But be careful to notice how `rowtotal` treats missings — it sets them to zero. It also has the option to specify `, missing` that will set the new variable to missing when all the variables being totalled are also missing. Alright, let's create a version of `numscore` using `egen` and compare. Type:
+
+```{stata m1-egen-numscore, eval=FALSE}
+egen numscore2 = rowtotal(number_id_*_clean number_compare_*_clean ///
+    number_add_*_clean number_pattern_*_clean), missing
+tab numscore2 if age >= 7 & age <= 14 & fl_consent == 1 & child_consent == 1, m
+```
+
+We have far fewer genuine missings and more zeroes. That's not great, if this method is not exactly replicating the manual sum. Can you think of what might be happening here? If you reread the help `egen` file closely, you will see that `rowtotal, missing` ignores missings but still sums up the remaining components if not all variables in the sum are missing. This means a child could get 15 questions correct and then have missing data for another six and `rowtotal, missing` will give them a score of 15/21. Does that sound right to you? The manual sum drops the child completely if they have any question missing. What are the relative advantages or disadvantages of these two different approaches?
+
+We can use another `egen` command to find out if this is indeed what is happening. The `egen` `rowmiss()` command counts how many missing cases there are for each observation in the variable list in the bracket. Type:
+
+```{stata m1-rowmiss, eval=FALSE}
+egen missing_any = rowmiss(number_id_*_clean number_compare_*_clean ///
+    number_add_*_clean number_pattern_*_clean)
+tab missing_any if age >= 7 & age <= 14 & fl_consent == 1 & child_consent == 1
+count if missing_any == 0
+```
+
+The tab is interpreted as meaning how many children have no missing data (they are “complete cases”). This corresponds to the total non-missing observations when we did the manual sum creating `numscore`. Notice that children with all 21 components missing correspond to the `.` missings in the `tab, m` when `numscore2` was created using `rowtotal, missing`. In other words, the difference between `numscore` created by manual addition versus `egen` is the manual addition only keeps complete cases. Generally, this is better practice, but we have now also learned the power of `egen`.
+
+Finally, compare your `numscore` to the shipped `numeracy_score` on the file:
+
+```{stata m1-compare-numeracy, eval=FALSE}
+corr numscore numeracy_score
+tab numscore numeracy_score if age >= 7 & age <= 14, m
+```
+
+### Using complex survey data: the svy suite
+
+Often, we are interested in calculating inferential statistics from our dataset and not just sample characteristics. That is, statistics we can infer represent a true population in the outside world as opposed to just a characteristic of the data in front of us. In order to make this leap (from our desktops to the real world) we use the tools of inferential statistics, which account for how certain we are that our estimate matches the real world.
+
+When we use the `sum` command to calculate the mean of a variable in our sample, we can be sure that the number it produces is the mean, because `sum` has all the information it needs to calculate that mean (in the form of the dataset). But, when we want to say the mean of a variable represents the mean of, for example, the Zambian population aged 5–17, we cannot be so sure. The full population is not inside our computers or in our dataset. Instead, we have a sample that may be better or worse at “representing” the population. When saying a number is the mean for this population, we need to be honest about how certain we can really be that the number in our dataset and the real world match up. Characterising this uncertainty is the role of inferential statistics.
+
+The `mean` command estimates the mean. Compare this to the `sum` command. Type:
+
+```{stata m1-sum-vs-mean, eval=FALSE}
+sum numeracy_score
+mean numeracy_score
+```
+
+Both produce the same point estimate. But the former calculates the mean as if all the information we need is in the dataset. This is a sample characteristic. It therefore also reports a standard deviation. The latter estimates the mean treating the dataset as a sample of a larger true population. Therefore, we also get standard errors and confidence intervals in the output that we don't get with `sum`. These capture uncertainty regarding whether the point estimate is exactly correct. Specifically, the dataset is treated as a simple random sample that is self-weighting.[^srs-note] But is this the sampling design of MICS? Properly characterising uncertainty — in order to construct standard errors and confidence intervals — requires accounting for survey sampling design.
+
+If one is using a survey with a complex sampling design, then one needs to tell Stata so that it can correctly construct your standard errors. We tell Stata we are using complex survey data with the `svy` suite of commands (type `help svyset`). First, we `svyset` our data, which means we tell Stata what our sampling design was. Then we use the `svy:` prefix before we run an estimation command (like `mean` or `total`) in order to tell Stata to account for our complex survey design when estimating that statistic. Not every command we have learned can take this prefix (e.g. the `sum` command) because not every command is meant to supply inferential statistics.
+
+We are now going to set up `svyset` for MICS and go through how adding each element of the complex survey design affects sampling variability. MICS is a multi-stage cluster designed survey. We are also going to learn about the design effect (DEFF). The DEFF is the ratio of a variable's variance calculated using the complex sample design to the variance calculated assuming a simple random sample (SRS). For a complex sampling design, it tells you how many more observations you require in order to match the information content of a simple random sample. Put differently, DEFF tells you what your complex survey sample size is equivalent to, had you run a SRS. The cluster variable in our dataset is `HH1`. Let's start by adding the cluster. Then we will estimate the mean for `numeracy_score`, but also another variable that varies more at the household / area level — for example `n_children_5_17` (number of children aged 5–17 in the household) or `urban`. Type:
+
+```{stata m1-svyset-cluster, eval=FALSE}
+svyset HH1
+svy: mean numeracy_score n_children_5_17
+estat effects, deff
+```
+
+Do you notice that the standard error increases and the confidence interval gets wider for `numeracy_score` in comparison to the results from the non-prefixed `mean` command above? This happens because clusters increase sampling error or variability by reducing the amount of statistical information you get for the same number of observations since observations within clusters are typically more similar or homogenous. In other words, to some extent you are getting more of the same type of information from the same cluster. This idea is captured by the DEFF.
+
+Can you calculate and interpret the design effect for `numeracy_score`? Divide the survey-design N by DEFF to get the effective sample size under SRS.
+
+Why do you think the DEFF is higher for a household-level count like `n_children_5_17` (or for `urban`) than for `numeracy_score`? Numeracy varies at the child-level whereas household size and urban/rural status are constant for children in the same household (and often more homogenous within clusters). We can test this idea by calculating the intra-cluster correlation (ICC) coefficient of each variable. This is a measure of how similar variables are within each cluster. Type:
+
+```{stata m1-loneway, eval=FALSE}
+loneway urban HH1
+loneway n_children_5_17 HH1
+loneway numeracy_score HH1
+```
+
+The ICC is typically higher for household / area variables than for child-level numeracy. When running these commands what do you notice about N in the `loneway` commands versus the `mean` commands? When you include more than one variable in the `mean` command, the N limits to the lowest common denominator. Sometimes this is appropriate and sometimes not, so just be aware of this.
+
+Next, let's add strata to our `svyset`. Type:
+
+```{stata m1-svyset-strata, eval=FALSE}
+svyset, strata(urban)
+svy: mean numeracy_score n_children_5_17
+estat effects, deff
+```
+
+Compared to the non-svy mean, now the standard errors and confidence intervals get smaller. This happens because stratification is a protection against a bad sample by ensuring we have minimum sample size for different parts of the country. As such, the DEFF results are also less than one, suggesting stratification represents an improvement in precision relative to a SRS.
+
+Finally, notice that the clusters and strata affect the size of the standard errors and confidence intervals, but the point estimate of the mean remains unchanged. This is because sampling design influences precision only.
+
+[^srs-note]: Every observation counts equally, which is like everyone having a survey weight of 1. We will get to survey weights soon.
+
+### Weights
+
+The part of sampling design that does influence the point estimate, is weights. Weights are factors assigned to observations during post-processing. Typically, they vary from person to person meaning calculating a mean with and without weights will change the point estimate. Weights play several roles in surveys. They are used to account for unequal probability of selection (e.g. in a complex survey design), they are used to account for unit non-response, and they are often “calibrated” which means they make sure the dataset reflects certain moments from an external benchmark, like a census.
+
+To use a weight in Stata, you include your weight variable in a square bracket at the end of your command. However, you also have to tell Stata what type of weight this is in order for it to use the weight correctly when estimating. Stata has four different weight classes — `fweights`, `pweights`, `aweights` and `iweights`. To read about these different types of weights type:
+
+```{stata m1-help-weight, eval=FALSE}
+help weight
+```
+
+::: alternativebox-header
+`r if (knitr:::is_html_output()) '### BOX: TYPES OF WEIGHTS IN STATA {- #box-weights}'`
+:::
+
+::: {.alternativebox data-latex="{Note}"}
+- **fweights** — frequency weights
+  - represent the number of duplicated observations
+  - used for grouped data
+  - therefore have to be integers
+  - fweight of 30 means there are 30 observations with the same values on all variables
+
+- **aweights** — analytic weights
+  - these are weights that are inversely proportional to the variance of an observation
+  - used for heteroscedasticity corrections
+  - the scale of the weight is arbitrary: it is only relative weights that matter; Stata will rescale these to sum to one
+  - common use is when observations represent averages and the weights are the number of elements that gave rise to the average
+  - aweight of 30 means that data is the average of 30 observations
+
+- **pweights** — probability weights
+  - these are sampling weights
+  - these weights are the number of subjects in the full population that the sampled observation in your data represents
+  - pweight of 30 means the observation had a 1 in 30 probability of being included in the sample and “represents” 30 subjects in the population
+
+- **iweights** — importance weights
+  - mostly used by programmers
+:::
+
+Most Stata commands can deal with weighted data although there are some commands that do not allow all four types of weights. The syntax for producing weighted results is the same in most Stata commands: you specify the weight variable inside square brackets at the end of the command but before the comma. Below are some examples:
+
+```{stata m1-weight-examples, eval=FALSE}
+mean numeracy_score [pw=fsweight]
+tab country_iso3 [aw=fsweight], sum(numeracy_score)
+```
+
+The wrong weight type can produce very misleading standard errors. To see this let's estimate the mean numeracy score using fweights, aweights and pweights. The FS weight variable is `fsweight`.
+
+```{stata m1-weight-types, eval=has_mics, message=FALSE, warning=FALSE}
+* Frequency weights must be integers — this first line is meant to fail:
+capture noisily mean numeracy_score [fw=fsweight]
+mean numeracy_score [iw=fsweight]
+mean numeracy_score [aw=fsweight]
+mean numeracy_score [pw=fsweight]
+```
+
+Notice that the first command just gives an error. `fsweight` is not a frequency weight. The next three commands yield the same point estimate but the standard errors are different. Typically when using survey data we use `pweights`, and sometimes when commands won't accept `pweights` we can use `aweights` because sometimes `aweights` and `pweights` will yield the same answer. The arithmetic mean is a good example of this. The much-loved `sum` command does not take `pweights` because it is meant to calculate sample characteristics and not inferential statistics. However, using `aweights` with `sum` will give you the same mean point estimate as using `pweights` with `mean`.
+
+What `aweights` cannot do though, is sum properly to population totals. In this case, we must use `pweights`. Also ensure the weight variables you are using are indeed raising weights — meaning they are designed to sum to population totals. Not all `pweights` are raising weights and weights do not have to raise to population totals to be nationally representative. If weights are normalised, then they will yield nationally representative proportions, but not totals.
+
+Let's continue working with `svy` and this time incorporate weights. Type:
+
+```{stata m1-svy-weights, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+mean numeracy_score
+svyset [pw=fsweight]
+svy: mean numeracy_score
+estat effects, deff
+```
+
+Now you will notice that the point estimate of the mean changes, as do our measures of statistical uncertainty. Notice the DEFF relative to when we added strata or clusters alone. Why do weights also affect precision? Because by weighting some observations more or less this reduces the information content of the dataset (you are not getting equal information content from all observations). This is mainly owed to adjustment for unequal probability of selection and non-response.
+
+Now, let's put all of these elements of the survey design together:
+
+```{stata m1-svy-full, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+mean numeracy_score
+svyset HH1 [pw=fsweight], strata(urban)
+svy: mean numeracy_score
+estat effects, deff
+```
+
+The full effect of accounting for sampling design is pretty important for accurate estimation. As you can hopefully tell from this exercise, sampling design can alter the point estimate of the mean and adjust the level of precision.
+
+### Describing data: plots and tables
+
+Now that we have an outcome and treatment variable and understand enough about our sampling design to estimate accurately, let's start doing some actual estimation to describe our data. We are going to start with univariate descriptions and then turn to bivariate. Some of these commands we have covered, but now you are going to learn when is best to apply them. Let's start by describing our treatment variable, `private`. Type:
+
+```{stata m1-svy-mean-private, eval=FALSE}
+svy: mean private
+```
+
+We have run this command before but now you might want to think about the difference between running this for the sample in general, versus your sample of analysis. We have thought a lot about missing data, but we are not done yet! We are specifically interested in comparing `private` and `numeracy_score`, so our analysis sample will be limited to those children who have non-missing data for both. Compare the previous output to this:
+
+```{stata m1-svy-mean-private-if, eval=FALSE}
+svy: mean private if !missing(numeracy_score)
+```
+
+What you should immediately notice is our sample size has taken a hit! Explore with `tab` how many children have numeracy scores but are missing on `private` (or were never / not currently in school). Either way, we cannot compare the variation in these children's numeracy scores to their school type so they can't be in our sample. How does this update your description of your sample or your understanding of your research question? Either way, it becomes useful to create an analysis sample dummy like the following to use with all your commands:
+
+```{stata m1-mysample, eval=FALSE}
+gen mysample = !missing(numeracy_score) & !missing(private) & age >= 7 & age <= 14
+tab mysample
+```
+
+It's possible you will have to rewrite this conditional statement over and over because you always have to apply it. If this is the case, you can decide to sub-set your data using the `keep` command. This command only keeps the observations that meet your specifications. An analogous command we've already come across is `drop`. Both `keep` and `drop` can drop variables as well as observations. Note that dropping observations can be dangerous if you don't have a record somewhere of how you got from the original dataset to this sub-set. It is also only appropriate to do this once you are focusing on a sub-set as opposed to exploring the dataset in general. This is why using do files is a good practice. Type:
+
+```{stata m1-keep-mysample, eval=FALSE}
+keep if mysample == 1
+count
+```
+
+The number of observations is now much reduced, and you won't need to type `if mysample == 1` every time you run a command. You can think of this as your analysis sample which is different from the full sample. We spent some time thinking about how our dataset on our desktop looks (more or less) different to the true population in the real world. Now is a good time to reflect again about how your research decisions, research question framing, data cleaning decisions and data quality issues in general have added another layer of difference between the dataset on your desktop and the true population.
+
+Let's turn to describing `numeracy_score`. Since the score is a discrete continuous variable, a natural choice to see the distribution is a histogram, which we have encountered before. Recall the code is as follows:
+
+```{stata m1-hist-numeracy, eval=FALSE}
+hist numeracy_score, discrete
+```
+
+Something to note about `hist` is that you cannot use weights (or, more correctly, you can only use frequency weights). If you try adding weights, you will get an error. We've just spent time thinking about why weights are important, so this is a blow. It turns out with some data wrangling one can create a weighted histogram using a weighted version of the `collapse` command, but we leave that for later.
+
+Another option for plotting numeric data which allows weights is a kernel density plot which we can plot either just using `kdensity` or within the wrapper `tw` (`twoway`) which has lots of useful functionality. Try:
+
+```{stata m1-kdensity, eval=FALSE}
+tw (kdensity numeracy_score [aw=fsweight])
+tw (kdensity numeracy_score [aw=fsweight], bwidth(1))
+```
+
+Smoothing can simplify plots and make them more readable, but a balance needs to be struck where you are not smoothing away important information. There are all sorts of other ways that you can adjust the formatting of `tw` that you can see in the help file. But by now, we have a pretty good idea of the basic distribution of our variables. These are not necessarily plots or tables that would appear in the main text of your research paper, but it is important you have a grip on what they look like. Furthermore, we are probably also interested in how they vary with other variables. Let's turn to bivariate descriptions.
+
+The very first bivariate description we might be interested in is between our outcome and treatment. Stata offers many different ways to describe data and one skill a researcher must develop is to discern which descriptions maximise both information and readability. Consider the following two ways to learn about the covariance between `numeracy_score` and `private`:
+
+```{stata m1-tab-su, eval=FALSE}
+tab numeracy_score [aw=fsweight], su(private)
+tab private [aw=fsweight], su(numeracy_score)
+```
+
+How would you interpret these different sets of output? And which is most useful?
+
+Again, the `tw` and kernel density can come in handy here. `tw` is flexible enough to let you plot two plots on the same plot region. Type:
+
+```{stata m1-kdensity-by-private, eval=FALSE}
+tw (kdensity numeracy_score if private == 0 [aw=fsweight], bwidth(1)) ///
+   (kdensity numeracy_score if private == 1 [aw=fsweight], bwidth(1))
+
+tw (kdensity numeracy_score [aw=fsweight], bwidth(1)), by(private)
+```
+
+The `///` is do file notation used at the end of a line where the command runs onto the next line. It tells Stata to treat these two lines as one command. Consider another way to plot the same information where the plots are instead side-by-side with `by(private)`.
+
+Great, so now we have an idea of how `private` and `numeracy_score` vary, but you might wonder how these variables vary with other variables. Numeracy scores probably have a strong relationship with age. To illustrate a three-way covariance, you could type something like:
+
+```{stata m1-kdensity-by-age, eval=FALSE}
+tw (kdensity numeracy_score if private == 0 [aw=fsweight], bwidth(1)) ///
+   (kdensity numeracy_score if private == 1 [aw=fsweight], bwidth(1)), by(age)
+```
+
+This is interesting because it can show whether a private school advantage is more evident amongst younger children. Why can't you make a precise comparison? We do not have confidence intervals on here. There are user-written commands that will allow you to add confidence intervals to kernel densities, but these are quite complex and we leave them for later.
+
+What about how private school attendance varies by country. Remember we can use options with a two-way tab to extract more useful statistics. Run the following and interpret the first cell in each. Which is the most useful comparison that you would want to include in a paper?
+
+```{stata m1-tab-country-private, eval=FALSE}
+tab country_iso3 private [aw=fsweight], col nofreq
+tab country_iso3 private [aw=fsweight], cell nofreq
+tab country_iso3 private [aw=fsweight], r nofreq
+```
+
+This is also not that helpful because `private` is a dummy, so we only need one column, not two. Let's explore a visual way to represent this information. A good choice for dummies is a bar graph. The basic syntax for `gr bar` is as follows:
+
+```{stata m1-gr-bar, eval=FALSE}
+gr bar (mean) private [pw=fsweight]
+```
+
+Hmm, that's not so great. It's not very informative. The power of `gr bar` is combining options like `over()` and `by()`. An advantage of `gr bar` is also that it accepts weights. Let's plot country variation in private by typing:
+
+```{stata m1-gr-bar-country, eval=FALSE}
+gr bar (mean) private [pw=fsweight], over(country_iso3)
+```
+
+Ah, the labels may be overlapping. There are two potential solutions. We can either adjust label orientation as follows:
+
+```{stata m1-gr-bar-vertical, eval=FALSE}
+gr bar (mean) private [pw=fsweight], over(country_iso3, lab(angle(vertical)))
+```
+
+Or, we can convert a vertically-orientated bar graph to a horizontally orientated one as follows:
+
+```{stata m1-gr-hbar, eval=FALSE}
+gr hbar (mean) private [pw=fsweight], over(country_iso3)
+```
+
+There are many other ways you can manipulate and format this graph all detailed in the help file. Below is some more complicated code that shows how you can create a prettier plot and also sort the bars into descending order to make it even more digestible.
+
+```{stata m1-gr-hbar-sort, eval=FALSE}
+gr hbar (mean) private [pw=fsweight], over(country_iso3, sort(1)) ///
+    ytitle(share in private school)
+```
+
+Again, adding a confidence interval to this is possible but a bit complicated for now.
+
+These plots are useful but they only show one or two variables when we might be interested in a few. Let's try make a table of descriptive statistics like you might see in a journal article. One way that we could organise this table is by private schooling since this is our variable of interest.
+
+Let's say we are interested in creating a table with `numeracy_score`, `urban`, and mother's education (`mother_edu_h`). Explore these variables in the dataset. What you will notice is they are all different types of variables (e.g. categorical, continuous) and so we need to think carefully about how to describe them appropriately. We decide to have columns for private school attendance so we can compare children in the sample who did and did not attend private school. Imagine a table like the below that we want to populate from your output (do **not** copy IPUMS cell percentages — fill from this file):
+
+| | Private school | Non-private school |
+|---|---|---|
+| Numeracy score (SD) | | |
+| Urban (%) | | |
+| Mother's education | | |
+| — ECE / pre-primary | | |
+| — Primary | | |
+| — Lower secondary | | |
+| — Upper secondary | | |
+| — Vocational / technical | | |
+| — Higher / tertiary | | |
+| N | | |
+
+For now, we are going to focus on means and weighted proportions but worry less about confidence intervals. This is usually acceptable for descriptive statistics (but not for analysis). We can compute the statistics we want one at a time using `tab, sum()` which combines the functionality of both the `tab` and `sum` commands. Type:
+
+```{stata m1-tab-private-sum, eval=FALSE}
+tab private [aw=fsweight], sum(numeracy_score)
+```
+
+This provides nice, readable output we can copy-paste into our table. Another way we can do this is by using the `sum` command with `bysort` to provide separate output by private school attendance. The advantage of doing it this way is we can sum several variables at the same time. Type:
+
+```{stata m1-bysort-sum, eval=FALSE}
+bysort private: sum numeracy_score urban [aw=fsweight]
+```
+
+What is the mean for `urban`? It is a number greater than one which is a hint that this variable is not properly set up as a dummy for summing (codes are 1 = urban, 2 = rural). Let's recode it and try again:
+
+```{stata m1-urbandummy, eval=FALSE}
+tab urban
+recode urban (2 = 0), gen(urbandummy)
+bysort private: sum numeracy_score urbandummy [aw=fsweight]
+```
+
+Great, we can copy this content into our table. But now what about mother's education? This is an ordinal categorical variable. Let's have a look:
+
+```{stata m1-tab-mother-edu, eval=FALSE}
+tab mother_edu_h
+```
+
+With categorical variables like this, it is often important to report all the categories and make it clear in the table that they sum to 100%. There might be some categories you don't want to include though (with implications for sample reported). For example, if you excluded codes 8 and 9 (Don't know / No response), you would omit those few cases. With a table of descriptive statistics like this one it is good practice to report sample size in the table, in which case the sample size needs to be the same for all the statistics. It's a good reminder to always be careful about exactly who is in your sample, and makes you confront how adding more and more variables to your analysis can strip away at sample size if patterns of missing data vary across different variables.
+
+Let's use `tab, sum()` / column percentages to get useful table content. Type:
+
+```{stata m1-tab-mother-private, eval=FALSE}
+tab mother_edu_h private if mother_edu_h < 8 [aw=fsweight], col nofreq
+tab mother_edu_h private if mother_edu_h < 8
+```
+
+The first set of output gives us our table output and the second confirms that sample size may be slightly smaller than what we computed for the previous variables. To be correct, we should recalculate the previous output as follows to ensure a common sample size:
+
+```{stata m1-common-sample, eval=FALSE}
+bysort private: sum numeracy_score urbandummy if mother_edu_h < 8 [aw=fsweight]
+```
+
+In practice, this may have a negligible effect on the actual statistics, but you can feel comfortable knowing you have done it correctly and it is just more consistent to use the same sample.
+
+Numeracy scores are often higher for those in private school. Can you say from this table alone that private schools produce better learning outcomes for numeracy? What else do you notice? Children attending private schools may also be more likely to live in urban areas and have more educated parents. In other words, the type of child that attends private could be different to one who doesn't. Maybe this type of child would get better numeracy scores regardless of whether they went to private school or not? How can we isolate the difference in numeracy scores that is owed only to private schooling? Think about this question for the next lab.
+
+### List of Stata commands introduced in Module 1
+
+`use` · `clear` · `browse` · `describe` · `lookfor` · `isid` · `tab` · `sum` · `egen` · `gen` · `hist` · `recode` · `rename` · `numlabel` · `count` · `replace` · `label var` · `tw kdensity` · `mean` · `help` · `codebook` · `sort` · `drop` · `label define` · `svyset` · `order` · `keep` · `forval` · `gr bar` / `gr hbar`
+
+## Introduction to Regression Analysis
+
+**OBJECTIVES:** By the end of this lab, you should be comfortable implementing regressions in Stata and analysing output.
+
+In the first part of this module, we continue with the example and dataset from Module 1: the difference in learning outcomes for students who attend private vs non-private school — does private schooling improve numeracy scores?
+
+Let's first `svyset` (already done in the evaluated setup if you are knitting this chapter):
+
+```{stata m2-svyset, eval=FALSE}
+svyset HH1 [pw=fsweight], strata(urban)
+```
+
+To answer our question, we could just compare raw means:
+
+```{stata m2-mean-over-private, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+svy, subpop(mysample): mean numeracy_score, over(private)
+```
+
+Here, we observe the mean numeracy score for privately schooled students versus other school types. You can calculate the difference in Stata with the `display` command. The `display` command is how you essentially use Stata as a calculator! After running the `svy: mean` above, store the means from `e(b)` or read them from the output and type something like:
+
+```{stata m2-display-diff, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+* Example: replace with the two means from your svy: mean output
+* display 15.577836 - 12.783942
+matrix M = e(b)
+display M[1,2] - M[1,1]
+```
+
+But are we comparing “like with like”? It is likely that students are differentially selected into private schooling on characteristics that also matter for numeracy score outcomes — for example, mothers' education. Other variables may also impact numeracy score, like the child's age. Regression allows us a way to consider these other factors. Put generally, regression is a tool that can characterise the relationship between an outcome variable and a treatment variable (here, private schooling), while holding other relevant factors constant, in order to quantify how the outcome is associated with exposure to the treatment.
+
+### Running a regression
+
+We're going to focus on Ghana in the examples that follow. Because this is a subpopulation in our dataset, we will need to restrict our regression. You have seen how to do this using `if`, but using `if` restrictions with `svy:` commands will often not produce correct variance estimates for subpopulations. To compute estimates for subpopulations, it's better to use the `subpop()` option with `svy`. For this, we need to create a dummy variable:
+
+```{stata m2-gen-ghana, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+gen ghana = (country_iso3 == "GHA")
+```
+
+Now, run a regression of numeracy score on private school:
+
+```{stata m2-reg-private, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+svy, subpop(ghana): reg numeracy_score private
+```
+
+The constant term shows the average numeracy score when `private == 0`, i.e. the mean for students who do not attend private school.
+
+The coefficient on `private` shows the additional score obtained for privately schooled children. Let's see how this coefficient changes when we attempt to address selection bias by adding controls to our regression. We will add control by control, starting with age.
+
+First, check that the variable is coded as you would expect:
+
+```{stata m2-tab-age, eval=FALSE}
+tab age, m
+```
+
+```{stata m2-reg-age, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+svy, subpop(ghana): reg numeracy_score private age
+```
+
+Notice how the constant term has dropped dramatically — this is because it's now showing the average when age is 0. Because age = 0 is meaningless here, the constant itself is not substantively interpretable anymore. If you want a meaningful constant, you can centre the variable, e.g. `gen age7 = age - 7` (7 is the lowest age with numeracy score). Including `age7` in your regression instead of `age` would give you a constant interpretable for `age == 7` and `private == 0`.
+
+The relationship between private school and numeracy score may change after adding an age control. This will occur if older children perform better and are also less (or more) likely to be enrolled in private schools in our sample. Omitting age can bias our estimate of the relationship between numeracy score and private schooling. Here is a check you can use when thinking about whether omitting a given variable will bias your results upwards or downwards:
+
+Assume your regression is specified as `reg Y A` and `B` is an omitted variable. Positive (upwards) bias arises when the correlations between `B` with `A` and `Y` are in the same direction and negative (downward) bias when they are in opposite directions. Because older children may be less likely to be enrolled in private school but more likely to score higher in the numeracy tests, omitting age can lead to downward bias.
+
+If you could not observe the correlation between age and private school attendance, you would have to rely on results from other studies, or your “expert judgement”. Next, add a control for gender. Interpret the coefficient on `female`. Has the coefficient on private school changed?
+
+```{stata m2-gen-female-reg, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+gen female = (sex == 2)
+svy, subpop(ghana): reg numeracy_score private age female
+```
+
+Next, run with mother's education as a factor:
+
+```{stata m2-reg-mother, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+svy, subpop(ghana): reg numeracy_score private age female i.mother_edu_h
+```
+
+Notice that inserting `i.` before a categorical variable in your regression tells Stata that `mother_edu_h` is not a continuous variable. Stata automatically assigns the first category of `mother_edu_h` (here, ECE / pre-primary, code 0) to be the base category. The coefficients on the other categories are interpreted in relation to the base. I.e. children whose mothers have completed primary education score some points higher (or lower) on average than children with mothers who have ECE / less than primary.
+
+You can ask Stata to use a different base category, by specifying the category, e.g. `ib1.mother_edu_h`. In this case, it uses category with underlying value 1 (primary) as the base category.
+
+```{stata m2-reg-mother-ib, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+svy, subpop(ghana): reg numeracy_score private age female ib1.mother_edu_h
+```
+
+Notice whether any sparse “Don't know” / “No response” categories (codes 8 and 9) look odd. Inspect:
+
+```{stata m2-tab-mother-ghana, eval=FALSE}
+tab mother_edu_h if ghana == 1 & !missing(numeracy_score) & !missing(private)
+```
+
+If those special codes are tiny, you may exclude them:
+
+```{stata m2-reg-mother-clean, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
+gen ghanamumnomiss = (ghana == 1 & mother_edu_h < 8)
+svy, subpop(ghanamumnomiss): reg numeracy_score private age female ib1.mother_edu_h
+```
+
+What happened to the coefficient on private when you added mother's education level? Is this what you expected?
+
+This file does **not** include wealth quintiles (`windex5`). Instead of adding wealth, stop with age, gender, and mother's education — the same controls used in the R chapter — or add `urban` if you want an area control:
+
+```{stata m2-reg-urban, eval=FALSE}
+svy, subpop(ghanamumnomiss): reg numeracy_score private age female ib1.mother_edu_h i.urban
+```
+
+Note that you can also run regressions in Stata without the `svy:` prefix, but this does not allow you to account for stratification. If you have administrative data, for example, this would be preferable. Compare:
+
+```{stata m2-reg-svy-vs-cluster, eval=FALSE}
+svy, subpop(ghanamumnomiss): reg numeracy_score private age female ib1.mother_edu_h
+
+reg numeracy_score private age female ib1.mother_edu_h if ghana == 1 & mother_edu_h < 8 ///
+    [pw=fsweight], cluster(HH1)
+```
+
+Because the increase in precision gained from stratification rarely outweighs the loss in precision from clustering, we can see that we obtain very similar results by simply clustering our standard errors. Using `svy:` is always preferable if you have survey data with stratification, but straightforward `reg` is an alternative if your data do not need to be `svyset`.
+
+### Interaction terms in regressions
+
+Sometimes we are interested in “heterogenous treatment effects”, for example, does the relationship between private schooling and learning outcomes differ for boys vs. girls? Or, does the gender gap differ in private schools vs. public schools? To illustrate, we will use a simple regression controlling only for age and gender:
+
+```{stata m2-interact, eval=FALSE}
+reg numeracy_score private##female age if country_iso3 == "GHA" [aw=fsweight], ///
+    cluster(HH1)
+
+* or
+
+svy, subpop(ghana): reg numeracy_score private##female age
+```
+
+How to interpret each coefficient:
+
+1. `private`: Difference between private vs non-private among males (`female = 0`).
+2. `female`: Difference between females vs. males in non-private schools (`private = 0`).
+3. `private#female`: The additional difference for females in private schools, over and above the private–non-private difference for males, and the female–male difference in non-private schools. In other words: how much the private-school effect differs by gender.
+
+In the regression we ran, is this a statistically significant difference? This answers our question if there is differential relationship between private schooling and numeracy score for girls.
+
+But suppose we want to know if there is a gender gap in private schools? We can't answer this by looking at the output alone and need to use Stata's `test` command to test the significance of `1.female` plus `1.private#1.female`. Why these two variables?
+
+Here's why: You have the following output,
+
+\[
+Y = \beta_0 + \beta_1(\text{private}) + \beta_2(\text{female}) + \beta_3(\text{private} \times \text{female}) + \beta_4(\text{age})
+\]
+
+To answer our question (is there a gender gap in private schools), we would need to compare average outcomes for: Female private students vs male private students.
+
+To get the average outcome of a female private student, we'd set `female == 1` and `private == 1`. In our equation, this gives us \(Y_F = \beta_0 + \beta_1 + \beta_2 + \beta_3\).
+
+To get the average outcome of a male private student, we'd set `female == 0` and `private == 1`: \(Y_M = \beta_0 + \beta_1\).
+
+The gap would be \(Y_F - Y_M = \beta_2 + \beta_3\).
+
+Therefore, we test:
+
+```{stata m2-test-gender-gap, eval=FALSE}
+test _b[1.female] + _b[1.private#1.female] = 0
+```
+
+Note that you can use the `, coeflegend` option with `reg` to know the names of the variables you need to test, e.g.
+
+```{stata m2-coeflegend, eval=FALSE}
+reg numeracy_score private##female age if ghana == 1 [aw=fsweight], ///
+    cluster(HH1) coeflegend
+
+* or
+
+svy, subpop(ghana): reg numeracy_score private##female age, coeflegend
+```
+
+Next, we ask, what is the relationship between `numeracy_score` and private schooling for females? For this, we need to compare `female == 1` and `private == 1` against `female == 1` and `private == 0`. Returning to the equation above, this equates to \(\beta_1 + \beta_3\), thus:
+
+```{stata m2-test-private-girls, eval=FALSE}
+test _b[1.private] + _b[1.private#1.female] = 0
+```
+
+### A new example: returns to education
+
+We are now pivoting to a different example to get more practice running regressions in Stata and interpreting output. Open the dataset `data_glss7.dta` (place it under `data/` if you have it for the course).
+
+We want to examine the relationship between wages earned and educational attainment. We will start with a regression that considers the relationship between weekly wages and completing junior high school (JHS). Note that we are not using the `svy` command here, but all regressions can be implemented using `svy, subpop(): reg`.
+
+We need to first create a dummy variable for highest level of completed education JHS or above:
+
+```{stata m2-glss-jhs, eval=FALSE}
+use "data/data_glss7.dta", clear
+gen jhs = edattain >= 3 & edattain <= 8
+reg realwages_wk jhs if age >= 25 & age <= 65 [aw=weight_s], cluster(clust)
+```
+
+The age restriction is important here because we want to ensure the majority of people in our sample have completed their education. You can test the robustness of your results to slightly lowering or increasing the age restrictions (e.g. `if age >= 25 & age <= 60`).
+
+Interpret the constant term and the coefficient on `jhs` from the regression above.
+
+Let's add some controls:
+
+```{stata m2-glss-controls, eval=FALSE}
+reg realwages_wk jhs age female fathed_yrs if age >= 25 & age <= 65 ///
+    [aw=weight_s], cluster(clust)
+```
+
+What happens to the coefficient on `jhs`? Did it change in the way you would expect? You always want to ask yourself this question and hence the approach of adding controls one at a time can be useful.
+
+Interpret the coefficients on `female` and father's years of education.
+
+Perhaps you decide to control for mother's co-residency, and you notice that there is a statistically significant relationship between this variable and wages.
+
+```{stata m2-glss-moth-res, eval=FALSE}
+reg realwages_wk jhs age female fathed_yrs i.moth_res if age >= 25 & age <= 65 ///
+    [aw=weight_s], cluster(clust)
+```
+
+BUT, does this mean it should be in your regression? Not necessarily. We can have “bad” controls. A rule of thumb is that if the variable is measuring something post-“treatment”, it is a bad control. Current co-residency is a great example, because it is happening in a period after education has been completed — those more likely to be living with their parents now could do so out of necessity because they earn lower wages. Controlling for this “disrupts” the causal chain between education and wages.
+
+Similarly, why might you not want to control for occupation? Or simply add all variables that may be correlated with wage? Well, this is possible, but would answer a different question: “What is the return to education holding occupation fixed?”. Occupation is an outcome itself of education. Ideally, in answering the return to education question, you'd only want to control for confounders: pre-treatment variables that affect both education and wages.
+
+It is important to recognise that the decision about whether a control is good or bad is not always clear cut. It may differ depending on your research question, context, and motivation.
+
+### Logging a dependent variable
+
+Often it is useful to log transform a continuous variable. This not only normalises the distribution of the variable (useful when distributions are very skewed, minimising the contribution of outliers), but allows us to measure proportional (percentage) change rather than absolute change. Let's log transform weekly wages and use it as our dependent variable:
+
+```{stata m2-glss-log, eval=FALSE}
+gen logwklywage = log(realwages_wk)
+reg logwklywage jhs female age fathed_yrs if age >= 25 & age <= 60 ///
+    [aw=weight_s], cluster(clust)
+```
+
+Interpretation: the regression coefficient now gives the approximate percentage change in Y generated by changing the corresponding regressor. To get the exact % change: \((\exp(\beta_i) - 1) \times 100\).
+
+```{stata m2-glss-exp, eval=FALSE}
+di (exp(.4106686) - 1) * 100
+```
+
+This tells us that completing JHS or higher is associated with a 50.78% increase in weekly wages (using the illustrative coefficient from the printed lab — re-run and substitute your own coefficient).
+
+Rule of thumb: 1-unit increase in \(X\) results in an \([(\exp(\beta_i) - 1) \times 100]\) % change in \(Y\). When \(\beta\) is less than about 0.2, \(\exp(\beta) - 1\) and \(\beta\) are close enough to justify reference to \(\beta\) as percentage change.[^angrist-metrics]
+
+Word of caution: zeros cannot be logged, so be sure to check your variable before creating its log. A bad candidate for being logged would be test scores with zeros, since all children with a 0 score would be assigned a missing in the logged form.
+
+[^angrist-metrics]: Angrist, J. D., & Pischke, J. S. (2014). *Mastering 'metrics: The path from cause to effect*. Princeton University Press.
+
+### Education as a continuous variable
+
+Consider years of education as our variable of interest:
+
+```{stata m2-glss-edyrtotal, eval=FALSE}
+reg logwklywage edyrtotal female age if age >= 25 & age <= 65 ///
+    [aw=weight_s], cluster(clust)
+```
+
+Now we interpret the coefficient on education as the % change in wage when education increases by a year. It becomes harder to benchmark this as a big or small relationship. As we discussed in the lecture, you could: compare your result to previous estimates of the effect of schooling on wages, consider its size relative to the effect of other policies or to an established benchmark/goal, or contextualise the size relative to the mean wage in your sample, or to a change over time. You're essentially looking for some way of anchoring the estimate and putting its magnitude into context.
+
+Notice that if you were to introduce an interaction term with years of education, you need to tell Stata it is continuous by prefixing `c.`, else when using the `##` operators, Stata automatically assumes it is categorical, e.g.
+
+```{stata m2-glss-c-interact, eval=FALSE}
+reg logwklywage c.edyrtotal##female age if age >= 25 & age <= 65 ///
+    [aw=weight_s], cluster(clust)
+```
+
+Finally, let's use `educlvl` — a categorical variable. Run the following regression and interpret the results. Recall, coefficients on a categorical variable are interpreted relative to the base category, which Stata has automatically assigned to “less than primary completed”. Again, notice how we need to use `i.` to let Stata know we have a categorical variable.
+
+```{stata m2-glss-educlvl, eval=FALSE}
+tab educlvl if age >= 25 & age <= 65
+reg logwklywage i.educlvl age female fathed_yrs if age >= 25 & age <= 65 ///
+    [aw=weight_s], cluster(clust)
+```
+
+You could also create a dummy variable for each education level, and include these in your regression. A useful way to do this is:
+
+```{stata m2-glss-tab-gen, eval=FALSE}
+tab educlvl, gen(edlevel)
+```
+
+This creates a dummy variable for each category.
+
+### Try it yourself
+
+This exercise largely replicates the content above, so Stata code is not provided. Create the variables needed for your regression; a “SHS or higher” education level indicator/dummy variable and log of wages. You will first need to examine the `edattain` variable to see which codes you should use to create “SHS or higher”.
+
+a. Tabulate your “SHS or higher” variable and consider the mean wage when your variable is 0 and 1. HINT: use the `tab` command with the `sum` option.
+
+b. Press regress — build up to your final wage regression by starting with a simple regression and adding more covariates. Use logged wage as your outcome variable.
+
+c. Interpret the coefficient on SHS+ completion in your final regression.
+
+d. Is the coefficient statistically significant? What about practically?
+
+e. Is the relationship you find robust to how you restrict your sample by age range?
+
+### Same data, different question
+
+Let's assume we have a research question about the association between starting school “on time” (age 6 — or younger?) and total years of education completed.
+
+Let's begin by plotting a graph of the mean years of completed education (`edyrtotal`) against age started school.
+
+Check your variable `agestrtprim`:
+
+```{stata m2-glss-agestrt, eval=FALSE}
+tab agestrtprim
+```
+
+99% of children have started by the age of 11. There are no oddly coded missing values. We will restrict our scatter plot to those who started primary between the ages of 5 and 11. It seems unlikely that children would start primary before the age of 5, and these may be measurement error.
+
+What happens if we just plot `edyrtotal` against `agestrtprim`?
+
+```{stata m2-glss-scatter, eval=FALSE}
+scatter edyrtotal agestrtprim if agestrtprim >= 5 & agestrtprim <= 11
+```
+
+Hmm, is this telling us anything useful about the relationship? It would be more useful if we could observe average years of education completed for each `agestrtprim`.
+
+So, we need to generate the mean years of completed education by age. We could do that by:
+
+```{stata m2-glss-egen-mean, eval=FALSE}
+egen mean_edyrtotal = mean(edyrtotal), by(agestrtprim)
+```
+
+or
+
+```{stata m2-glss-collapse, eval=FALSE}
+preserve
+collapse edyrtotal [w=weight_s] if age >= 25, by(agestrtprim)
+list
+restore
+```
+
+If you run `preserve` at the same time as your following commands, once the code has finished running the original dataset will be restored. But, if you are running a full do-file, you will need to type `restore` to get your original dataset back.
+
+`collapse` creates a mini dataset where `edyrtotal` has now been replaced by its mean value, for each value of `agestrtprim`. `list` allows you to observe what the mini dataset looks like, before the data is automatically restored.
+
+Why is `collapse` better than `egen` here to create a variable with the mean? Because we can apply the sampling weight. Try to collapse the data without first preserving your data and then browse the data to make sure that you understand how `collapse` is working.
+
+We use `twoway scatter`, since as you have seen the twoway graphing function easily allows you to add more plots.
+
+```{stata m2-glss-twoway, eval=FALSE}
+preserve
+collapse edyrtotal [w=weight_s] if age >= 25, by(agestrtprim)
+twoway scatter edyrtotal agestrtprim if agestrtprim >= 5 & agestrtprim <= 11
+restore
+
+* separating by gender
+preserve
+collapse edyrtotal [w=weight_s], by(agestrtprim female)
+twoway ///
+    (scatter edyrtotal agestrtprim if agestrtprim >= 5 & agestrtprim < 11 & female == 1) ///
+    (scatter edyrtotal agestrtprim if agestrtprim >= 5 & agestrtprim < 11 & female == 0), ///
+    legend(order(1 "Female" 2 "Male")) ytitle("Mean years of schooling")
+graph export "graphname.png", replace
+restore
+```
+
+In the plot separated by gender, note how we have added a legend. The three lines `///` are also a way to run a command over multiple lines. We have also illustrated code to save your graph using `graph export`. Use `help graph export` to see what other formats graphs can be saved as.
+
+In the scatter plot, we see there seems to be a negative relationship between age started school and years of complete education for adults.
+
+Generate a dummy/indicator variable for starting school on time. Note how the code below assigns those who started before age 6 as “on time”. You might want to make a different decision here, but in writing about your research it would be important to note what decision you've taken and why.
+
+```{stata m2-glss-ontime, eval=FALSE}
+gen ontime = (agestrtprim <= 6)
+replace ontime = . if missing(agestrtprim)
+```
+
+Are the group who start on time similar on important dimensions related to schooling to those who don't? Cross tab with the row and column options here, e.g.:
+
+```{stata m2-glss-tab-ontime, eval=FALSE}
+tab ontime fatheduc if age >= 25 [aw=weight_s], row
+tab ontime if age >= 25 [aw=weight_s], sum(edyrtotal)
+```
+
+What information is the following command giving you? Regress completing JHS+ on `ontime` (i.e. your dependent variable is going to be a dummy variable):
+
+```{stata m2-glss-lpm, eval=FALSE}
+* gen jhs = edattain >= 3 & edattain <= 8  // created earlier in the module
+reg jhs ontime female age fathed_yrs if age >= 25 [aw=weight_s], cluster(clust)
+```
+
+We interpret this as a percentage point change. Enrolling in school on time is associated with a change in completing JHS level or higher, holding age, gender and father's education constant. An ordinary least squares regression with a dummy dependent variable is also called a linear probability model.
+
+Note how we use language such as “associated” and “relationship” rather than “impacts” or “effects”. This is because we are signalling that we know this regression is unlikely to be showing a causal relationship between starting school on time and completing JHS or higher.
+
+What is the relationship between `ontime` and completing JHS+ in percentage terms? You can sometimes compute the coefficient over the constant term — but recall the constant is an average at age and father's education at 0, and for men. Because age = 0 is meaningless here, the constant itself is usually not substantively interpretable. We can rather use `margins`:
+
+```{stata m2-glss-margins, eval=FALSE}
+margins ontime, atmeans
+* then compute the percentage change from the two predictions, e.g.:
+* di (.7996277 - .636563) / .636563
+```
+
+Sidebar: Why do you think we are restricting our sample by age? [As with returns to education, think about those who might still be completing their schooling.]
+
+Now, interact gender and ontime:
+
+```{stata m2-glss-ontime-interact, eval=FALSE}
+reg jhs ontime##female age fathed_yrs if age >= 25 [aw=weight_s], cluster(clust)
+```
+
+How much less likely to complete JHS or higher are girls who do not start on time vs. boys who do not start on time? [HINT: you can get this straight from the regression output.]
+
+What is the overall relationship between completing JHS+ and starting school on time for girls?
+
+```{stata m2-glss-di-girls, eval=FALSE}
+* di .0845716 + .082681   // replace with your coefficients
+```
+
+Is the gender gap among on-time students statistically different from zero?
+
+```{stata m2-glss-test-ontime, eval=FALSE}
+test _b[1.female] + _b[1.ontime#1.female] = 0
+```
+
+Another useful approach to interpreting interaction terms, in addition to the equation approach used above, is to use the `margins` post-estimation command, e.g.
+
+```{stata m2-glss-margins-interact, eval=FALSE}
+reg jhs ontime##female age fathed_yrs if age >= 25 [aw=weight_s], cluster(clust)
+margins ontime#female
+```
+
+This gives you the predicted value of the outcome for each of these combinations. Look first at students who are not on time (`ontime = 0`): moving from `female == 0` to `female == 1` is the exact coefficient on `1.female`. Similarly, comparing males only gives exactly the marginal effect of `ontime` for males (`1.ontime`).
+
+The interaction coefficient (Does the “on-time effect” differ for females compared with males?) can be computed as a difference-in-differences from the four cell predictions. You don't need to worry too much about this, but it is useful to understand that `margins` lets us read interaction models as simple group averages first, and connect those averages back to the regression coefficients.
+
+We can easily see if the predictions are statistically different or similar from each other by comparing the confidence intervals. Use `help margins` to see its full capabilities, but use with caution — make sure you understand what output `margins` is generating and what is being compared to what!
+
+Next, we want to see if this relationship between age started primary and educational attainment still holds when we use a different measure of educational attainment:
+
+```{stata m2-glss-edyrtotal-ontime, eval=FALSE}
+reg edyrtotal ontime age female fathed_yrs if age >= 25 [aw=weight_s], cluster(clust)
+```
+
+What do we see? What if we wanted someone's predicted years of education based on these characteristics?
+
+```{stata m2-glss-predict, eval=FALSE}
+predict xb
+browse edyrtotal ontime age female fathed_yrs xb
+```
+
+Why might we want this? Predicted values tell us what the model implies for real people, whereas coefficients tell us how variables relate to each other. BUT, whether you consider predicted values will depend on your research question. You can also use the `margins` command to generate predicted values for specific values of other covariates. `xb` is just a variable name, you could specify any varname that suits you.
+
+We also might want to see if our results are robust to how parental education is specified. Try using categories of parental education (e.g. `fatheduc`) rather than years of education:
+
+```{stata m2-glss-fatheduc, eval=FALSE}
+reg edyrtotal ontime age female i.fatheduc if age >= 25 [aw=weight_s], cluster(clust)
+```
+
+### Exporting results
+
+What if you want to compare output across different regression specifications, or you want to present your results in a paper? `outreg2` is a great and flexible command. It is user-written, so needs to be installed:
+
+```{stata m2-outreg2, eval=FALSE}
+ssc install outreg2, replace
+
+reg edyrtotal ontime age female if age >= 25 [aw=weight_s], cluster(clust)
+outreg2 using "results", bdec(3) excel replace ctitle("reg1")
+
+reg edyrtotal ontime age female fathed_yrs mothed_yrs if age >= 25 ///
+    [aw=weight_s], cluster(clust)
+outreg2 using "results", bdec(3) excel append ctitle("reg2")
+```
+
+`outreg2` can also be used to extract margins output, but one then needs to use the `, post` option with your `margins` command. Note that the `append` option is used to add columns to your table of regression output.
+
+As is always the case with Stata, there is more than one way to easily manage your regression output. An example of another command that creates excel tables from your regression results is shown below. Another way to install user-written commands is as follows:
+
+```{stata m2-estout, eval=FALSE}
+net search estout
+* Follow the onscreen prompts. Once you have installed estout:
+
+reg edyrtotal ontime age female if age >= 25 [aw=weight_s], cluster(clust)
+estimates store ed1
+
+reg edyrtotal ontime age female fathed_yrs mothed_yrs if age >= 25 ///
+    [aw=weight_s], cluster(clust)
+est store ed2
+
+estout ed1 ed2 using "results.xls"
+```
+
+### List of Stata commands used in Module 2
+
+`estout` · `reg` · `display` · `graph export` · `predict` · `outreg2` · `collapse` · `tab, gen()` · `browse` · `twoway` · `reg, coeflegend` · `ssc install` · `margins` · `restore` · `gen` · `test` · `net search` · `est store` · `preserve` · `scatter` · `svy: reg` · `help`
+
+## Replication lab
+
+This practical uses data from Duflo, E., Dupas, P., and Kremer, M. (2015). School governance, teacher incentives, and pupil–teacher ratios: Experimental evidence from Kenyan primary schools. *Journal of Public Economics*, 123, 92–110.
+
+The study randomized schools to receive an extra contract teacher (ETP program) or to serve as the control group. Thereafter, half the schools in the ETP group were randomly selected to receive the SBM (school-based management) intervention. For this exercise, we will ignore the SBM intervention and just focus on the impact of being in an ETP program school.
+
+To make it easier to find the relevant variables, we have created a dataset that contains only the variables that you will need for this practical. The dataset is called `rctprac1.dta`. We will share the do-file for this practical after you have attempted it, but it is included in this Stata chapter because the “learning bits” speak to relevant Stata commands.
+
+Create a global for your working directory (A global macro in Stata is a named container for text or values that is stored in memory and can be called from any command or program during the session using `$macroname`):
+
+```{stata m3-global, eval=FALSE}
+global wd "C:/Users/"   // change to your own file path
+use "$wd/rctprac1.dta", clear
+* Or, if the file sits in this repo:
+* use "data/rctprac1.dta", clear
+```
+
+### Question 1
+
+Use the `codebook` command (or another that makes sense to you) to answer:
+
+a. How many students are there in the dataset?
+b. How many different schools are there in the dataset?
+
+### Question 2
+
+One of the issues that the intervention hoped to address was the very large class sizes (or pupil-teacher ratios) in Kenyan schools.
+
+a. At baseline (before the intervention) what was the average class size?
+b. What is the largest class size?
+c. At baseline, what is the average class size for ETP schools and for control schools?
+d. Use a regression to test for balance between the two groups on class size. Are the differences significant?
+e. What level variable is class size?
+
+::: alternativebox-header
+`r if (knitr:::is_html_output()) '### LEARNING BIT: tag() for school-level tests {- #box-m3-tag}'`
+:::
+
+::: {.alternativebox data-latex="{Note}"}
+The problem with running a regression of treatment group on class size is that you have multiple observations per school that artificially increase the sample size and even small differences will be statistically significant. You want to let Stata know that you want to test for differences at the school level. How do you do this?
+
+The following code will assign a value of 1 to the first observation (student) in each school and a 0 to all other learners in that school:
+
+```{stata eval=FALSE}
+egen sch_one = tag(schoolid)
+```
+
+You can use this variable with an `if` statement to ask Stata to show you summary statistics at the school level (one observation per school) rather than at the learner level (one observation per learner). For example, if we wanted to know what percentage of schools were located in the Bungoma district, we would type:
+
+```{stata eval=FALSE}
+sum district if sch_one == 1
+```
+:::
+
+f. Create the `sch_one` variable using the code above and use it to check if there is balance between the schools in the treatment and control groups on class size. Are the differences significant? HINT: this is the same regression from (e), but restricted to one observation per school.
+
+### Question 3
+
+a. What is the overall rate of attrition?
+b. Is there differential attrition between the treatment groups?
+c. Is the difference significant? (HINT: run a regression of treatment on attrition) How do you interpret the coefficient when your dependent variable is a dummy variable?
+
+::: alternativebox-header
+`r if (knitr:::is_html_output()) '### LEARNING BIT: clustered standard errors {- #box-m3-cluster}'`
+:::
+
+::: {.alternativebox data-latex="{Note}"}
+Recall that unless we tell it otherwise, Stata (or other software) assumes our data are from a simple random sample where all the observations are independent. However, in this data set we have students within schools. Within a school there is likely correlation in the observables across students. To correct the standard errors to allow for correlation in the unobservables between students in the same school, we need to let Stata know that we have students clustered within schools. We do this by adding the cluster robust option to our regression. To test if there is differential attrition between learners in control and ETP schools, we amend the regression command as follows:
+
+```{stata eval=FALSE}
+reg attrition etpschool, cluster(schoolid)
+```
+:::
+
+d. Run the amended regression taking the clustering into account. What has happened to the point estimate? What has happened to the standard error?
+e. Is the overall attrition rate different for boys and girls?
+
+::: alternativebox-header
+`r if (knitr:::is_html_output()) '### LEARNING BIT: interaction terms with ## {- #box-m3-interact}'`
+:::
+
+::: {.alternativebox data-latex="{Note}"}
+Beyond knowing whether there is differential attrition between the treatment and control groups, we are interested in whether the correlates of attrition differ between the two groups (i.e. did we lose different types of students from each group?). To investigate this, we need to use interaction terms. In the following example, we are examining whether attrition by gender differs between the treatment groups. Using a double hash is the recommended way of including an interaction term in Stata, because common post-estimation commands, e.g. `margins`, are able to correctly identify the interaction. Stata automatically assumes the variables in the interaction are categorical or dummy variables, unless you tell it otherwise. In this case, you would use `c.` before the variable.
+
+```{stata eval=FALSE}
+reg attrition etpschool##girl, cluster(schoolid)
+margins etpschool#girl
+
+reg attrition etpschool##c.agetest, cluster(schoolid)
+```
+:::
+
+f. What do the results from the regression (1) above tell us about attrition in this study?
+
+### Question 4
+
+We are now going to look at class size at the endline by treatment group.
+
+a. What is the average class size at endline for control schools and for ETP schools?
+b. Use the help function to find out how to create side-by-side histograms of endline class size for control and treatment schools. Alternatively, use the graphic menu to look for this option. HINT: `, by()`
+
+### Question 5
+
+In addition to very large class sizes, heterogeneity within a class is another issue in Kenya. There is considerable variation in age within a class as a result of late entry to school and grade repetition.
+
+a. What is the range in ages? What is the interquartile range?
+b. How many people who were tested at endline have missing age data?
+
+::: alternativebox-header
+`r if (knitr:::is_html_output()) '### LEARNING BIT: missing-age dummy {- #box-m3-missing-age}'`
+:::
+
+::: {.alternativebox data-latex="{Note}"}
+If we want to use age as a covariate in our regression, those students with missing values will be dropped from the regression. Even though there are not many students with missing age data, we can land up dropping a lot of observations when we add several covariates with missing data to our regression. This potentially introduces selection bias. A common strategy to deal with this is to create a dummy variable indicating that `agetest` is missing and then assigning a fixed value (e.g. 0) for `agetest` for all those that are missing. We then include both `agetest` and the missing variable in the regression.
+
+Create a dummy variable that indicates that `agetest` is missing:
+
+```{stata eval=FALSE}
+gen agetest_m = agetest >= . if attrition == 0
+```
+
+Create a new variable `agetest_c` which is equal to `agetest` if `agetest` is not missing and equal to zero if `agetest` is missing:
+
+```{stata eval=FALSE}
+recode agetest (.=0) if attrition == 0, gen(agetest_no_miss)
+```
+:::
+
+### Question 6
+
+::: alternativebox-header
+`r if (knitr:::is_html_output()) '### LEARNING BIT: strata dummies {- #box-m3-strata}'`
+:::
+
+::: {.alternativebox data-latex="{Note}"}
+We will now estimate the impact on the standardized total score of being in an ETP school. To get correct standard errors we need to let Stata know that we randomized at the school level (i.e. the school is the cluster) and we need to include dummy variable(s) for the strata. Before randomizing the sample was stratified by district. Use the `describe` or `codebook` commands to inspect the `district` variable. What is the variable type (e.g. byte, long, string)? It is a string variable and will generate an error if you try and include it in your regression. To control for strata in your regression you will need to create a numeric variable (e.g. byte) for district. Use the following command to generate a dummy variable for the districts:
+
+```{stata eval=FALSE}
+tab district, gen(temp)
+```
+
+This command creates a dummy variable for each category in `district`. In this case there are two districts, and the command creates `temp1` and `temp2`. Rename these temporary variables to the district names.
+
+```{stata eval=FALSE}
+rename temp1 bungoma
+rename temp2 butere
+```
+:::
+
+a. Estimate the impact on the standardized total score of being in an ETP school. Remember to cluster your standard errors and include a dummy variable for the strata. Interpret your regression results.
+
+b. Add the following covariates to your regression: `girl`, `kcpe2004`, `agetest_no_miss`, `agetest_m`. What happens to the standard error of the estimated treatment effect? Why?
+
+### Question 7
+
+We will now turn our focus to the comparison between contract and govt teachers in ETP schools.
+
+a. Within ETP schools, estimate the impact on the standardized total score on being assigned to a contract teacher. Interpret the results. HINT: you will need to use an `if` statement in your regression command.
+
+b. We are interested in whether there are heterogenous effects based on learner proficiency at baseline. Rerun your regression including an interaction term between being assigned to a contract teacher and the indicator that the student was in the bottom half of their class at baseline. Fully interpret the results.
+
+c. Test whether the overall effect of ETP teachers is different from 0 for students in the bottom half.
+
+### List of Stata commands used in Module 3
+
+`codebook` · `reg` · `egen` · `reg ##` · `histogram` · `reg, coeflegend` · `recode` · `test` · `sum` · `global` · `tab, sum()` · `tab, gen()` · `help` · `sum, detail`

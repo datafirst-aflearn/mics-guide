@@ -1,0 +1,375 @@
+# Why current_grade is not the child's grade {#c07-current-grade}
+
+`current_grade` looks like a grade. It is not. In the harmonised FS file it is
+the year **within** the education level in `current_level_h`. Primary year 1
+and secondary year 1 both carry the code `1`. Treat that code as the child's
+place in the school system and you pool children who are nowhere near the same
+year of schooling.
+
+For ages 5–17, enrolment by year of schooling should rise through primary and
+thin through secondary. The raw `current_grade` distribution does something
+else: it piles every cycle onto the same 1, 2, 3 ticks and leaves a sawtooth.
+
+```{r setup-grade, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 9,
+  fig.height = 5,
+  fig.align = "center"
+)
+
+fs_path <- "data/mics6_fs_harmonized.rds"
+has_fs <- file.exists(fs_path)
+theme_path <- "R/aflearn_theme.R"
+```
+
+```{r packages-grade, eval=has_fs}
+library(tidyverse)
+library(srvyr)
+library(haven)
+
+source(theme_path)
+```
+
+```{r load-grade, eval=has_fs}
+fs <- readRDS(fs_path)
+
+an <- fs %>%
+  mutate(
+    survey = paste(country_iso3, year),
+    enrolled_n = as.integer(haven::zap_labels(enrolled)),
+    grade = as.integer(haven::zap_labels(current_grade)),
+    level = as.integer(haven::zap_labels(current_level_h)),
+    HH1 = as.integer(haven::zap_labels(HH1)),
+    fsweight = as.numeric(haven::zap_labels(fsweight))
+  ) %>%
+  filter(
+    enrolled_n == 1L,
+    !is.na(grade), grade %in% 1:20,
+    !is.na(level), level %in% 0:5,
+    !is.na(fsweight), fsweight > 0,
+    !is.na(HH1)
+  )
+
+# Illustrative plots: primary + lower/upper secondary only
+an_main <- an %>% filter(level %in% 1:3)
+
+level_lab <- c(
+  "1" = "Primary",
+  "2" = "Lower secondary",
+  "3" = "Upper secondary"
+)
+
+design_pooled <- function(df) {
+  df %>%
+    as_survey_design(
+      ids = HH1,
+      strata = survey,
+      weights = fsweight,
+      nest = TRUE
+    )
+}
+
+design_one <- function(df) {
+  df %>%
+    as_survey_design(
+      ids = HH1,
+      weights = fsweight,
+      nest = TRUE
+    )
+}
+```
+
+```{r no-data-note, eval=!has_fs, echo=FALSE, results='asis'}
+cat(
+  "> Harmonised FS file not found at `data/mics6_fs_harmonized.rds`. ",
+  "Figures below are skipped. Run ",
+  "[Harmonising MICS6 FS background themes](#c06-harmonize-fs) first.\n"
+)
+```
+
+## What you see
+
+Pooled across the supported MICS6 surveys, the weighted share of currently
+enrolled children by `current_grade` spikes at 1 and falls steeply after 3.
+That is not a primary-to-secondary pyramid. It is every cycle restarting its
+count on the same axis.
+
+```{r plot-sawtooth, eval=has_fs, fig.cap="Weighted share of currently enrolled children by current_grade. Grade 1 is highlighted: that bar mixes primary, lower secondary, and upper secondary."}
+share_grade <- design_pooled(an_main %>% filter(grade %in% 1:9)) %>%
+  group_by(grade) %>%
+  summarise(
+    p = survey_mean(vartype = NULL),
+    n = unweighted(n()),
+    .groups = "drop"
+  )
+
+n_saw <- sum(share_grade$n)
+
+share_grade %>%
+  mutate(
+    fill = if_else(grade == 1L, aflearn_amber, aflearn_neutral[["context"]])
+  ) %>%
+  ggplot(aes(x = factor(grade), y = p, fill = fill)) +
+  geom_col(width = 0.72, colour = NA) +
+  scale_fill_identity() +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  labs(
+    title = "current_grade piles every cycle onto 1, 2, 3",
+    subtitle = paste0(
+      "Weighted share of enrolled children · primary and secondary · ",
+      "unweighted n = ", format(n_saw, big.mark = ",")
+    ),
+    x = "current_grade",
+    y = NULL,
+    caption = "Source: harmonised MICS6 FS. Design: clusters = HH1, strata = survey, weights = fsweight."
+  ) +
+  theme_aflearn() +
+  theme(axis.text.x = aflearn_axis_category())
+```
+
+## Why the bumps
+
+`current_grade` is MICS `CB8B`: grade or year **within** the level in `CB8A`.
+The harmonised sibling of that level is `current_level_h`. Value labels on the
+grade field even say "Grade/year 1".
+
+Stack the same shares by level and the sawtooth breaks apart. Most of the mass
+at 1 is primary. A large second slice is lower secondary year 1. A third is
+upper secondary year 1. One code, three places in the system.
+
+| `current_level_h` | `current_grade` | Meaning |
+|---|---:|---|
+| Primary (1) | 1 | Year 1 of primary — often the first year of school |
+| Lower secondary (2) | 1 | Year 1 of lower secondary — not grade 1 of school |
+| Upper secondary (3) | 1 | Year 1 of upper secondary |
+
+```{r plot-stacked, eval=has_fs, fig.cap="Same current_grade axis, stacked by current_level_h. The spike at 1 is three cycles, not one grade."}
+share_stack <- design_pooled(an_main %>% filter(grade %in% 1:9)) %>%
+  # interact() so cell shares sum to 1 overall (not within each grade)
+  group_by(interact(grade, level)) %>%
+  summarise(
+    p = survey_mean(vartype = NULL),
+    n = unweighted(n()),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    level_f = factor(
+      level_lab[as.character(level)],
+      levels = c("Primary", "Lower secondary", "Upper secondary")
+    )
+  )
+
+cols_level <- aflearn_pal_categorical(3)
+names(cols_level) <- c("Primary", "Lower secondary", "Upper secondary")
+
+share_stack %>%
+  ggplot(aes(x = factor(grade), y = p, fill = level_f)) +
+  geom_col(width = 0.72, colour = NA) +
+  scale_fill_manual(values = cols_level, name = NULL) +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  labs(
+    title = "Grade 1 is primary — and secondary — and upper secondary",
+    subtitle = "Weighted cell shares · stacked · currently enrolled children",
+    x = "current_grade",
+    y = NULL,
+    caption = "Source: harmonised MICS6 FS. ECE, vocational, and tertiary omitted from the plot."
+  ) +
+  theme_aflearn() +
+  theme(
+    legend.position = "top",
+    axis.text.x = aflearn_axis_category()
+  )
+```
+
+Numbering is not even uniform across surveys. Most restart at 1 in each cycle.
+Tunisia already codes lower secondary as 7–9. Primary runs to 8 in Malawi, 7 in
+Lesotho, Eswatini, and Zimbabwe, 5 in Madagascar, and 9 in Guinea-Bissau. The
+pooled bumps hide those differences as well.
+
+## The fix
+
+Always read `current_grade` with `current_level_h`. To place a child on one
+ladder of years of schooling, add a country-specific offset for each level that
+restarts its count:
+
+\[
+\text{admin\_grade} = \text{offset}(\text{country}, \text{level}) + \text{current\_grade}
+\]
+
+Where the survey already continues the count (Tunisia lower secondary 7–9), use
+`current_grade` as-is. Leave vocational and tertiary off the general ladder:
+those tracks do not map cleanly onto primary–secondary years.
+
+## After the fix: Ghana
+
+Ghana's structure is clean for a demonstration: six years of primary, then
+lower and upper secondary that each restart at 1 (a 6+3+3 pattern in this
+file). Build an administrative year as primary = `current_grade`, lower
+secondary = `6 + current_grade`, upper secondary = `9 + current_grade`.
+
+The left panel still shows the sawtooth. The right panel shows enrolment by
+constructed year: a rise through primary and a thin secondary tail.
+
+```{r ghana-admin, eval=has_fs}
+gha <- an_main %>%
+  filter(country_iso3 == "GHA") %>%
+  mutate(
+    admin_grade = case_when(
+      level == 1L ~ grade,
+      level == 2L ~ 6L + grade,
+      level == 3L ~ 9L + grade,
+      TRUE ~ NA_integer_
+    )
+  ) %>%
+  filter(!is.na(admin_grade))
+
+gha_des <- design_one(gha)
+
+share_raw <- gha_des %>%
+  filter(grade %in% 1:6) %>%
+  group_by(grade) %>%
+  summarise(
+    p = survey_mean(vartype = NULL),
+    n = unweighted(n()),
+    .groups = "drop"
+  ) %>%
+  transmute(x = grade, p, n, panel = "current_grade (raw)")
+
+share_admin <- gha_des %>%
+  group_by(admin_grade) %>%
+  summarise(
+    p = survey_mean(vartype = NULL),
+    n = unweighted(n()),
+    .groups = "drop"
+  ) %>%
+  transmute(x = admin_grade, p, n, panel = "admin_grade (6+3+3)")
+
+gha_plot <- bind_rows(share_raw, share_admin) %>%
+  mutate(
+    panel = factor(
+      panel,
+      levels = c("current_grade (raw)", "admin_grade (6+3+3)")
+    )
+  )
+```
+
+```{r plot-ghana, eval=has_fs, fig.height=5.5, fig.cap="Ghana 2017: raw current_grade still saw-toothed; admin_grade restores a primary-to-secondary enrolment shape."}
+gha_plot %>%
+  ggplot(aes(x = factor(x), y = p)) +
+  geom_col(width = 0.72, fill = aflearn_electric_blue, colour = NA) +
+  facet_wrap(~panel, scales = "free_x", ncol = 2) +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  labs(
+    title = "Same Ghana children, two grade axes",
+    subtitle = "Weighted shares · currently enrolled · primary and secondary",
+    x = NULL,
+    y = NULL,
+    caption = "Source: harmonised MICS6 FS, Ghana 2017. Design: clusters = HH1, weights = fsweight."
+  ) +
+  theme_aflearn() +
+  theme(axis.text.x = aflearn_axis_category())
+```
+
+### Offsets for the other surveys
+
+These lengths are **empirical in this file**, not a new official taxonomy. Check
+them before you borrow an offset.
+
+| Pattern | Surveys (examples) | How to build `admin_grade` |
+|---|---|---|
+| Primary 6, secondary restarts at 1 | Benin, Ghana, Nigeria, many others | Primary = grade; add 6 for lower secondary; add 9 for upper secondary (adjust if lower secondary has a different length) |
+| Primary longer than 6 | Malawi (to 8); Lesotho, Eswatini, Zimbabwe (to 7) | Use that survey's max primary grade as the offset into secondary |
+| Primary shorter | Madagascar (to 5) | Offset secondary by 5 |
+| Count continues | Tunisia lower secondary 7–9 | Use `current_grade` for that level; do not add a primary offset |
+| No separate lower-secondary code | Guinea-Bissau, Lesotho, Eswatini, São Tomé | `current_level_h` jumps from primary to upper secondary / other; invent no fake lower-secondary years |
+
+## Same trap elsewhere
+
+`highest_grade` and `previous_grade` restart within `highest_level_h` and
+`previous_level_h` the same way. Pair each grade with its level. Do not force
+vocational or tertiary years onto the primary–secondary ladder.
+
+## Recipe
+
+Restrict to currently enrolled children with a usable grade. Compute shares with
+`srvyr`. Build the administrative year with country-specific offsets.
+
+<p class="code-lang code-lang-r">R</p>
+
+```{r recipe-r, eval=FALSE}
+library(tidyverse)
+library(srvyr)
+library(haven)
+
+fs <- readRDS("data/mics6_fs_harmonized.rds")
+
+gha <- fs %>%
+  mutate(
+    enrolled_n = as.integer(haven::zap_labels(enrolled)),
+    grade = as.integer(haven::zap_labels(current_grade)),
+    level = as.integer(haven::zap_labels(current_level_h)),
+    HH1 = as.integer(haven::zap_labels(HH1)),
+    fsweight = as.numeric(haven::zap_labels(fsweight))
+  ) %>%
+  filter(
+    country_iso3 == "GHA",
+    enrolled_n == 1L,
+    grade %in% 1:20,
+    level %in% 1:3,
+    !is.na(fsweight), fsweight > 0
+  ) %>%
+  mutate(
+    admin_grade = case_when(
+      level == 1L ~ grade,
+      level == 2L ~ 6L + grade,
+      level == 3L ~ 9L + grade
+    )
+  )
+
+gha %>%
+  as_survey_design(ids = HH1, weights = fsweight, nest = TRUE) %>%
+  group_by(admin_grade) %>%
+  summarise(
+    p = survey_mean(vartype = NULL),
+    n = unweighted(n())
+  )
+```
+
+<p class="code-lang code-lang-stata">Stata</p>
+
+```{stata eval=FALSE}
+use "data/mics6_fs_harmonized.dta", clear
+keep if country_iso3 == "GHA"
+keep if enrolled == 1
+keep if inrange(current_grade, 1, 20)
+keep if inlist(current_level_h, 1, 2, 3)
+
+generate admin_grade = .
+replace admin_grade = current_grade if current_level_h == 1
+replace admin_grade = 6 + current_grade if current_level_h == 2
+replace admin_grade = 9 + current_grade if current_level_h == 3
+
+svyset HH1 [pw = fsweight]
+svy: tabulate admin_grade
+```
+
+## Next steps
+
+- Build or refresh the FS file with
+  [Harmonising MICS6 FS background themes](#c06-harmonize-fs).
+- For reading outcomes, see
+  [Harmonising MICS6 reading outcomes](#c05-harmonize).
+- Merge on `country_iso3`, `year`, and `HH1` / `HH2` / `LN` (or
+  `cluster` / `hhno` / `linech`).

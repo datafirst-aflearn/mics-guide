@@ -1,9 +1,10 @@
 # harmonize-mics-fs-v1.0.R
 #
-# Growing MICS6 FS (5-17) harmonised file: HH geography/background core +
-# Child's Background (CB) schooling + Child Labour (CL) + Parental Involvement
-# (PR) + Child Functioning (FCF) + Child Discipline (FCD) + Foundational
-# Learning (FL) numeracy/setup.
+# Growing MICS6 FS (5-17) harmonised file: HH geography + weights + interview
+# date/time (INT) + parent education / school type (BG) + Child's Background
+# (CB) schooling + Child Labour (CL) + Parental Involvement (PR) + Child
+# Functioning (FCF) + Child Discipline (FCD) + Foundational Learning (FL)
+# numeracy/setup.
 # Reading outcomes stay in harmonize-mics-reading-v1.1.R (not duplicated here).
 #
 # PR12 / school_closed_a-c: reason slot meanings differ by survey (see
@@ -11,6 +12,7 @@
 # FCF walking items: yards vs meters in labels only; codes treated as comparable.
 # FCD: SLE has no FCD5; attitude item is FCD3 (mapped to phys_punish_needed).
 # HH region: raw country codes (not a cross-country taxonomy).
+# BG: mother_edu from FS melevel; father_edu + school_type from HL (LN=HL3).
 #
 # CB level_h defaults (v1.0):
 #   - Tech/voc nested in secondary -> 3 (upper secondary)
@@ -24,7 +26,7 @@
 # Run from the mics-guide project root:
 #     source("data/harmonize-mics-fs-v1.0.R")
 #
-# Input :  data/MICS_Datasets/<ISO>_<YEAR>_MICS6_v01_M/fs.sav
+# Input :  data/MICS_Datasets/<ISO>_<YEAR>_MICS6_v01_M/{fs,hl}.sav
 # Output:  data/mics6_fs_harmonized.{rds,dta}
 #          data/mics6_fs_variable_crosswalk.xlsx
 #            sheets: crosswalk (theme col), excluded, level_map
@@ -75,10 +77,39 @@ set_labels_if_present <- function(df, vars, labels) {
   df
 }
 
+zap_value_labels_if_present <- function(df, vars) {
+  for (v in intersect(vars, names(df))) {
+    val_labels(df[[v]]) <- NULL
+  }
+  df
+}
+
 yes_no_labels    <- c(Yes = 1, No = 2, "No response" = 9)
 yes_no_dk_labels <- c(Yes = 1, No = 2, DK = 8, "No response" = 9)
 hour_labels      <- c("No response" = 99)
 books_labels     <- c(None = 0, "No response" = 99)
+
+birth_month_labels <- c(
+  January = 1, February = 2, March = 3, April = 4, May = 5, June = 6,
+  July = 7, August = 8, September = 9, October = 10, November = 11,
+  December = 12, Inconsistent = 97, DK = 98, "No response" = 99
+)
+
+grade_special_labels <- c(Inconsistent = 97, DK = 98, "No response" = 99)
+
+grade_labels_for <- function(x) {
+  codes <- sort(unique(as.integer(stats::na.omit(as.numeric(x)))))
+  grade_codes <- codes[codes >= 1 & codes <= 20]
+  labs <- setNames(grade_codes, paste0("Grade/year ", grade_codes))
+  c(labs, grade_special_labels)
+}
+
+set_grade_labels_if_present <- function(df, vars) {
+  for (v in intersect(vars, names(df))) {
+    val_labels(df[[v]]) <- grade_labels_for(df[[v]])
+  }
+  df
+}
 
 key_var_labels <- c(
   country_iso3 = "Country (ISO3 code)",
@@ -125,6 +156,185 @@ hh_exclude_reason <- function(var) {
   } else {
     "Outside core HH geography/background keep list"
   }
+}
+
+# ---------------------------------------------------------------------------
+# WT theme (FS sample weights only; no wealth indices)
+# ---------------------------------------------------------------------------
+
+core_wt_sources <- c("fsweight", "fshweight")
+
+wt_rename <- c(
+  fsweight  = "fsweight",
+  fshweight = "fshweight"
+)
+
+wt_var_labels <- c(
+  fsweight  = "Children 5-17 sample weight",
+  fshweight = "Children 5-17 household sample weight"
+)
+
+# ---------------------------------------------------------------------------
+# INT theme (FS interview date and clock times)
+# ---------------------------------------------------------------------------
+
+core_int_sources <- c("FS7D", "FS7M", "FS7Y", "FS8H", "FS8M", "FS11H", "FS11M")
+
+int_rename <- c(
+  interview_day        = "FS7D",
+  interview_month      = "FS7M",
+  interview_year       = "FS7Y",
+  interview_start_hour = "FS8H",
+  interview_start_min  = "FS8M",
+  interview_end_hour   = "FS11H",
+  interview_end_min    = "FS11M"
+)
+
+int_var_labels <- c(
+  interview_day        = "Day of FS interview",
+  interview_month      = "Month of FS interview",
+  interview_year       = "Year of FS interview",
+  interview_start_hour = "Start of FS interview - hour",
+  interview_start_min  = "Start of FS interview - minutes",
+  interview_end_hour   = "End of FS interview - hour",
+  interview_end_min    = "End of FS interview - minutes"
+)
+
+# ---------------------------------------------------------------------------
+# BG theme (parent education + child school type)
+# ---------------------------------------------------------------------------
+
+bg_rename <- c(
+  mother_edu  = "melevel",
+  father_edu  = "felevel",
+  school_type = "ED11"
+)
+
+bg_var_labels <- c(
+  mother_edu   = "Mother's education (country constructed codes)",
+  mother_edu_h = "Mother's education (harmonised)",
+  father_edu   = "Father's education (country constructed codes)",
+  father_edu_h = "Father's education (harmonised)",
+  school_type  = "School ownership/type attended current school year (country codes)"
+)
+
+bg_crosswalk_notes <- c(
+  mother_edu = "From FS melevel",
+  father_edu = "From HL felevel (merged on HH1/HH2/LN=HL3)",
+  school_type = "From HL ED11 (merged on HH1/HH2/LN=HL3); missing GMB/TGO"
+)
+
+school_type_labels <- c(
+  "Public / government" = 1,
+  "Religious / faith / mission" = 2,
+  "Private" = 3,
+  "Community" = 4,
+  "Other" = 6,
+  DK = 8,
+  "No response" = 9
+)
+
+# Maps melevel/felevel country codes -> same scheme as CB level_h (0-5, 8, 9).
+# parent = "mother" or "father" when the same raw code differs (e.g. MWI 5).
+parent_level_map_for <- function(iso, year = NULL, parent = "mother") {
+  parent <- match.arg(parent, c("mother", "father"))
+  if (iso == "BEN") {
+    c("0" = 0, "1" = 1, "2" = 2, "3" = 3, "5" = 9, "9" = 9)
+  } else if (iso == "CAF") {
+    c("0" = 0, "1" = 1, "2" = 2, "3" = 3, "9" = 9)
+  } else if (iso == "COD") {
+    c("0" = 0, "1" = 1, "2" = 2, "3" = 3, "4" = 5, "5" = 9, "9" = 9)
+  } else if (iso == "COM") {
+    c("0" = 0, "1" = 1, "2" = 3, "3" = 5, "5" = 9, "9" = 9)
+  } else if (iso == "GHA") {
+    c("0" = 0, "1" = 1, "2" = 2, "3" = 3, "4" = 5, "7" = 9, "9" = 9)
+  } else if (iso == "GMB") {
+    c("0" = 0, "1" = 1, "2" = 3, "7" = 9, "9" = 9)
+  } else if (iso == "GNB") {
+    c("0" = 0, "1" = 1, "2" = 3, "3" = 4, "4" = 5, "5" = 9, "9" = 9)
+  } else if (iso == "LSO") {
+    # 1 = "Primary or none" (none mixed with primary)
+    c("1" = 1, "2" = 3, "3" = 5, "7" = 9, "9" = 9)
+  } else if (iso == "MDG") {
+    c("0" = 0, "1" = 1, "2" = 3, "9" = 9)
+  } else if (iso == "MWI") {
+    if (parent == "mother") {
+      c("0" = 0, "1" = 1, "2" = 2, "3" = 3, "4" = 5, "5" = 4, "9" = 9)
+    } else {
+      c("0" = 0, "1" = 1, "2" = 2, "3" = 3, "4" = 5, "5" = 9, "9" = 9)
+    }
+  } else if (iso == "NGA") {
+    c("0" = 0, "1" = 1, "2" = 2, "3" = 3, "4" = 5, "5" = 9, "9" = 9)
+  } else if (iso == "SLE") {
+    c("0" = 0, "1" = 1, "2" = 2, "3" = 3, "9" = 9)
+  } else if (iso == "STP") {
+    c("0" = 0, "1" = 1, "2" = 3, "3" = 5, "7" = 9, "9" = 9)
+  } else if (iso == "SWZ") {
+    c("0" = 0, "1" = 1, "2" = 3, "3" = 5, "4" = 4, "5" = 9, "9" = 9)
+  } else if (iso == "TCD") {
+    c("0" = 0, "1" = 1, "2" = 3, "3" = 5, "9" = 9)
+  } else if (iso == "TGO") {
+    c("0" = 0, "1" = 1, "2" = 3, "7" = 9, "9" = 9)
+  } else if (iso == "TUN" && identical(as.character(year), "2018")) {
+    c("0" = 0, "1" = 1, "3" = 3, "4" = 5, "9" = 9)
+  } else if (iso == "TUN" && identical(as.character(year), "2023")) {
+    c("0" = 0, "1" = 1, "2" = 3, "3" = 5, "5" = 9, "9" = 9)
+  } else if (iso == "ZWE") {
+    c("0" = 0, "1" = 1, "2" = 3, "3" = 5, "7" = 9, "9" = 9, "99" = 9)
+  } else {
+    stop("No parent_level map defined for ", iso, " ", year, " (", parent, ")")
+  }
+}
+
+apply_parent_level_h <- function(d, iso, year) {
+  for (pair in list(
+    list(src = "mother_edu", dst = "mother_edu_h", parent = "mother"),
+    list(src = "father_edu", dst = "father_edu_h", parent = "father")
+  )) {
+    mapping <- parent_level_map_for(iso, year, pair$parent)
+    d[[pair$dst]] <- map_level(d[[pair$src]], mapping)
+  }
+  d
+}
+
+parent_level_map_rows <- function(iso, year, raw_labels_by_var) {
+  survey <- paste0(iso, "_", year)
+  rows <- list()
+  for (spec in list(
+    list(hname = "mother_edu", parent = "mother", source_var = "melevel"),
+    list(hname = "father_edu", parent = "father", source_var = "felevel")
+  )) {
+    mapping <- parent_level_map_for(iso, year, spec$parent)
+    labs <- raw_labels_by_var[[spec$hname]]
+    codes <- if (!is.null(labs) && length(labs) > 0) {
+      as.character(unname(labs))
+    } else {
+      names(mapping)
+    }
+    for (code in codes) {
+      code_num <- as.numeric(code)
+      raw_lab <- if (!is.null(labs) && code_num %in% unname(labs)) {
+        names(labs)[match(code_num, unname(labs))]
+      } else {
+        NA_character_
+      }
+      h <- unname(mapping[[code]])
+      if (is.null(h) || length(h) == 0 || is.na(h)) next
+      h_lab <- names(level_h_labels)[match(h, unname(level_h_labels))]
+      rows[[length(rows) + 1]] <- tibble(
+        survey = survey,
+        country_iso3 = iso,
+        year = as.integer(year),
+        source_var = spec$source_var,
+        harmonized_raw = spec$hname,
+        raw_code = code_num,
+        raw_label = raw_lab,
+        level_h = h,
+        level_h_label = h_lab
+      )
+    }
+  }
+  bind_rows(rows)
 }
 
 # ---------------------------------------------------------------------------
@@ -506,9 +716,11 @@ pr_crosswalk_notes <- c(
 )
 
 fs_notes <- tibble(
-  theme = c("HH", "PR", "PR", "PR", "FCF", "FCD", "FL"),
+  theme = c("HH", "BG", "BG", "PR", "PR", "PR", "FCF", "FCD", "FL"),
   topic = c(
     "region (HH7)",
+    "mother_edu / father_edu (*_h)",
+    "school_type (ED11)",
     "school_closed_a/b/c (PR12A/B/C)",
     "school_closed_a/b/c (PR12A/B/C)",
     "school_closed_a/b/c (PR12A/B/C)",
@@ -523,6 +735,19 @@ fs_notes <- tibble(
       "interpret within country_iso3. urban is HH6 (1=Urban, 2=Rural).",
       "n_children_5_17 is HH52 (missing in TUN 2018).",
       "HH6A / HH7A / HH3 / HH4 and other HH* extras are excluded."
+    ),
+    paste(
+      "mother_edu is FS melevel; father_edu is HL felevel merged on HH1/HH2/LN=HL3.",
+      "mother_edu_h / father_edu_h use the same 0–5/8/9 scheme as CB level_h",
+      "(see level_map rows for melevel/felevel). Code 9 also covers no information",
+      "and parent not in household. LSO mother/father code 1 is 'Primary or none'.",
+      "MWI raw code 5 is vocational for mothers and father-not-in-HH for fathers."
+    ),
+    paste(
+      "school_type is HL ED11 for the FS child (same merge keys). Missing in GMB and TGO.",
+      "Most surveys: 1=public, 2=religious/faith/mission, 3=private, 4=community,",
+      "6=other, 8/9=DK/NR. COD uses a different network taxonomy — keep raw; do not",
+      "interpret with the standard public/private labels. TUN codes 'Other' as 4 (not 6)."
     ),
     paste(
       "Reason slots A–C are NOT cross-country comparable as coded.",
@@ -843,7 +1068,7 @@ fl_exclude_reason <- function(var) {
 }
 
 # ---------------------------------------------------------------------------
-# Per-survey: read once, apply HH + CB + CL + PR + FCF + FCD + FL
+# Per-survey: read once, apply HH + BG + CB + CL + PR + FCF + FCD + FL
 # ---------------------------------------------------------------------------
 
 harmonize_hh_from <- function(d_full, iso, year) {
@@ -855,15 +1080,11 @@ harmonize_hh_from <- function(d_full, iso, year) {
   keep <- unique(c("HH1", "HH2", "LN", intersect(core_hh_sources, all_names)))
   d <- d_full[keep]
 
-  # Preserve country value labels on region (HH7) through rename
-  region_labels <- if ("HH7" %in% names(d)) val_labels(d[["HH7"]]) else NULL
-
+  # Do not keep HH7 SPSS value labels on region: they are country place names
+  # (often French) and bind_rows would pool a misleading first-survey dictionary.
   d <- cap_rename(d, hh_rename)
   d <- ensure(d, names(hh_rename))
-
-  if (!is.null(region_labels) && "region" %in% names(d)) {
-    val_labels(d[["region"]]) <- region_labels
-  }
+  if ("region" %in% names(d)) val_labels(d[["region"]]) <- NULL
 
   meta <- list(
     theme = "HH",
@@ -892,6 +1113,141 @@ harmonize_hh_from <- function(d_full, iso, year) {
   )
 
   d <- d %>% select(HH1, HH2, LN, all_of(names(hh_rename)))
+  list(data = d, meta = meta)
+}
+
+harmonize_wt_from <- function(d_full, iso, year) {
+  all_names <- names(d_full)
+  keep <- unique(c("HH1", "HH2", "LN", intersect(core_wt_sources, all_names)))
+  d <- d_full[keep]
+  d <- cap_rename(d, wt_rename)
+  d <- ensure(d, names(wt_rename))
+
+  meta <- list(
+    theme = "WT",
+    survey = paste0(iso, "_", year),
+    iso = iso,
+    year = year,
+    source_map = setNames(
+      vapply(names(wt_rename), function(new) {
+        old <- unname(wt_rename[[new]])
+        if (old %in% all_names) old else NA_character_
+      }, character(1)),
+      names(wt_rename)
+    ),
+    excluded = tibble(
+      theme = "WT",
+      survey = paste0(iso, "_", year),
+      country_iso3 = iso,
+      year = as.integer(year),
+      source_var = character(0),
+      reason = character(0)
+    )
+  )
+
+  d <- d %>% select(HH1, HH2, LN, all_of(names(wt_rename)))
+  list(data = d, meta = meta)
+}
+
+harmonize_int_from <- function(d_full, iso, year) {
+  all_names <- names(d_full)
+  keep <- unique(c("HH1", "HH2", "LN", intersect(core_int_sources, all_names)))
+  d <- d_full[keep]
+  d <- cap_rename(d, int_rename)
+  d <- ensure(d, names(int_rename))
+
+  meta <- list(
+    theme = "INT",
+    survey = paste0(iso, "_", year),
+    iso = iso,
+    year = year,
+    source_map = setNames(
+      vapply(names(int_rename), function(new) {
+        old <- unname(int_rename[[new]])
+        if (old %in% all_names) old else NA_character_
+      }, character(1)),
+      names(int_rename)
+    ),
+    excluded = tibble(
+      theme = "INT",
+      survey = paste0(iso, "_", year),
+      country_iso3 = iso,
+      year = as.integer(year),
+      source_var = character(0),
+      reason = character(0)
+    )
+  )
+
+  d <- d %>% select(HH1, HH2, LN, all_of(names(int_rename)))
+  list(data = d, meta = meta)
+}
+
+harmonize_bg_from <- function(d_fs, d_hl, iso, year) {
+  if (!"melevel" %in% names(d_fs)) {
+    stop("melevel not found in FS for ", iso, " ", year)
+  }
+  if (!all(c("HH1", "HH2", "HL3") %in% names(d_hl))) {
+    stop("HL missing HH1/HH2/HL3 in ", iso, " ", year)
+  }
+
+  # Mother from FS; father + school type from HL child row
+  d <- d_fs %>%
+    select(HH1, HH2, LN, melevel) %>%
+    cap_rename(c(mother_edu = "melevel"))
+
+  hl_keep <- c("HH1", "HH2", "HL3")
+  if ("felevel" %in% names(d_hl)) hl_keep <- c(hl_keep, "felevel")
+  if ("ED11" %in% names(d_hl)) hl_keep <- c(hl_keep, "ED11")
+  hl <- d_hl[hl_keep] %>%
+    rename(LN = HL3) %>%
+    cap_rename(c(father_edu = "felevel", school_type = "ED11"))
+
+  # One row per HH1/HH2/LN (should already be unique on HL3)
+  if (anyDuplicated(hl[c("HH1", "HH2", "LN")]) > 0) {
+    hl <- hl %>% distinct(HH1, HH2, LN, .keep_all = TRUE)
+  }
+
+  d <- d %>% left_join(hl, by = c("HH1", "HH2", "LN"))
+  d <- ensure(d, c("mother_edu", "father_edu", "school_type"))
+
+  raw_labels_by_var <- list(
+    mother_edu = val_labels(d_fs[["melevel"]]),
+    father_edu = if ("felevel" %in% names(d_hl)) val_labels(d_hl[["felevel"]]) else NULL
+  )
+
+  d <- apply_parent_level_h(d, iso, year)
+
+  mother_src <- "melevel"
+  father_src <- if ("felevel" %in% names(d_hl)) "felevel" else NA_character_
+  school_src <- if ("ED11" %in% names(d_hl)) "ED11" else NA_character_
+
+  meta <- list(
+    theme = "BG",
+    survey = paste0(iso, "_", year),
+    iso = iso,
+    year = year,
+    source_map = c(
+      mother_edu = mother_src,
+      father_edu = father_src,
+      school_type = school_src
+    ),
+    excluded = tibble(
+      theme = character(0),
+      survey = character(0),
+      country_iso3 = character(0),
+      year = integer(0),
+      source_var = character(0),
+      reason = character(0)
+    ),
+    level_map = parent_level_map_rows(iso, year, raw_labels_by_var)
+  )
+
+  d <- d %>% select(
+    HH1, HH2, LN,
+    mother_edu, mother_edu_h,
+    father_edu, father_edu_h,
+    school_type
+  )
   list(data = d, meta = meta)
 }
 
@@ -1215,7 +1571,16 @@ harmonize_survey <- function(path, iso, year) {
     stop("HH1 HH2 LN do not uniquely identify children in ", path)
   }
 
+  hl_path <- file.path(dirname(path), "hl.sav")
+  if (!file.exists(hl_path)) {
+    stop("hl.sav not found next to ", path)
+  }
+  d_hl <- read_sav(hl_path)
+
   hh  <- harmonize_hh_from(d_full, iso, year)
+  wt  <- harmonize_wt_from(d_full, iso, year)
+  int <- harmonize_int_from(d_full, iso, year)
+  bg  <- harmonize_bg_from(d_full, d_hl, iso, year)
   cb  <- harmonize_cb_from(d_full, iso, year)
   cl  <- harmonize_cl_from(d_full, iso, year)
   pr  <- harmonize_pr_from(d_full, iso, year)
@@ -1224,6 +1589,9 @@ harmonize_survey <- function(path, iso, year) {
   fl  <- harmonize_fl_from(d_full, iso, year)
 
   d <- hh$data %>%
+    left_join(wt$data, by = id_vars) %>%
+    left_join(int$data, by = id_vars) %>%
+    left_join(bg$data, by = id_vars) %>%
     left_join(cb$data, by = id_vars) %>%
     left_join(cl$data, by = id_vars) %>%
     left_join(pr$data, by = id_vars) %>%
@@ -1242,6 +1610,9 @@ harmonize_survey <- function(path, iso, year) {
   d <- d %>% select(
     country_iso3, year, cluster, hhno, linech, HH1, HH2, LN,
     all_of(names(hh_rename)),
+    all_of(names(wt_rename)),
+    all_of(names(int_rename)),
+    mother_edu, mother_edu_h, father_edu, father_edu_h, school_type,
     all_of(names(cb_rename)),
     highest_level_h, current_level_h, previous_level_h,
     all_of(names(cl_rename)),
@@ -1254,6 +1625,9 @@ harmonize_survey <- function(path, iso, year) {
   list(
     data = d,
     hh_meta = hh$meta,
+    wt_meta = wt$meta,
+    int_meta = int$meta,
+    bg_meta = bg$meta,
     cb_meta = cb$meta,
     cl_meta = cl$meta,
     pr_meta = pr$meta,
@@ -1268,12 +1642,34 @@ harmonize_survey <- function(path, iso, year) {
 # ---------------------------------------------------------------------------
 
 apply_fs_labels <- function(df) {
+  # Country-code / ID columns cannot share one English value dictionary across
+  # surveys; clear pooled SPSS leftovers (often French from the first survey).
+  df <- zap_value_labels_if_present(
+    df,
+    c(
+      "highest_level", "current_level", "previous_level",
+      "mother_edu", "father_edu", "school_type",
+      "region", "lang_home", "lang_school",
+      "LN", "linech", "HH1", "HH2", "cluster", "hhno", "n_children_5_17",
+      "interview_day", "interview_year",
+      "interview_start_hour", "interview_start_min",
+      "interview_end_hour", "interview_end_min"
+    )
+  )
+
   df <- set_labels_if_present(df, "urban", urban_labels)
+  df <- set_labels_if_present(df, c("birth_month", "interview_month"), birth_month_labels)
+  df <- set_grade_labels_if_present(
+    df,
+    c("highest_grade", "current_grade", "previous_grade")
+  )
   df <- set_labels_if_present(
     df,
-    c("highest_level_h", "current_level_h", "previous_level_h"),
+    c("highest_level_h", "current_level_h", "previous_level_h",
+      "mother_edu_h", "father_edu_h"),
     level_h_labels
   )
+  # school_type: raw codes only (COD taxonomy differs; TUN other=4). See notes.
   df <- set_labels_if_present(
     df,
     c("ever_attended", "highest_completed", "enrolled", "attended_previous",
@@ -1291,8 +1687,9 @@ apply_fs_labels <- function(df) {
   df <- set_labels_if_present(df, fl_yes_no_vars, yes_no_labels)
   df <- set_labels_if_present(df, fl_numeracy_vars, numeracy_item_labels)
 
-  labs <- c(key_var_labels, hh_var_labels, cb_var_labels, cl_var_labels,
-            pr_var_labels, fcf_var_labels, fcd_var_labels, fl_var_labels)
+  labs <- c(key_var_labels, hh_var_labels, wt_var_labels, int_var_labels,
+            bg_var_labels, cb_var_labels, cl_var_labels, pr_var_labels,
+            fcf_var_labels, fcd_var_labels, fl_var_labels)
   labs <- labs[names(labs) %in% names(df)]
   set_variable_labels(df, .labels = as.list(labs))
 }
@@ -1410,6 +1807,9 @@ harmonize_mics_fs <- function(root = "data/MICS_Datasets",
   folders <- list.dirs(root, recursive = FALSE, full.names = FALSE)
   parts <- list()
   hh_metas <- list()
+  wt_metas <- list()
+  int_metas <- list()
+  bg_metas <- list()
   cb_metas <- list()
   cl_metas <- list()
   pr_metas <- list()
@@ -1441,6 +1841,7 @@ harmonize_mics_fs <- function(root = "data/MICS_Datasets",
     part <- harmonize_survey(path, iso, year)
     message("    kept ", nrow(part$data), " children; excluded HH=",
             nrow(part$hh_meta$excluded),
+            " BG=", nrow(part$bg_meta$excluded),
             " CB=", nrow(part$cb_meta$excluded),
             " CL=", nrow(part$cl_meta$excluded),
             " PR=", nrow(part$pr_meta$excluded),
@@ -1449,6 +1850,9 @@ harmonize_mics_fs <- function(root = "data/MICS_Datasets",
             " FL=", nrow(part$fl_meta$excluded))
     parts[[folder]] <- part$data
     hh_metas[[folder]] <- part$hh_meta
+    wt_metas[[folder]] <- part$wt_meta
+    int_metas[[folder]] <- part$int_meta
+    bg_metas[[folder]] <- part$bg_meta
     cb_metas[[folder]] <- part$cb_meta
     cl_metas[[folder]] <- part$cl_meta
     pr_metas[[folder]] <- part$pr_meta
@@ -1468,6 +1872,16 @@ harmonize_mics_fs <- function(root = "data/MICS_Datasets",
     build_theme_crosswalk(
       hh_metas, "HH", hh_rename, hh_var_labels,
       notes_map = hh_crosswalk_notes
+    ),
+    build_theme_crosswalk(wt_metas, "WT", wt_rename, wt_var_labels),
+    build_theme_crosswalk(int_metas, "INT", int_rename, int_var_labels),
+    build_theme_crosswalk(
+      bg_metas, "BG", bg_rename, bg_var_labels,
+      derived = c(
+        mother_edu_h = "mother_edu",
+        father_edu_h = "father_edu"
+      ),
+      notes_map = bg_crosswalk_notes
     ),
     build_theme_crosswalk(
       cb_metas, "CB", cb_rename, cb_var_labels,
@@ -1490,9 +1904,13 @@ harmonize_mics_fs <- function(root = "data/MICS_Datasets",
     build_theme_crosswalk(fl_metas, "FL", fl_rename, fl_var_labels)
   ) %>% relocate(theme, harmonized_name, variable_label, notes)
 
-  level_maps <- bind_rows(lapply(cb_metas, `[[`, "level_map"))
+  level_maps <- bind_rows(
+    bind_rows(lapply(cb_metas, `[[`, "level_map")),
+    bind_rows(lapply(bg_metas, `[[`, "level_map"))
+  )
   excluded <- bind_rows(
     bind_rows(lapply(hh_metas, `[[`, "excluded")),
+    bind_rows(lapply(bg_metas, `[[`, "excluded")),
     bind_rows(lapply(cb_metas, `[[`, "excluded")),
     bind_rows(lapply(cl_metas, `[[`, "excluded")),
     bind_rows(lapply(pr_metas, `[[`, "excluded")),

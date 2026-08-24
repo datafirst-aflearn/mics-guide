@@ -1,3 +1,503 @@
-# R Tutorial {#c03-r}
 
-Content coming soon.
+# Analysing MICS6 data in R {#c03-r}
+
+UNICEF’s Multiple Indicator Cluster Surveys (MICS) collect comparable
+information on children across many African countries. Official country files
+use different layouts and codes, so they do not pool cleanly on their own. This
+guide’s harmonised file puts those surveys on one child-level footing: shared
+names, a common education-level map, numeracy items, and reading outcomes.
+
+This chapter asks what that African file can show about schooling and
+foundational skills. The ladder is fixed: explore the sample, check over-age
+enrolment across countries, then dig into Ghana for private schooling,
+numeracy, and a gender interaction. Download and harmonisation steps live in
+[Download the MICS Data](#c01-download),
+[Harmonising MICS6 reading outcomes](#c05-harmonize), and
+[Harmonising MICS6 FS background themes](#c06-harmonize-fs).
+
+## Packages
+
+Install once if needed, then load at the start of every session:
+
+```{r install-pkgs, eval=FALSE}
+install.packages(c("tidyverse", "haven", "srvyr", "survey", "showtext", "sysfonts"))
+```
+
+```{r setup-r, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 9,
+  fig.height = 5,
+  fig.align = "center"
+)
+```
+
+```{r packages-r, eval=TRUE}
+library(tidyverse)
+library(haven)
+library(srvyr)
+library(survey)   # svyglm on srvyr designs
+
+source("R/aflearn_theme.R")
+```
+
+
+## Load the harmonised file
+
+After `read_dta()`, you hold one row per child aged 5–17 from the African
+surveys in this build: schooling background, sex, sample weights, a numeracy
+score, and reading skills where the assessment was completed.
+
+```{r load-r, eval=TRUE}
+dat <- read_dta("data/mics6-harmonized-v1.dta")
+
+dat <- dat %>%
+  mutate(
+    survey = paste(country_iso3, year),
+    female = if_else(sex == 2L, 1L, if_else(sex == 1L, 0L, NA_integer_))
+  )
+
+glimpse(dat %>% select(
+  country_iso3, year, HH1, HH2, LN, age, female, private, enrolled,
+  current_level_h, current_grade, numeracy_score, reading_skills, fsweight
+))
+```
+
+`numeracy_score` counts correct answers across the 21 foundational numeracy
+items (0–21). `reading_skills` is 1 when a child met the foundational reading
+threshold among those assessed. `private` is 1 for private schools and 0 for
+public, religious, community, or other under the usual MICS ownership codes
+(COD is left missing).
+
+## Explore and unique child ID
+
+Before any model, confirm what each row is and that children do not duplicate.
+A broken key silently double-counts households when you merge or tabulate.
+
+```{r explore-id, eval=TRUE}
+nrow(dat)
+ncol(dat)
+count(dat, country_iso3, year)
+
+# Candidate keys
+key_vars <- c("country_iso3", "year", "HH1", "HH2", "LN")
+n_distinct(dat[key_vars]) == nrow(dat)
+
+# Same idea with the compact ID copies
+key_vars2 <- c("country_iso3", "year", "cluster", "hhno", "linech")
+n_distinct(dat[key_vars2]) == nrow(dat)
+```
+
+The country–year table is the map of this guide’s Africa coverage: nineteen
+surveys from Benin through Zimbabwe (Tunisia appears twice). Both key
+combinations return `TRUE` — one row per child. A single `childid` helps when
+browsing or merging:
+
+```{r childid, eval=TRUE}
+dat <- dat %>%
+  group_by(country_iso3, year, HH1, HH2, LN) %>%
+  mutate(childid = cur_group_id()) %>%
+  ungroup() %>%
+  select(childid, everything())
+
+n_distinct(dat$childid) == nrow(dat)
+sum(is.na(dat$childid))
+```
+
+## Survey design
+
+MICS draws children in clusters. Ignoring that design understates uncertainty
+and can distort country contrasts. Point estimates use the child weight
+`fsweight`; standard errors treat `HH1` as the cluster. For pooled
+cross-country work, nest clusters inside each survey.
+
+```{r design-r, eval=TRUE}
+design_one <- function(df) {
+  df %>%
+    as_survey_design(
+          ids = HH1,
+      weights = fsweight,
+         nest = TRUE
+    )
+}
+
+design_pooled <- function(df) {
+  df %>%
+    as_survey_design(
+          ids = HH1,
+       strata = survey,
+      weights = fsweight,
+         nest = TRUE
+    )
+}
+
+# Working sample for most examples: currently enrolled, positive weight
+an <- dat %>%
+  filter(
+    enrolled == 1L,
+    !is.na(fsweight), fsweight > 0,
+    !is.na(HH1)
+  )
+```
+
+Rebuild the design after any `mutate()` that creates variables you will
+analyse. The design object stores a snapshot of the data.
+
+## Mean age
+
+How old are children currently enrolled in school? Start with Ghana, then scan
+the full African set.
+
+```{r mean-age-gha, eval=TRUE}
+gha <- an %>% 
+        filter(country_iso3 == "GHA")
+
+design_one(gha) %>%
+  summarise(
+    age_mean = survey_mean(age, na.rm = TRUE, vartype = "se"),
+    n = unweighted(n())
+  )
+```
+
+Among enrolled children in Ghana 2017, mean age is about **10.4 years**
+(SE ≈ 0.09). The FS module covers ages 5–17, so this mean mixes primary and
+secondary learners.
+
+```{r mean-age-by-country, eval=TRUE}
+age_by_cty <- design_pooled(an) %>%
+  group_by(country_iso3, year) %>%
+  summarise(
+    age_mean = survey_mean(age, na.rm = TRUE, vartype = NULL),
+    n = unweighted(n()),
+    .groups = "drop"
+  ) %>%
+  arrange(country_iso3, year)
+
+age_by_cty
+```
+
+Country means sit in a fairly tight band, but age alone is not grade. The next
+section fixes the grade and asks how many children are older than they should
+be for that grade.
+
+## Over-age children in primary grade 2
+
+Late entry and repetition leave many African classrooms with children far above
+the expected age for their grade. If primary starts around age 6, primary grade
+2 learners are typically 7 or 8. Ages 10 and above are clearly over-age for
+that grade.
+
+Restrict to **primary** (`current_level_h == 1`) and **grade 2**
+(`current_grade == 2`). Without the level filter, “grade 2” would also pull in
+secondary year 2.
+
+```{r overage-setup, eval=TRUE}
+# Typical ages 7–8; treat age 10+ as clearly over-age for primary grade 2
+g2_prim <- an %>%
+  filter(
+    current_level_h == 1L,
+    current_grade == 2L,
+    !is.na(age)
+  ) %>%
+  mutate(overage = as.integer(age >= 10L))
+
+design_one(g2_prim %>% filter(country_iso3 == "GHA")) %>%
+  summarise(
+    age_mean = survey_mean(age, vartype = "se"),
+    overage_share = survey_mean(overage, vartype = "se"),
+    n = unweighted(n())
+  )
+```
+
+In Ghana, mean age in primary grade 2 is about **8.3**, and roughly **19%** of
+those children are aged 10 or older.
+
+```{r plot-overage-age, eval=TRUE, fig.cap="Age distribution in primary grade 2 — Ghana. Ages 10 and above are highlighted as over-age."}
+age_gha_g2 <- design_one(g2_prim %>% filter(country_iso3 == "GHA")) %>%
+  group_by(age) %>%
+  summarise(
+    p = survey_mean(vartype = NULL),
+    n = unweighted(n()),
+    .groups = "drop"
+  ) %>%
+  mutate(fill = if_else(age >= 10L, aflearn_amber, aflearn_neutral[["context"]]))
+
+age_gha_g2 %>%
+  ggplot(aes(x = factor(age), y = p, fill = fill)) +
+  geom_col(width = 0.72, colour = NA) +
+  scale_fill_identity() +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  labs(
+    title = "Many primary grade 2 learners are older than 7–8",
+    subtitle = "Ghana · weighted share by age · amber = age 10+",
+    x = "Age",
+    y = NULL,
+    caption = "Source: MICS6, Ghana 2017."
+  ) +
+  theme_aflearn() +
+  theme(axis.text.x = aflearn_axis_category())
+```
+
+The mass sits at 7–8, but the amber bars show a long right tail into the teens.
+That is the over-age problem in one classroom label.
+
+```{r overage-by-country, eval=TRUE}
+overage_cty <- design_pooled(g2_prim) %>%
+  group_by(country_iso3, year) %>%
+  summarise(
+    overage_share = survey_mean(overage, vartype = NULL),
+    age_mean = survey_mean(age, vartype = NULL),
+    n = unweighted(n()),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(overage_share))
+
+overage_cty
+```
+
+```{r plot-overage-country, eval=TRUE, fig.cap="Share of primary grade 2 children aged 10 or older, by survey."}
+overage_cty %>%
+  mutate(label = paste(country_iso3, year)) %>%
+  ggplot(aes(x = overage_share, y = reorder(label, overage_share))) +
+  geom_col(width = 0.72, fill = aflearn_electric_blue, colour = NA) +
+  scale_x_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  labs(
+    title = "Over-age enrolment in primary grade 2 varies by country",
+    subtitle = "Weighted share aged 10+ · enrolled primary grade 2",
+    x = "Share of over-age children",
+    y = NULL,
+    caption = "Source: MIC6. Africa "
+  ) +
+  theme_aflearn() +
+  theme(axis.text.y = aflearn_axis_category())
+```
+
+The ranking is stark. Guinea-Bissau and Chad sit near the top because more
+than two in five primary grade 2 children are aged 10+. Tunisia and Eswatini sit
+near the bottom (about 1–2%). Same grade label, very different age profiles
+across this African set.
+
+## Numeracy and reading skills
+
+What do foundational skills look like in one country before we compare school
+types? Ghana is a useful case: a large enrolled sample and clear private-school
+coding.
+
+```{r mean-outcomes, eval=TRUE}
+# Ghana: mean numeracy among enrolled children with a score
+design_one(gha %>% filter(!is.na(numeracy_score))) %>%
+  summarise(
+    numeracy_mean = survey_mean(numeracy_score, vartype = "se"),
+    n = unweighted(n())
+  )
+
+# Share meeting foundational reading skills (where assessed)
+design_one(gha %>% filter(!is.na(reading_skills))) %>%
+  summarise(
+    reading_share = survey_mean(reading_skills, vartype = "se"),
+    n = unweighted(n())
+  )
+```
+
+Enrolled Ghanaian children with a numeracy score average about **15 of 21**
+items correct (SE ≈ 0.24). Among those with a reading-skills indicator, about
+**34%** meet the foundational reading threshold (SE ≈ 0.02). Note that the two samples
+differ: numeracy and reading are not always completed for the same children.
+
+```{r plot-numeracy-dist, eval=TRUE, fig.cap="Distribution of numeracy scores among enrolled Ghanaian children."}
+
+
+num_share <- design_one(gha %>% filter(!is.na(numeracy_score))) %>%
+  group_by(numeracy_score) %>%
+  summarise(
+    p = survey_mean(vartype = NULL),
+    n = unweighted(n()),
+    .groups = "drop"
+  ) |>
+  ungroup()
+
+num_share %>%
+   mutate(fill = ifelse(numeracy_score == 21, aflearn_cyan, aflearn_neutral[["context"]])) |> 
+  ggplot(aes(x = numeracy_score, y = p, fill = fill)) +
+  geom_col(width = 0.9, colour = NA) +
+  scale_fill_identity() +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  labs(
+    title = "Numeracy score distribution of Ghanaian children",
+    subtitle = "Weighted share · enrolled children with a numeracy score",
+    x = "Numeracy score (0–21)",
+    y = NULL,
+    caption = "Source: MICS6, Ghana 2017."
+  ) +
+  theme_aflearn()
+```
+
+The distribution piles toward the top of the 0–21 scale, with a thinner left
+tail of low scorers. That shape is the backdrop for the private-school
+contrast.
+
+## Private versus non-private schools
+
+Do privately schooled children score higher on numeracy? Compare weighted
+means before adding controls.
+
+```{r means-by-private, eval=TRUE}
+gha_num <- gha %>%
+  filter(!is.na(numeracy_score), !is.na(private))
+
+design_one(gha_num) %>%
+  group_by(private) %>%
+  summarise(
+    numeracy_mean = survey_mean(numeracy_score, vartype = "se"),
+    n = unweighted(n()),
+    .groups = "drop"
+  )
+```
+
+In Ghana the raw gap is large: about **15.4** among non-private learners versus
+**18.5** among private-school learners. That is not a causal estimate. Families
+that choose private schools also differ in age mix, gender, and mother’s
+education. Regression holds those factors fixed.
+
+## Multivariate regression (Ghana)
+
+Stay in Ghana for the rest of the chapter. A single-country design keeps the
+story readable; the same steps extend to other surveys in the file. Restrict to
+enrolled children aged 7–14 with non-missing numeracy, private-school status,
+sex, and mother’s education (codes 0–5).
+
+```{r ghana-sample, eval=TRUE}
+gha_reg <- gha %>%
+  filter(
+    age %in% 7:14,
+    !is.na(numeracy_score),
+    !is.na(private),
+    !is.na(female),
+    mother_edu_h %in% 0:5
+  ) %>%
+  mutate(mother_edu_f = factor(mother_edu_h))
+
+des_gha <- design_one(gha_reg)
+
+m1 <- svyglm(numeracy_score ~ private, design = des_gha)
+summary(m1)
+
+m2 <- svyglm(
+  numeracy_score ~ private + age + female + mother_edu_f,
+  design = des_gha
+)
+summary(m2)
+```
+
+In `m1`, the intercept is mean numeracy in non-private schools; the
+coefficient on `private` is the associated gap. In `m2`, that gap is
+conditional on age, sex, and mother’s education. If the private coefficient
+shrinks, part of the raw gap was composition — not an independent school-type
+effect.
+
+## Private × female interaction
+
+Does the private-school association differ for girls and boys?
+
+```{r interaction, eval=TRUE}
+m_int <- svyglm(
+  numeracy_score ~ private * female + age + mother_edu_f,
+  design = des_gha
+)
+summary(m_int)
+
+coef(m_int)
+```
+
+Read the coefficients as follows:
+
+- `private` — association for boys (`female = 0`)
+- `female` — girl–boy difference in non-private schools
+- `private:female` — how much the private-school association differs for girls
+
+The private-school association for girls is `private + private:female`. A
+negative interaction means the private premium is smaller for girls than for
+boys (or the reverse if positive). These are associations in Ghana’s MICS
+sample, not a multi-country causal claim.
+
+## Predicted means
+
+Coefficients on interactions are easy to misread. Predicted means at the four
+private × female cells turn the same model into a table you can plot. Hold age
+and mother’s education at the sample profile (modal mother’s education).
+
+```{r predicted-means, eval=TRUE}
+mf <- model.frame(m_int)
+
+mom_mode <- names(sort(table(mf$mother_edu_f), decreasing = TRUE))[1]
+
+newdata <- expand.grid(
+  private = c(0, 1),
+  female = c(0, 1),
+  age = mean(mf$age, na.rm = TRUE),
+  mother_edu_f = factor(mom_mode, levels = levels(mf$mother_edu_f))
+)
+
+newdata$predicted <- as.numeric(
+  predict(m_int, newdata = newdata, type = "response")
+)
+
+newdata %>%
+  mutate(
+    school = if_else(private == 1, "Private", "Non-private"),
+    sex_lab = if_else(female == 1, "Girl", "Boy")
+  ) %>%
+  select(school, sex_lab, age, mother_edu_f, predicted)
+```
+
+```{r plot-predicted, eval=TRUE, fig.cap="Predicted mean numeracy by school type and sex — Ghana, controls at sample profile."}
+pred_plot <- newdata %>%
+  mutate(
+    school = factor(
+      if_else(private == 1, "Private", "Non-private"),
+      levels = c("Non-private", "Private")
+    ),
+    sex_lab = factor(
+      if_else(female == 1, "Girl", "Boy"),
+      levels = c("Boy", "Girl")
+    )
+  )
+
+cols_sex <- aflearn_pal_categorical(2)
+names(cols_sex) <- c("Boy", "Girl")
+
+pred_plot %>%
+  ggplot(aes(x = school, y = predicted, fill = sex_lab)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.72, colour = NA) +
+  scale_fill_manual(values = cols_sex, name = NULL) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(
+    title = "Predicted numeracy by school type and sex",
+    subtitle = "Ghana · age and mother’s education held at the sample profile",
+    x = NULL,
+    y = "Predicted numeracy score",
+    caption = "Source: MIC6, Ghana 2017"
+  ) +
+  theme_aflearn() +
+  theme(
+    legend.position = "top",
+    axis.text.x = aflearn_axis_category()
+  )
+```
+
+Compare the four bars: the height gap between private and non-private within
+each sex is the private association; the gap between girl and boy within each
+school type is the gender difference. That is the interaction in one picture.
+
+

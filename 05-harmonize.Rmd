@@ -1,3 +1,4 @@
+
 # Harmonising MICS6 reading outcomes {#c05-harmonize}
 
 Cross-country work on foundational reading needs comparable outcomes: word
@@ -646,6 +647,9 @@ With `data/mics6_reading_harmonized.dta` in place:
 
 - Follow [R Tutorial](#c03-r) to analyse it in R.
 - Follow [Stata Tutorial](#c04-stata) to analyse it in Stata.
+- Build non-reading FS themes (schooling, labour, discipline, numeracy setup,
+  and more) with [Harmonising MICS6 FS background themes](#c06-harmonize-fs)
+  and merge on `country_iso3`, `year`, and `HH1`/`HH2`/`LN`.
 
 Because the file carries `cluster`, `hhno` and `linech`, it can also be merged
 onto an IPUMS-MICS extract to combine these reading outcomes with harmonised

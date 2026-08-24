@@ -1,3 +1,45 @@
 # Understanding MICS Data {#ch-whats-in-data}
 
-Content coming soon.
+Developed by the United Nations Children's Fund (UNICEF), the Foundational Learning Skills (FLS) Module is included in the organization's standardized Multiple Indicator Cluster Survey (MICS) programme. The child-centered MICS programme is the world's largest source of statistically sound and internationally comparable data on the situation of children and women. The FLS Module was designed to measure foundational literacy and numeracy skills among children, providing internationally comparable data on learning outcomes alongside a wide range of household and child indicators.
+
+In the household context, the Foundational Learning Skills Module directly assesses whether children have acquired essential reading and mathematics skills at the early primary level. It focuses on children aged 7 to 14 and captures learning outcomes at grade 2 and 3 for both schooled and unschooled children.
+
+## What is assessed? 
+
+The FLS module targets children aged 7 to 14, evaluating whether they have acquired foundational reading and mathematics skills (typically expected by the end of early primary grades).
+
+### Foundational numeracy skills 
+
+Numeracy skills are assessed through tasks that reflect essential mathematical concepts introduced in the early grades. A child is considered to have foundational numeracy skills if they respond correctly to each of the following:
+
+-   Reading numbers (6 questions)
+
+-   Number discrimination (5 questions)
+
+-   Addition (5 questions)
+
+-   Number pattern recognition (5 questions)
+
+### Foundational reading skills 
+
+Reading skills are assessed through a sequence of tasks that capture both accuracy and understanding. A child is considered to have foundational reading skills if they achieve the following:
+
+-   Accurately read 90% of the words in a primary Grade 2 level story (word count varies by language/country customization)
+
+-   Correctly answer 3 simple literal comprehension questions based on the story
+
+-   Correctly answer 2 simple inferential comprehension questions based on the story
+
+Prior to reading story, children aged 7 to 9 and out of school children are given practice items consisting of a short paragraph and simple questions.
+
+## How is it administered?
+
+MICS is household-based and administered one-on-one to randomly selected child aged 7-14 in each household.
+
+## SDG 4.1.1a and minimum proficiency 
+
+The original FLS module has been strengthened into FLM2.0, aligning it directly with the Global Proficiency Framework and the criteria for reporting on SDG 4.1.1a
+
+## Languages 
+
+MICS FLS assessments are administered in languages selected by Ministries of Education in consultation with UNICEF and regional MICS teams. The objective is to assess children in the language most relevant to their early learning experience. In countries with a single dominant language of instruction, one assessment language is typically used. In multilingual settings, multiple languages may be used, although this remains relatively uncommon because of operational complexity.

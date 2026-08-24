@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title> 5 Why current_grade is not the child’s grade | mics-guide.knit</title>
+  <meta name="description" content="" />
+  <meta name="generator" content="bookdown 0.47 and GitBook 2.6.7" />
+
+  <meta property="og:title" content=" 5 Why current_grade is not the child’s grade | mics-guide.knit" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content=" 5 Why current_grade is not the child’s grade | mics-guide.knit" />
+  
+  
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="c06-harmonize-fs.html"/>
+<link rel="next" href="c03-r.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="toc-logo"><a href="index.html"><img src="files/AFLEARN logo.png" alt="AFLEARN"></a></li>
+<li class="home-link"><a href="index.html"><i class="fa fa-home"></i> Guide home</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="c01-download.html"><a href="c01-download.html"><i class="fa fa-check"></i><b>1</b> Download the MICS Data</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="c01-download.html"><a href="c01-download.html#download-from-unicef"><i class="fa fa-check"></i><b>1.1</b> Download from UNICEF</a></li>
+<li class="chapter" data-level="1.2" data-path="c01-download.html"><a href="c01-download.html#messy-nested-survey-archives"><i class="fa fa-check"></i><b>1.2</b> Messy nested survey archives</a></li>
+<li class="chapter" data-level="1.3" data-path="c01-download.html"><a href="c01-download.html#prepare-the-folders-with-prepare-mics-fs.r"><i class="fa fa-check"></i><b>1.3</b> Prepare the folders with <code>prepare-mics-fs.R</code></a></li>
+<li class="chapter" data-level="1.4" data-path="c01-download.html"><a href="c01-download.html#quality-checks"><i class="fa fa-check"></i><b>1.4</b> Quality checks</a></li>
+<li class="chapter" data-level="1.5" data-path="c01-download.html"><a href="c01-download.html#next-steps"><i class="fa fa-check"></i><b>1.5</b> Next steps</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html"><i class="fa fa-check"></i><b>2</b> Understanding MICS Data</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#what-is-assessed"><i class="fa fa-check"></i><b>2.1</b> What is assessed?</a>
+<ul>
+<li class="chapter" data-level="2.1.1" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#foundational-numeracy-skills"><i class="fa fa-check"></i><b>2.1.1</b> Foundational numeracy skills</a></li>
+<li class="chapter" data-level="2.1.2" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#foundational-reading-skills"><i class="fa fa-check"></i><b>2.1.2</b> Foundational reading skills</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#how-is-it-administered"><i class="fa fa-check"></i><b>2.2</b> How is it administered?</a></li>
+<li class="chapter" data-level="2.3" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#sdg-4.1.1a-and-minimum-proficiency"><i class="fa fa-check"></i><b>2.3</b> SDG 4.1.1a and minimum proficiency</a></li>
+<li class="chapter" data-level="2.4" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#languages"><i class="fa fa-check"></i><b>2.4</b> Languages</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="c05-harmonize.html"><a href="c05-harmonize.html"><i class="fa fa-check"></i><b>3</b> Harmonising MICS6 reading outcomes</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="c05-harmonize.html"><a href="c05-harmonize.html#before-you-start"><i class="fa fa-check"></i><b>3.1</b> Before you start</a></li>
+<li class="chapter" data-level="3.2" data-path="c05-harmonize.html"><a href="c05-harmonize.html#the-harmonisation-pipeline-at-a-glance"><i class="fa fa-check"></i><b>3.2</b> The harmonisation pipeline at a glance</a></li>
+<li class="chapter" data-level="3.3" data-path="c05-harmonize.html"><a href="c05-harmonize.html#identify-the-survey"><i class="fa fa-check"></i><b>3.3</b> Identify the survey</a></li>
+<li class="chapter" data-level="3.4" data-path="c05-harmonize.html"><a href="c05-harmonize.html#fix-questionnaire-numbering"><i class="fa fa-check"></i><b>3.4</b> Fix questionnaire numbering</a></li>
+<li class="chapter" data-level="3.5" data-path="c05-harmonize.html"><a href="c05-harmonize.html#harmonise-variable-names"><i class="fa fa-check"></i><b>3.5</b> Harmonise variable names</a>
+<ul>
+<li class="chapter" data-level="3.5.1" data-path="c05-harmonize.html"><a href="c05-harmonize.html#chad-school-language"><i class="fa fa-check"></i><b>3.5.1</b> Chad school language</a></li>
+<li class="chapter" data-level="3.5.2" data-path="c05-harmonize.html"><a href="c05-harmonize.html#country-specific-comprehension-renames"><i class="fa fa-check"></i><b>3.5.2</b> Country-specific comprehension renames</a></li>
+<li class="chapter" data-level="3.5.3" data-path="c05-harmonize.html"><a href="c05-harmonize.html#a-note-on-missing-values"><i class="fa fa-check"></i><b>3.5.3</b> A note on missing values</a></li>
+</ul></li>
+<li class="chapter" data-level="3.6" data-path="c05-harmonize.html"><a href="c05-harmonize.html#repair-known-data-problems"><i class="fa fa-check"></i><b>3.6</b> Repair known data problems</a>
+<ul>
+<li class="chapter" data-level="3.6.1" data-path="c05-harmonize.html"><a href="c05-harmonize.html#sierra-leone-word-swap"><i class="fa fa-check"></i><b>3.6.1</b> Sierra Leone word swap</a></li>
+<li class="chapter" data-level="3.6.2" data-path="c05-harmonize.html"><a href="c05-harmonize.html#early-refusal-cleaning"><i class="fa fa-check"></i><b>3.6.2</b> Early refusal cleaning</a></li>
+</ul></li>
+<li class="chapter" data-level="3.7" data-path="c05-harmonize.html"><a href="c05-harmonize.html#passage-language"><i class="fa fa-check"></i><b>3.7</b> Passage language</a></li>
+<li class="chapter" data-level="3.8" data-path="c05-harmonize.html"><a href="c05-harmonize.html#passage-length-from-the-data"><i class="fa fa-check"></i><b>3.8</b> Passage length from the data</a></li>
+<li class="chapter" data-level="3.9" data-path="c05-harmonize.html"><a href="c05-harmonize.html#chichewa-only-attempts"><i class="fa fa-check"></i><b>3.9</b> Chichewa-only attempts</a></li>
+<li class="chapter" data-level="3.10" data-path="c05-harmonize.html"><a href="c05-harmonize.html#reading-comprehension-and-practice-scores"><i class="fa fa-check"></i><b>3.10</b> Reading, comprehension, and practice scores</a></li>
+<li class="chapter" data-level="3.11" data-path="c05-harmonize.html"><a href="c05-harmonize.html#accuracy-and-foundational-reading-skills"><i class="fa fa-check"></i><b>3.11</b> Accuracy and foundational reading skills</a>
+<ul>
+<li class="chapter" data-level="3.11.1" data-path="c05-harmonize.html"><a href="c05-harmonize.html#accuracy"><i class="fa fa-check"></i><b>3.11.1</b> Accuracy</a></li>
+<li class="chapter" data-level="3.11.2" data-path="c05-harmonize.html"><a href="c05-harmonize.html#foundational-reading-skills-1"><i class="fa fa-check"></i><b>3.11.2</b> Foundational reading skills</a></li>
+</ul></li>
+<li class="chapter" data-level="3.12" data-path="c05-harmonize.html"><a href="c05-harmonize.html#classify-the-assessment-outcome"><i class="fa fa-check"></i><b>3.12</b> Classify the assessment outcome</a></li>
+<li class="chapter" data-level="3.13" data-path="c05-harmonize.html"><a href="c05-harmonize.html#merge-keys-and-variable-selection"><i class="fa fa-check"></i><b>3.13</b> Merge keys and variable selection</a></li>
+<li class="chapter" data-level="3.14" data-path="c05-harmonize.html"><a href="c05-harmonize.html#what-the-harmonized-dataset-contains"><i class="fa fa-check"></i><b>3.14</b> What the harmonized dataset contains</a></li>
+<li class="chapter" data-level="3.15" data-path="c05-harmonize.html"><a href="c05-harmonize.html#known-limitations"><i class="fa fa-check"></i><b>3.15</b> Known limitations</a></li>
+<li class="chapter" data-level="3.16" data-path="c05-harmonize.html"><a href="c05-harmonize.html#checks-after-running"><i class="fa fa-check"></i><b>3.16</b> Checks after running</a></li>
+<li class="chapter" data-level="3.17" data-path="c05-harmonize.html"><a href="c05-harmonize.html#next-steps-1"><i class="fa fa-check"></i><b>3.17</b> Next steps</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html"><i class="fa fa-check"></i><b>4</b> Harmonising MICS6 FS background themes</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#what-you-need"><i class="fa fa-check"></i><b>4.1</b> What you need</a></li>
+<li class="chapter" data-level="4.2" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#run-the-script"><i class="fa fa-check"></i><b>4.2</b> Run the script</a></li>
+<li class="chapter" data-level="4.3" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#the-pipeline-at-a-glance"><i class="fa fa-check"></i><b>4.3</b> The pipeline at a glance</a></li>
+<li class="chapter" data-level="4.4" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#geography-and-household-size"><i class="fa fa-check"></i><b>4.4</b> Geography and household size</a></li>
+<li class="chapter" data-level="4.5" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#sample-weights"><i class="fa fa-check"></i><b>4.5</b> Sample weights</a></li>
+<li class="chapter" data-level="4.6" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#interview-date-and-time"><i class="fa fa-check"></i><b>4.6</b> Interview date and time</a></li>
+<li class="chapter" data-level="4.7" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#parent-education-and-school-type"><i class="fa fa-check"></i><b>4.7</b> Parent education and school type</a></li>
+<li class="chapter" data-level="4.8" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#childs-background-schooling"><i class="fa fa-check"></i><b>4.8</b> Child’s Background (schooling)</a></li>
+<li class="chapter" data-level="4.9" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#child-labour"><i class="fa fa-check"></i><b>4.9</b> Child Labour</a></li>
+<li class="chapter" data-level="4.10" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#parental-involvement"><i class="fa fa-check"></i><b>4.10</b> Parental Involvement</a></li>
+<li class="chapter" data-level="4.11" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#child-functioning"><i class="fa fa-check"></i><b>4.11</b> Child Functioning</a></li>
+<li class="chapter" data-level="4.12" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#child-discipline"><i class="fa fa-check"></i><b>4.12</b> Child Discipline</a></li>
+<li class="chapter" data-level="4.13" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#foundational-learning-numeracy-only"><i class="fa fa-check"></i><b>4.13</b> Foundational Learning (numeracy only)</a></li>
+<li class="chapter" data-level="4.14" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#documentation-the-script-writes"><i class="fa fa-check"></i><b>4.14</b> Documentation the script writes</a></li>
+<li class="chapter" data-level="4.15" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#what-the-harmonized-dataset-contains-1"><i class="fa fa-check"></i><b>4.15</b> What the harmonized dataset contains</a></li>
+<li class="chapter" data-level="4.16" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#known-limitations-1"><i class="fa fa-check"></i><b>4.16</b> Known limitations</a></li>
+<li class="chapter" data-level="4.17" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#checks-after-running-1"><i class="fa fa-check"></i><b>4.17</b> Checks after running</a></li>
+<li class="chapter" data-level="4.18" data-path="c06-harmonize-fs.html"><a href="c06-harmonize-fs.html#next-steps-2"><i class="fa fa-check"></i><b>4.18</b> Next steps</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="c07-current-grade.html"><a href="c07-current-grade.html"><i class="fa fa-check"></i><b>5</b> Why current_grade is not the child’s grade</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="c07-current-grade.html"><a href="c07-current-grade.html#what-you-see"><i class="fa fa-check"></i><b>5.1</b> What you see</a></li>
+<li class="chapter" data-level="5.2" data-path="c07-current-grade.html"><a href="c07-current-grade.html#why-the-bumps"><i class="fa fa-check"></i><b>5.2</b> Why the bumps</a></li>
+<li class="chapter" data-level="5.3" data-path="c07-current-grade.html"><a href="c07-current-grade.html#the-fix"><i class="fa fa-check"></i><b>5.3</b> The fix</a></li>
+<li class="chapter" data-level="5.4" data-path="c07-current-grade.html"><a href="c07-current-grade.html#after-the-fix-ghana"><i class="fa fa-check"></i><b>5.4</b> After the fix: Ghana</a>
+<ul>
+<li class="chapter" data-level="5.4.1" data-path="c07-current-grade.html"><a href="c07-current-grade.html#offsets-for-the-other-surveys"><i class="fa fa-check"></i><b>5.4.1</b> Offsets for the other surveys</a></li>
+</ul></li>
+<li class="chapter" data-level="5.5" data-path="c07-current-grade.html"><a href="c07-current-grade.html#same-trap-elsewhere"><i class="fa fa-check"></i><b>5.5</b> Same trap elsewhere</a></li>
+<li class="chapter" data-level="5.6" data-path="c07-current-grade.html"><a href="c07-current-grade.html#recipe"><i class="fa fa-check"></i><b>5.6</b> Recipe</a></li>
+<li class="chapter" data-level="5.7" data-path="c07-current-grade.html"><a href="c07-current-grade.html#next-steps-3"><i class="fa fa-check"></i><b>5.7</b> Next steps</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="c03-r.html"><a href="c03-r.html"><i class="fa fa-check"></i><b>6</b> Analysing MICS6 data in R</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="c03-r.html"><a href="c03-r.html#packages"><i class="fa fa-check"></i><b>6.1</b> Packages</a></li>
+<li class="chapter" data-level="6.2" data-path="c03-r.html"><a href="c03-r.html#load-the-harmonised-file"><i class="fa fa-check"></i><b>6.2</b> Load the harmonised file</a></li>
+<li class="chapter" data-level="6.3" data-path="c03-r.html"><a href="c03-r.html#explore-and-unique-child-id"><i class="fa fa-check"></i><b>6.3</b> Explore and unique child ID</a></li>
+<li class="chapter" data-level="6.4" data-path="c03-r.html"><a href="c03-r.html#survey-design"><i class="fa fa-check"></i><b>6.4</b> Survey design</a></li>
+<li class="chapter" data-level="6.5" data-path="c03-r.html"><a href="c03-r.html#mean-age"><i class="fa fa-check"></i><b>6.5</b> Mean age</a></li>
+<li class="chapter" data-level="6.6" data-path="c03-r.html"><a href="c03-r.html#over-age-children-in-primary-grade-2"><i class="fa fa-check"></i><b>6.6</b> Over-age children in primary grade 2</a></li>
+<li class="chapter" data-level="6.7" data-path="c03-r.html"><a href="c03-r.html#numeracy-and-reading-skills"><i class="fa fa-check"></i><b>6.7</b> Numeracy and reading skills</a></li>
+<li class="chapter" data-level="6.8" data-path="c03-r.html"><a href="c03-r.html#private-versus-non-private-schools"><i class="fa fa-check"></i><b>6.8</b> Private versus non-private schools</a></li>
+<li class="chapter" data-level="6.9" data-path="c03-r.html"><a href="c03-r.html#multivariate-regression-ghana"><i class="fa fa-check"></i><b>6.9</b> Multivariate regression (Ghana)</a></li>
+<li class="chapter" data-level="6.10" data-path="c03-r.html"><a href="c03-r.html#private-female-interaction"><i class="fa fa-check"></i><b>6.10</b> Private × female interaction</a></li>
+<li class="chapter" data-level="6.11" data-path="c03-r.html"><a href="c03-r.html#predicted-means"><i class="fa fa-check"></i><b>6.11</b> Predicted means</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="c04-stata.html"><a href="c04-stata.html"><i class="fa fa-check"></i><b>7</b> Analyzing MICS6 data in Stata</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="c04-stata.html"><a href="c04-stata.html#getting-to-know-your-data"><i class="fa fa-check"></i><b>7.1</b> Getting to know your data</a>
+<ul>
+<li class="chapter" data-level="7.1.1" data-path="c04-stata.html"><a href="c04-stata.html#getting-started-in-stata"><i class="fa fa-check"></i><b>7.1.1</b> Getting started in Stata</a></li>
+<li class="chapter" data-level="7.1.2" data-path="c04-stata.html"><a href="c04-stata.html#looking-at-some-of-the-data-and-how-it-is-captured-in-stata"><i class="fa fa-check"></i><b>7.1.2</b> Looking at some of the data, and how it is captured in Stata</a></li>
+<li class="chapter" data-level="7.1.3" data-path="c04-stata.html"><a href="c04-stata.html#simple-summarising-commands"><i class="fa fa-check"></i><b>7.1.3</b> Simple summarising commands</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-tab-row-col"><i class="fa fa-check"></i>BOX: TAB WITH ROW, COL, CELL</a></li>
+<li class="chapter" data-level="7.1.4" data-path="c04-stata.html"><a href="c04-stata.html#finding-a-unique-identifier"><i class="fa fa-check"></i><b>7.1.4</b> Finding a unique identifier</a></li>
+<li class="chapter" data-level="7.1.5" data-path="c04-stata.html"><a href="c04-stata.html#examining-variables"><i class="fa fa-check"></i><b>7.1.5</b> Examining variables</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-if-statements"><i class="fa fa-check"></i>BOX: IF STATEMENTS</a></li>
+<li class="chapter" data-level="7.1.6" data-path="c04-stata.html"><a href="c04-stata.html#examining-variables-further"><i class="fa fa-check"></i><b>7.1.6</b> Examining variables further</a></li>
+<li class="chapter" data-level="7.1.7" data-path="c04-stata.html"><a href="c04-stata.html#quick-introduction-to-do-files"><i class="fa fa-check"></i><b>7.1.7</b> Quick introduction to do files</a></li>
+<li class="chapter" data-level="7.1.8" data-path="c04-stata.html"><a href="c04-stata.html#missing-data-codes"><i class="fa fa-check"></i><b>7.1.8</b> Missing data codes</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-types-of-variables"><i class="fa fa-check"></i>BOX: TYPES OF VARIABLES</a></li>
+<li class="chapter" data-level="7.1.9" data-path="c04-stata.html"><a href="c04-stata.html#creating-new-variables"><i class="fa fa-check"></i><b>7.1.9</b> Creating new variables</a></li>
+<li class="chapter" data-level="7.1.10" data-path="c04-stata.html"><a href="c04-stata.html#extensions-to-creating-new-variables"><i class="fa fa-check"></i><b>7.1.10</b> Extensions to creating new variables</a></li>
+<li class="chapter" data-level="7.1.11" data-path="c04-stata.html"><a href="c04-stata.html#using-complex-survey-data-the-svy-suite"><i class="fa fa-check"></i><b>7.1.11</b> Using complex survey data: the svy suite</a></li>
+<li class="chapter" data-level="7.1.12" data-path="c04-stata.html"><a href="c04-stata.html#weights"><i class="fa fa-check"></i><b>7.1.12</b> Weights</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-weights"><i class="fa fa-check"></i>BOX: TYPES OF WEIGHTS IN STATA</a></li>
+<li class="chapter" data-level="7.1.13" data-path="c04-stata.html"><a href="c04-stata.html#describing-data-plots-and-tables"><i class="fa fa-check"></i><b>7.1.13</b> Describing data: plots and tables</a></li>
+<li class="chapter" data-level="7.1.14" data-path="c04-stata.html"><a href="c04-stata.html#list-of-stata-commands-introduced-in-module-1"><i class="fa fa-check"></i><b>7.1.14</b> List of Stata commands introduced in Module 1</a></li>
+</ul></li>
+<li class="chapter" data-level="7.2" data-path="c04-stata.html"><a href="c04-stata.html#introduction-to-regression-analysis"><i class="fa fa-check"></i><b>7.2</b> Introduction to Regression Analysis</a>
+<ul>
+<li class="chapter" data-level="7.2.1" data-path="c04-stata.html"><a href="c04-stata.html#running-a-regression"><i class="fa fa-check"></i><b>7.2.1</b> Running a regression</a></li>
+<li class="chapter" data-level="7.2.2" data-path="c04-stata.html"><a href="c04-stata.html#interaction-terms-in-regressions"><i class="fa fa-check"></i><b>7.2.2</b> Interaction terms in regressions</a></li>
+<li class="chapter" data-level="7.2.3" data-path="c04-stata.html"><a href="c04-stata.html#a-new-example-returns-to-education"><i class="fa fa-check"></i><b>7.2.3</b> A new example: returns to education</a></li>
+<li class="chapter" data-level="7.2.4" data-path="c04-stata.html"><a href="c04-stata.html#logging-a-dependent-variable"><i class="fa fa-check"></i><b>7.2.4</b> Logging a dependent variable</a></li>
+<li class="chapter" data-level="7.2.5" data-path="c04-stata.html"><a href="c04-stata.html#education-as-a-continuous-variable"><i class="fa fa-check"></i><b>7.2.5</b> Education as a continuous variable</a></li>
+<li class="chapter" data-level="7.2.6" data-path="c04-stata.html"><a href="c04-stata.html#try-it-yourself"><i class="fa fa-check"></i><b>7.2.6</b> Try it yourself</a></li>
+<li class="chapter" data-level="7.2.7" data-path="c04-stata.html"><a href="c04-stata.html#same-data-different-question"><i class="fa fa-check"></i><b>7.2.7</b> Same data, different question</a></li>
+<li class="chapter" data-level="7.2.8" data-path="c04-stata.html"><a href="c04-stata.html#exporting-results"><i class="fa fa-check"></i><b>7.2.8</b> Exporting results</a></li>
+<li class="chapter" data-level="7.2.9" data-path="c04-stata.html"><a href="c04-stata.html#list-of-stata-commands-used-in-module-2"><i class="fa fa-check"></i><b>7.2.9</b> List of Stata commands used in Module 2</a></li>
+</ul></li>
+<li class="chapter" data-level="7.3" data-path="c04-stata.html"><a href="c04-stata.html#replication-lab"><i class="fa fa-check"></i><b>7.3</b> Replication lab</a>
+<ul>
+<li class="chapter" data-level="7.3.1" data-path="c04-stata.html"><a href="c04-stata.html#question-1"><i class="fa fa-check"></i><b>7.3.1</b> Question 1</a></li>
+<li class="chapter" data-level="7.3.2" data-path="c04-stata.html"><a href="c04-stata.html#question-2"><i class="fa fa-check"></i><b>7.3.2</b> Question 2</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-m3-tag"><i class="fa fa-check"></i>LEARNING BIT: tag() for school-level tests</a></li>
+<li class="chapter" data-level="7.3.3" data-path="c04-stata.html"><a href="c04-stata.html#question-3"><i class="fa fa-check"></i><b>7.3.3</b> Question 3</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-m3-cluster"><i class="fa fa-check"></i>LEARNING BIT: clustered standard errors</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-m3-interact"><i class="fa fa-check"></i>LEARNING BIT: interaction terms with</a></li>
+<li class="chapter" data-level="7.3.4" data-path="c04-stata.html"><a href="c04-stata.html#question-4"><i class="fa fa-check"></i><b>7.3.4</b> Question 4</a></li>
+<li class="chapter" data-level="7.3.5" data-path="c04-stata.html"><a href="c04-stata.html#question-5"><i class="fa fa-check"></i><b>7.3.5</b> Question 5</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-m3-missing-age"><i class="fa fa-check"></i>LEARNING BIT: missing-age dummy</a></li>
+<li class="chapter" data-level="7.3.6" data-path="c04-stata.html"><a href="c04-stata.html#question-6"><i class="fa fa-check"></i><b>7.3.6</b> Question 6</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-m3-strata"><i class="fa fa-check"></i>LEARNING BIT: strata dummies</a></li>
+<li class="chapter" data-level="7.3.7" data-path="c04-stata.html"><a href="c04-stata.html#question-7"><i class="fa fa-check"></i><b>7.3.7</b> Question 7</a></li>
+<li class="chapter" data-level="7.3.8" data-path="c04-stata.html"><a href="c04-stata.html#list-of-stata-commands-used-in-module-3"><i class="fa fa-check"></i><b>7.3.8</b> List of Stata commands used in Module 3</a></li>
+</ul></li>
+</ul></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./"></a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<p class="guide-home-link">
+  <a href="index.html"><i class="fa fa-arrow-left"></i> Back to guide home</a>
+</p>
+<div id="c07-current-grade" class="section level1 hasAnchor" number="5">
+<h1><span class="header-section-number"> 5</span> Why current_grade is not the child’s grade<a href="c07-current-grade.html#c07-current-grade" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p><code>current_grade</code> looks like a grade. It is not. In the harmonised FS file it is
+the year <strong>within</strong> the education level in <code>current_level_h</code>. Primary year 1
+and secondary year 1 both carry the code <code>1</code>. Treat that code as the child’s
+place in the school system and you pool children who are nowhere near the same
+year of schooling.</p>
+<p>For ages 5–17, enrolment by year of schooling should rise through primary and
+thin through secondary. The raw <code>current_grade</code> distribution does something
+else: it piles every cycle onto the same 1, 2, 3 ticks and leaves a sawtooth.</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="c07-current-grade.html#cb44-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb44-2"><a href="c07-current-grade.html#cb44-2" tabindex="-1"></a><span class="fu">library</span>(srvyr)</span>
+<span id="cb44-3"><a href="c07-current-grade.html#cb44-3" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb44-4"><a href="c07-current-grade.html#cb44-4" tabindex="-1"></a></span>
+<span id="cb44-5"><a href="c07-current-grade.html#cb44-5" tabindex="-1"></a><span class="fu">source</span>(theme_path)</span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="c07-current-grade.html#cb45-1" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(fs_path)</span>
+<span id="cb45-2"><a href="c07-current-grade.html#cb45-2" tabindex="-1"></a></span>
+<span id="cb45-3"><a href="c07-current-grade.html#cb45-3" tabindex="-1"></a>an <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
+<span id="cb45-4"><a href="c07-current-grade.html#cb45-4" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb45-5"><a href="c07-current-grade.html#cb45-5" tabindex="-1"></a>    <span class="at">survey =</span> <span class="fu">paste</span>(country_iso3, year),</span>
+<span id="cb45-6"><a href="c07-current-grade.html#cb45-6" tabindex="-1"></a>    <span class="at">enrolled_n =</span> <span class="fu">as.integer</span>(haven<span class="sc">::</span><span class="fu">zap_labels</span>(enrolled)),</span>
+<span id="cb45-7"><a href="c07-current-grade.html#cb45-7" tabindex="-1"></a>    <span class="at">grade =</span> <span class="fu">as.integer</span>(haven<span class="sc">::</span><span class="fu">zap_labels</span>(current_grade)),</span>
+<span id="cb45-8"><a href="c07-current-grade.html#cb45-8" tabindex="-1"></a>    <span class="at">level =</span> <span class="fu">as.integer</span>(haven<span class="sc">::</span><span class="fu">zap_labels</span>(current_level_h)),</span>
+<span id="cb45-9"><a href="c07-current-grade.html#cb45-9" tabindex="-1"></a>    <span class="at">HH1 =</span> <span class="fu">as.integer</span>(haven<span class="sc">::</span><span class="fu">zap_labels</span>(HH1)),</span>
+<span id="cb45-10"><a href="c07-current-grade.html#cb45-10" tabindex="-1"></a>    <span class="at">fsweight =</span> <span class="fu">as.numeric</span>(haven<span class="sc">::</span><span class="fu">zap_labels</span>(fsweight))</span>
+<span id="cb45-11"><a href="c07-current-grade.html#cb45-11" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb45-12"><a href="c07-current-grade.html#cb45-12" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb45-13"><a href="c07-current-grade.html#cb45-13" tabindex="-1"></a>    enrolled_n <span class="sc">==</span> <span class="dv">1</span><span class="dt">L</span>,</span>
+<span id="cb45-14"><a href="c07-current-grade.html#cb45-14" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(grade), grade <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>,</span>
+<span id="cb45-15"><a href="c07-current-grade.html#cb45-15" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(level), level <span class="sc">%in%</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">5</span>,</span>
+<span id="cb45-16"><a href="c07-current-grade.html#cb45-16" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(fsweight), fsweight <span class="sc">&gt;</span> <span class="dv">0</span>,</span>
+<span id="cb45-17"><a href="c07-current-grade.html#cb45-17" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(HH1)</span>
+<span id="cb45-18"><a href="c07-current-grade.html#cb45-18" tabindex="-1"></a>  )</span>
+<span id="cb45-19"><a href="c07-current-grade.html#cb45-19" tabindex="-1"></a></span>
+<span id="cb45-20"><a href="c07-current-grade.html#cb45-20" tabindex="-1"></a><span class="co"># Illustrative plots: primary + lower/upper secondary only</span></span>
+<span id="cb45-21"><a href="c07-current-grade.html#cb45-21" tabindex="-1"></a>an_main <span class="ot">&lt;-</span> an <span class="sc">%&gt;%</span> <span class="fu">filter</span>(level <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span>
+<span id="cb45-22"><a href="c07-current-grade.html#cb45-22" tabindex="-1"></a></span>
+<span id="cb45-23"><a href="c07-current-grade.html#cb45-23" tabindex="-1"></a>level_lab <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb45-24"><a href="c07-current-grade.html#cb45-24" tabindex="-1"></a>  <span class="st">&quot;1&quot;</span> <span class="ot">=</span> <span class="st">&quot;Primary&quot;</span>,</span>
+<span id="cb45-25"><a href="c07-current-grade.html#cb45-25" tabindex="-1"></a>  <span class="st">&quot;2&quot;</span> <span class="ot">=</span> <span class="st">&quot;Lower secondary&quot;</span>,</span>
+<span id="cb45-26"><a href="c07-current-grade.html#cb45-26" tabindex="-1"></a>  <span class="st">&quot;3&quot;</span> <span class="ot">=</span> <span class="st">&quot;Upper secondary&quot;</span></span>
+<span id="cb45-27"><a href="c07-current-grade.html#cb45-27" tabindex="-1"></a>)</span>
+<span id="cb45-28"><a href="c07-current-grade.html#cb45-28" tabindex="-1"></a></span>
+<span id="cb45-29"><a href="c07-current-grade.html#cb45-29" tabindex="-1"></a>design_pooled <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
+<span id="cb45-30"><a href="c07-current-grade.html#cb45-30" tabindex="-1"></a>  df <span class="sc">%&gt;%</span></span>
+<span id="cb45-31"><a href="c07-current-grade.html#cb45-31" tabindex="-1"></a>    <span class="fu">as_survey_design</span>(</span>
+<span id="cb45-32"><a href="c07-current-grade.html#cb45-32" tabindex="-1"></a>      <span class="at">ids =</span> HH1,</span>
+<span id="cb45-33"><a href="c07-current-grade.html#cb45-33" tabindex="-1"></a>      <span class="at">strata =</span> survey,</span>
+<span id="cb45-34"><a href="c07-current-grade.html#cb45-34" tabindex="-1"></a>      <span class="at">weights =</span> fsweight,</span>
+<span id="cb45-35"><a href="c07-current-grade.html#cb45-35" tabindex="-1"></a>      <span class="at">nest =</span> <span class="cn">TRUE</span></span>
+<span id="cb45-36"><a href="c07-current-grade.html#cb45-36" tabindex="-1"></a>    )</span>
+<span id="cb45-37"><a href="c07-current-grade.html#cb45-37" tabindex="-1"></a>}</span>
+<span id="cb45-38"><a href="c07-current-grade.html#cb45-38" tabindex="-1"></a></span>
+<span id="cb45-39"><a href="c07-current-grade.html#cb45-39" tabindex="-1"></a>design_one <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
+<span id="cb45-40"><a href="c07-current-grade.html#cb45-40" tabindex="-1"></a>  df <span class="sc">%&gt;%</span></span>
+<span id="cb45-41"><a href="c07-current-grade.html#cb45-41" tabindex="-1"></a>    <span class="fu">as_survey_design</span>(</span>
+<span id="cb45-42"><a href="c07-current-grade.html#cb45-42" tabindex="-1"></a>      <span class="at">ids =</span> HH1,</span>
+<span id="cb45-43"><a href="c07-current-grade.html#cb45-43" tabindex="-1"></a>      <span class="at">weights =</span> fsweight,</span>
+<span id="cb45-44"><a href="c07-current-grade.html#cb45-44" tabindex="-1"></a>      <span class="at">nest =</span> <span class="cn">TRUE</span></span>
+<span id="cb45-45"><a href="c07-current-grade.html#cb45-45" tabindex="-1"></a>    )</span>
+<span id="cb45-46"><a href="c07-current-grade.html#cb45-46" tabindex="-1"></a>}</span></code></pre></div>
+<blockquote>
+<p>Harmonised FS file not found at <code>data/mics6_fs_harmonized.rds</code>. Figures below are skipped. Run <a href="c06-harmonize-fs.html#c06-harmonize-fs">Harmonising MICS6 FS background themes</a> first.</p>
+</blockquote>
+<div id="what-you-see" class="section level2 hasAnchor" number="5.1">
+<h2><span class="header-section-number">5.1</span> What you see<a href="c07-current-grade.html#what-you-see" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Pooled across the supported MICS6 surveys, the weighted share of currently
+enrolled children by <code>current_grade</code> spikes at 1 and falls steeply after 3.
+That is not a primary-to-secondary pyramid. It is every cycle restarting its
+count on the same axis.</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="c07-current-grade.html#cb46-1" tabindex="-1"></a>share_grade <span class="ot">&lt;-</span> <span class="fu">design_pooled</span>(an_main <span class="sc">%&gt;%</span> <span class="fu">filter</span>(grade <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb46-2"><a href="c07-current-grade.html#cb46-2" tabindex="-1"></a>  <span class="fu">group_by</span>(grade) <span class="sc">%&gt;%</span></span>
+<span id="cb46-3"><a href="c07-current-grade.html#cb46-3" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb46-4"><a href="c07-current-grade.html#cb46-4" tabindex="-1"></a>    <span class="at">p =</span> <span class="fu">survey_mean</span>(<span class="at">vartype =</span> <span class="cn">NULL</span>),</span>
+<span id="cb46-5"><a href="c07-current-grade.html#cb46-5" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">unweighted</span>(<span class="fu">n</span>()),</span>
+<span id="cb46-6"><a href="c07-current-grade.html#cb46-6" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span></span>
+<span id="cb46-7"><a href="c07-current-grade.html#cb46-7" tabindex="-1"></a>  )</span>
+<span id="cb46-8"><a href="c07-current-grade.html#cb46-8" tabindex="-1"></a></span>
+<span id="cb46-9"><a href="c07-current-grade.html#cb46-9" tabindex="-1"></a>n_saw <span class="ot">&lt;-</span> <span class="fu">sum</span>(share_grade<span class="sc">$</span>n)</span>
+<span id="cb46-10"><a href="c07-current-grade.html#cb46-10" tabindex="-1"></a></span>
+<span id="cb46-11"><a href="c07-current-grade.html#cb46-11" tabindex="-1"></a>share_grade <span class="sc">%&gt;%</span></span>
+<span id="cb46-12"><a href="c07-current-grade.html#cb46-12" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb46-13"><a href="c07-current-grade.html#cb46-13" tabindex="-1"></a>    <span class="at">fill =</span> <span class="fu">if_else</span>(grade <span class="sc">==</span> <span class="dv">1</span><span class="dt">L</span>, aflearn_amber, aflearn_neutral[[<span class="st">&quot;context&quot;</span>]])</span>
+<span id="cb46-14"><a href="c07-current-grade.html#cb46-14" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb46-15"><a href="c07-current-grade.html#cb46-15" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(grade), <span class="at">y =</span> p, <span class="at">fill =</span> fill)) <span class="sc">+</span></span>
+<span id="cb46-16"><a href="c07-current-grade.html#cb46-16" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.72</span>, <span class="at">colour =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb46-17"><a href="c07-current-grade.html#cb46-17" tabindex="-1"></a>  <span class="fu">scale_fill_identity</span>() <span class="sc">+</span></span>
+<span id="cb46-18"><a href="c07-current-grade.html#cb46-18" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb46-19"><a href="c07-current-grade.html#cb46-19" tabindex="-1"></a>    <span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>(<span class="at">accuracy =</span> <span class="dv">1</span>),</span>
+<span id="cb46-20"><a href="c07-current-grade.html#cb46-20" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.08</span>))</span>
+<span id="cb46-21"><a href="c07-current-grade.html#cb46-21" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb46-22"><a href="c07-current-grade.html#cb46-22" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb46-23"><a href="c07-current-grade.html#cb46-23" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;current_grade piles every cycle onto 1, 2, 3&quot;</span>,</span>
+<span id="cb46-24"><a href="c07-current-grade.html#cb46-24" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="fu">paste0</span>(</span>
+<span id="cb46-25"><a href="c07-current-grade.html#cb46-25" tabindex="-1"></a>      <span class="st">&quot;Weighted share of enrolled children · primary and secondary · &quot;</span>,</span>
+<span id="cb46-26"><a href="c07-current-grade.html#cb46-26" tabindex="-1"></a>      <span class="st">&quot;unweighted n = &quot;</span>, <span class="fu">format</span>(n_saw, <span class="at">big.mark =</span> <span class="st">&quot;,&quot;</span>)</span>
+<span id="cb46-27"><a href="c07-current-grade.html#cb46-27" tabindex="-1"></a>    ),</span>
+<span id="cb46-28"><a href="c07-current-grade.html#cb46-28" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;current_grade&quot;</span>,</span>
+<span id="cb46-29"><a href="c07-current-grade.html#cb46-29" tabindex="-1"></a>    <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb46-30"><a href="c07-current-grade.html#cb46-30" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;Source: harmonised MICS6 FS. Design: clusters = HH1, strata = survey, weights = fsweight.&quot;</span></span>
+<span id="cb46-31"><a href="c07-current-grade.html#cb46-31" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb46-32"><a href="c07-current-grade.html#cb46-32" tabindex="-1"></a>  <span class="fu">theme_aflearn</span>() <span class="sc">+</span></span>
+<span id="cb46-33"><a href="c07-current-grade.html#cb46-33" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">aflearn_axis_category</span>())</span></code></pre></div>
+</div>
+<div id="why-the-bumps" class="section level2 hasAnchor" number="5.2">
+<h2><span class="header-section-number">5.2</span> Why the bumps<a href="c07-current-grade.html#why-the-bumps" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p><code>current_grade</code> is MICS <code>CB8B</code>: grade or year <strong>within</strong> the level in <code>CB8A</code>.
+The harmonised sibling of that level is <code>current_level_h</code>. Value labels on the
+grade field even say “Grade/year 1”.</p>
+<p>Stack the same shares by level and the sawtooth breaks apart. Most of the mass
+at 1 is primary. A large second slice is lower secondary year 1. A third is
+upper secondary year 1. One code, three places in the system.</p>
+<table>
+<colgroup>
+<col width="30%" />
+<col width="40%" />
+<col width="30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><code>current_level_h</code></th>
+<th align="right"><code>current_grade</code></th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Primary (1)</td>
+<td align="right">1</td>
+<td>Year 1 of primary — often the first year of school</td>
+</tr>
+<tr class="even">
+<td>Lower secondary (2)</td>
+<td align="right">1</td>
+<td>Year 1 of lower secondary — not grade 1 of school</td>
+</tr>
+<tr class="odd">
+<td>Upper secondary (3)</td>
+<td align="right">1</td>
+<td>Year 1 of upper secondary</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="c07-current-grade.html#cb47-1" tabindex="-1"></a>share_stack <span class="ot">&lt;-</span> <span class="fu">design_pooled</span>(an_main <span class="sc">%&gt;%</span> <span class="fu">filter</span>(grade <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb47-2"><a href="c07-current-grade.html#cb47-2" tabindex="-1"></a>  <span class="co"># interact() so cell shares sum to 1 overall (not within each grade)</span></span>
+<span id="cb47-3"><a href="c07-current-grade.html#cb47-3" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="fu">interact</span>(grade, level)) <span class="sc">%&gt;%</span></span>
+<span id="cb47-4"><a href="c07-current-grade.html#cb47-4" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb47-5"><a href="c07-current-grade.html#cb47-5" tabindex="-1"></a>    <span class="at">p =</span> <span class="fu">survey_mean</span>(<span class="at">vartype =</span> <span class="cn">NULL</span>),</span>
+<span id="cb47-6"><a href="c07-current-grade.html#cb47-6" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">unweighted</span>(<span class="fu">n</span>()),</span>
+<span id="cb47-7"><a href="c07-current-grade.html#cb47-7" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span></span>
+<span id="cb47-8"><a href="c07-current-grade.html#cb47-8" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb47-9"><a href="c07-current-grade.html#cb47-9" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb47-10"><a href="c07-current-grade.html#cb47-10" tabindex="-1"></a>    <span class="at">level_f =</span> <span class="fu">factor</span>(</span>
+<span id="cb47-11"><a href="c07-current-grade.html#cb47-11" tabindex="-1"></a>      level_lab[<span class="fu">as.character</span>(level)],</span>
+<span id="cb47-12"><a href="c07-current-grade.html#cb47-12" tabindex="-1"></a>      <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;Primary&quot;</span>, <span class="st">&quot;Lower secondary&quot;</span>, <span class="st">&quot;Upper secondary&quot;</span>)</span>
+<span id="cb47-13"><a href="c07-current-grade.html#cb47-13" tabindex="-1"></a>    )</span>
+<span id="cb47-14"><a href="c07-current-grade.html#cb47-14" tabindex="-1"></a>  )</span>
+<span id="cb47-15"><a href="c07-current-grade.html#cb47-15" tabindex="-1"></a></span>
+<span id="cb47-16"><a href="c07-current-grade.html#cb47-16" tabindex="-1"></a>cols_level <span class="ot">&lt;-</span> <span class="fu">aflearn_pal_categorical</span>(<span class="dv">3</span>)</span>
+<span id="cb47-17"><a href="c07-current-grade.html#cb47-17" tabindex="-1"></a><span class="fu">names</span>(cols_level) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Primary&quot;</span>, <span class="st">&quot;Lower secondary&quot;</span>, <span class="st">&quot;Upper secondary&quot;</span>)</span>
+<span id="cb47-18"><a href="c07-current-grade.html#cb47-18" tabindex="-1"></a></span>
+<span id="cb47-19"><a href="c07-current-grade.html#cb47-19" tabindex="-1"></a>share_stack <span class="sc">%&gt;%</span></span>
+<span id="cb47-20"><a href="c07-current-grade.html#cb47-20" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(grade), <span class="at">y =</span> p, <span class="at">fill =</span> level_f)) <span class="sc">+</span></span>
+<span id="cb47-21"><a href="c07-current-grade.html#cb47-21" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.72</span>, <span class="at">colour =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb47-22"><a href="c07-current-grade.html#cb47-22" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> cols_level, <span class="at">name =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb47-23"><a href="c07-current-grade.html#cb47-23" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb47-24"><a href="c07-current-grade.html#cb47-24" tabindex="-1"></a>    <span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>(<span class="at">accuracy =</span> <span class="dv">1</span>),</span>
+<span id="cb47-25"><a href="c07-current-grade.html#cb47-25" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.08</span>))</span>
+<span id="cb47-26"><a href="c07-current-grade.html#cb47-26" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb47-27"><a href="c07-current-grade.html#cb47-27" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb47-28"><a href="c07-current-grade.html#cb47-28" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Grade 1 is primary — and secondary — and upper secondary&quot;</span>,</span>
+<span id="cb47-29"><a href="c07-current-grade.html#cb47-29" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;Weighted cell shares · stacked · currently enrolled children&quot;</span>,</span>
+<span id="cb47-30"><a href="c07-current-grade.html#cb47-30" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;current_grade&quot;</span>,</span>
+<span id="cb47-31"><a href="c07-current-grade.html#cb47-31" tabindex="-1"></a>    <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb47-32"><a href="c07-current-grade.html#cb47-32" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;Source: harmonised MICS6 FS. ECE, vocational, and tertiary omitted from the plot.&quot;</span></span>
+<span id="cb47-33"><a href="c07-current-grade.html#cb47-33" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb47-34"><a href="c07-current-grade.html#cb47-34" tabindex="-1"></a>  <span class="fu">theme_aflearn</span>() <span class="sc">+</span></span>
+<span id="cb47-35"><a href="c07-current-grade.html#cb47-35" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb47-36"><a href="c07-current-grade.html#cb47-36" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">&quot;top&quot;</span>,</span>
+<span id="cb47-37"><a href="c07-current-grade.html#cb47-37" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">aflearn_axis_category</span>()</span>
+<span id="cb47-38"><a href="c07-current-grade.html#cb47-38" tabindex="-1"></a>  )</span></code></pre></div>
+<p>Numbering is not even uniform across surveys. Most restart at 1 in each cycle.
+Tunisia already codes lower secondary as 7–9. Primary runs to 8 in Malawi, 7 in
+Lesotho, Eswatini, and Zimbabwe, 5 in Madagascar, and 9 in Guinea-Bissau. The
+pooled bumps hide those differences as well.</p>
+</div>
+<div id="the-fix" class="section level2 hasAnchor" number="5.3">
+<h2><span class="header-section-number">5.3</span> The fix<a href="c07-current-grade.html#the-fix" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Always read <code>current_grade</code> with <code>current_level_h</code>. To place a child on one
+ladder of years of schooling, add a country-specific offset for each level that
+restarts its count:</p>
+<p><span class="math display">\[
+\text{admin\_grade} = \text{offset}(\text{country}, \text{level}) + \text{current\_grade}
+\]</span></p>
+<p>Where the survey already continues the count (Tunisia lower secondary 7–9), use
+<code>current_grade</code> as-is. Leave vocational and tertiary off the general ladder:
+those tracks do not map cleanly onto primary–secondary years.</p>
+</div>
+<div id="after-the-fix-ghana" class="section level2 hasAnchor" number="5.4">
+<h2><span class="header-section-number">5.4</span> After the fix: Ghana<a href="c07-current-grade.html#after-the-fix-ghana" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Ghana’s structure is clean for a demonstration: six years of primary, then
+lower and upper secondary that each restart at 1 (a 6+3+3 pattern in this
+file). Build an administrative year as primary = <code>current_grade</code>, lower
+secondary = <code>6 + current_grade</code>, upper secondary = <code>9 + current_grade</code>.</p>
+<p>The left panel still shows the sawtooth. The right panel shows enrolment by
+constructed year: a rise through primary and a thin secondary tail.</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="c07-current-grade.html#cb48-1" tabindex="-1"></a>gha <span class="ot">&lt;-</span> an_main <span class="sc">%&gt;%</span></span>
+<span id="cb48-2"><a href="c07-current-grade.html#cb48-2" tabindex="-1"></a>  <span class="fu">filter</span>(country_iso3 <span class="sc">==</span> <span class="st">&quot;GHA&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb48-3"><a href="c07-current-grade.html#cb48-3" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb48-4"><a href="c07-current-grade.html#cb48-4" tabindex="-1"></a>    <span class="at">admin_grade =</span> <span class="fu">case_when</span>(</span>
+<span id="cb48-5"><a href="c07-current-grade.html#cb48-5" tabindex="-1"></a>      level <span class="sc">==</span> <span class="dv">1</span><span class="dt">L</span> <span class="sc">~</span> grade,</span>
+<span id="cb48-6"><a href="c07-current-grade.html#cb48-6" tabindex="-1"></a>      level <span class="sc">==</span> <span class="dv">2</span><span class="dt">L</span> <span class="sc">~</span> <span class="dv">6</span><span class="dt">L</span> <span class="sc">+</span> grade,</span>
+<span id="cb48-7"><a href="c07-current-grade.html#cb48-7" tabindex="-1"></a>      level <span class="sc">==</span> <span class="dv">3</span><span class="dt">L</span> <span class="sc">~</span> <span class="dv">9</span><span class="dt">L</span> <span class="sc">+</span> grade,</span>
+<span id="cb48-8"><a href="c07-current-grade.html#cb48-8" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_integer_</span></span>
+<span id="cb48-9"><a href="c07-current-grade.html#cb48-9" tabindex="-1"></a>    )</span>
+<span id="cb48-10"><a href="c07-current-grade.html#cb48-10" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb48-11"><a href="c07-current-grade.html#cb48-11" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(admin_grade))</span>
+<span id="cb48-12"><a href="c07-current-grade.html#cb48-12" tabindex="-1"></a></span>
+<span id="cb48-13"><a href="c07-current-grade.html#cb48-13" tabindex="-1"></a>gha_des <span class="ot">&lt;-</span> <span class="fu">design_one</span>(gha)</span>
+<span id="cb48-14"><a href="c07-current-grade.html#cb48-14" tabindex="-1"></a></span>
+<span id="cb48-15"><a href="c07-current-grade.html#cb48-15" tabindex="-1"></a>share_raw <span class="ot">&lt;-</span> gha_des <span class="sc">%&gt;%</span></span>
+<span id="cb48-16"><a href="c07-current-grade.html#cb48-16" tabindex="-1"></a>  <span class="fu">filter</span>(grade <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb48-17"><a href="c07-current-grade.html#cb48-17" tabindex="-1"></a>  <span class="fu">group_by</span>(grade) <span class="sc">%&gt;%</span></span>
+<span id="cb48-18"><a href="c07-current-grade.html#cb48-18" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb48-19"><a href="c07-current-grade.html#cb48-19" tabindex="-1"></a>    <span class="at">p =</span> <span class="fu">survey_mean</span>(<span class="at">vartype =</span> <span class="cn">NULL</span>),</span>
+<span id="cb48-20"><a href="c07-current-grade.html#cb48-20" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">unweighted</span>(<span class="fu">n</span>()),</span>
+<span id="cb48-21"><a href="c07-current-grade.html#cb48-21" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span></span>
+<span id="cb48-22"><a href="c07-current-grade.html#cb48-22" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb48-23"><a href="c07-current-grade.html#cb48-23" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">x =</span> grade, p, n, <span class="at">panel =</span> <span class="st">&quot;current_grade (raw)&quot;</span>)</span>
+<span id="cb48-24"><a href="c07-current-grade.html#cb48-24" tabindex="-1"></a></span>
+<span id="cb48-25"><a href="c07-current-grade.html#cb48-25" tabindex="-1"></a>share_admin <span class="ot">&lt;-</span> gha_des <span class="sc">%&gt;%</span></span>
+<span id="cb48-26"><a href="c07-current-grade.html#cb48-26" tabindex="-1"></a>  <span class="fu">group_by</span>(admin_grade) <span class="sc">%&gt;%</span></span>
+<span id="cb48-27"><a href="c07-current-grade.html#cb48-27" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb48-28"><a href="c07-current-grade.html#cb48-28" tabindex="-1"></a>    <span class="at">p =</span> <span class="fu">survey_mean</span>(<span class="at">vartype =</span> <span class="cn">NULL</span>),</span>
+<span id="cb48-29"><a href="c07-current-grade.html#cb48-29" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">unweighted</span>(<span class="fu">n</span>()),</span>
+<span id="cb48-30"><a href="c07-current-grade.html#cb48-30" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span></span>
+<span id="cb48-31"><a href="c07-current-grade.html#cb48-31" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb48-32"><a href="c07-current-grade.html#cb48-32" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">x =</span> admin_grade, p, n, <span class="at">panel =</span> <span class="st">&quot;admin_grade (6+3+3)&quot;</span>)</span>
+<span id="cb48-33"><a href="c07-current-grade.html#cb48-33" tabindex="-1"></a></span>
+<span id="cb48-34"><a href="c07-current-grade.html#cb48-34" tabindex="-1"></a>gha_plot <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(share_raw, share_admin) <span class="sc">%&gt;%</span></span>
+<span id="cb48-35"><a href="c07-current-grade.html#cb48-35" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb48-36"><a href="c07-current-grade.html#cb48-36" tabindex="-1"></a>    <span class="at">panel =</span> <span class="fu">factor</span>(</span>
+<span id="cb48-37"><a href="c07-current-grade.html#cb48-37" tabindex="-1"></a>      panel,</span>
+<span id="cb48-38"><a href="c07-current-grade.html#cb48-38" tabindex="-1"></a>      <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;current_grade (raw)&quot;</span>, <span class="st">&quot;admin_grade (6+3+3)&quot;</span>)</span>
+<span id="cb48-39"><a href="c07-current-grade.html#cb48-39" tabindex="-1"></a>    )</span>
+<span id="cb48-40"><a href="c07-current-grade.html#cb48-40" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="c07-current-grade.html#cb49-1" tabindex="-1"></a>gha_plot <span class="sc">%&gt;%</span></span>
+<span id="cb49-2"><a href="c07-current-grade.html#cb49-2" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(x), <span class="at">y =</span> p)) <span class="sc">+</span></span>
+<span id="cb49-3"><a href="c07-current-grade.html#cb49-3" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.72</span>, <span class="at">fill =</span> aflearn_electric_blue, <span class="at">colour =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb49-4"><a href="c07-current-grade.html#cb49-4" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>panel, <span class="at">scales =</span> <span class="st">&quot;free_x&quot;</span>, <span class="at">ncol =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb49-5"><a href="c07-current-grade.html#cb49-5" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb49-6"><a href="c07-current-grade.html#cb49-6" tabindex="-1"></a>    <span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>(<span class="at">accuracy =</span> <span class="dv">1</span>),</span>
+<span id="cb49-7"><a href="c07-current-grade.html#cb49-7" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.08</span>))</span>
+<span id="cb49-8"><a href="c07-current-grade.html#cb49-8" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb49-9"><a href="c07-current-grade.html#cb49-9" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb49-10"><a href="c07-current-grade.html#cb49-10" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Same Ghana children, two grade axes&quot;</span>,</span>
+<span id="cb49-11"><a href="c07-current-grade.html#cb49-11" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;Weighted shares · currently enrolled · primary and secondary&quot;</span>,</span>
+<span id="cb49-12"><a href="c07-current-grade.html#cb49-12" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb49-13"><a href="c07-current-grade.html#cb49-13" tabindex="-1"></a>    <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb49-14"><a href="c07-current-grade.html#cb49-14" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;Source: harmonised MICS6 FS, Ghana 2017. Design: clusters = HH1, weights = fsweight.&quot;</span></span>
+<span id="cb49-15"><a href="c07-current-grade.html#cb49-15" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb49-16"><a href="c07-current-grade.html#cb49-16" tabindex="-1"></a>  <span class="fu">theme_aflearn</span>() <span class="sc">+</span></span>
+<span id="cb49-17"><a href="c07-current-grade.html#cb49-17" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">aflearn_axis_category</span>())</span></code></pre></div>
+<div id="offsets-for-the-other-surveys" class="section level3 hasAnchor" number="5.4.1">
+<h3><span class="header-section-number">5.4.1</span> Offsets for the other surveys<a href="c07-current-grade.html#offsets-for-the-other-surveys" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>These lengths are <strong>empirical in this file</strong>, not a new official taxonomy. Check
+them before you borrow an offset.</p>
+<table>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Pattern</th>
+<th>Surveys (examples)</th>
+<th>How to build <code>admin_grade</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Primary 6, secondary restarts at 1</td>
+<td>Benin, Ghana, Nigeria, many others</td>
+<td>Primary = grade; add 6 for lower secondary; add 9 for upper secondary (adjust if lower secondary has a different length)</td>
+</tr>
+<tr class="even">
+<td>Primary longer than 6</td>
+<td>Malawi (to 8); Lesotho, Eswatini, Zimbabwe (to 7)</td>
+<td>Use that survey’s max primary grade as the offset into secondary</td>
+</tr>
+<tr class="odd">
+<td>Primary shorter</td>
+<td>Madagascar (to 5)</td>
+<td>Offset secondary by 5</td>
+</tr>
+<tr class="even">
+<td>Count continues</td>
+<td>Tunisia lower secondary 7–9</td>
+<td>Use <code>current_grade</code> for that level; do not add a primary offset</td>
+</tr>
+<tr class="odd">
+<td>No separate lower-secondary code</td>
+<td>Guinea-Bissau, Lesotho, Eswatini, São Tomé</td>
+<td><code>current_level_h</code> jumps from primary to upper secondary / other; invent no fake lower-secondary years</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="same-trap-elsewhere" class="section level2 hasAnchor" number="5.5">
+<h2><span class="header-section-number">5.5</span> Same trap elsewhere<a href="c07-current-grade.html#same-trap-elsewhere" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p><code>highest_grade</code> and <code>previous_grade</code> restart within <code>highest_level_h</code> and
+<code>previous_level_h</code> the same way. Pair each grade with its level. Do not force
+vocational or tertiary years onto the primary–secondary ladder.</p>
+</div>
+<div id="recipe" class="section level2 hasAnchor" number="5.6">
+<h2><span class="header-section-number">5.6</span> Recipe<a href="c07-current-grade.html#recipe" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Restrict to currently enrolled children with a usable grade. Compute shares with
+<code>srvyr</code>. Build the administrative year with country-specific offsets.</p>
+<p class="code-lang code-lang-r">
+R
+</p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="c07-current-grade.html#cb50-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb50-2"><a href="c07-current-grade.html#cb50-2" tabindex="-1"></a><span class="fu">library</span>(srvyr)</span>
+<span id="cb50-3"><a href="c07-current-grade.html#cb50-3" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb50-4"><a href="c07-current-grade.html#cb50-4" tabindex="-1"></a></span>
+<span id="cb50-5"><a href="c07-current-grade.html#cb50-5" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">&quot;data/mics6_fs_harmonized.rds&quot;</span>)</span>
+<span id="cb50-6"><a href="c07-current-grade.html#cb50-6" tabindex="-1"></a></span>
+<span id="cb50-7"><a href="c07-current-grade.html#cb50-7" tabindex="-1"></a>gha <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
+<span id="cb50-8"><a href="c07-current-grade.html#cb50-8" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb50-9"><a href="c07-current-grade.html#cb50-9" tabindex="-1"></a>    <span class="at">enrolled_n =</span> <span class="fu">as.integer</span>(haven<span class="sc">::</span><span class="fu">zap_labels</span>(enrolled)),</span>
+<span id="cb50-10"><a href="c07-current-grade.html#cb50-10" tabindex="-1"></a>    <span class="at">grade =</span> <span class="fu">as.integer</span>(haven<span class="sc">::</span><span class="fu">zap_labels</span>(current_grade)),</span>
+<span id="cb50-11"><a href="c07-current-grade.html#cb50-11" tabindex="-1"></a>    <span class="at">level =</span> <span class="fu">as.integer</span>(haven<span class="sc">::</span><span class="fu">zap_labels</span>(current_level_h)),</span>
+<span id="cb50-12"><a href="c07-current-grade.html#cb50-12" tabindex="-1"></a>    <span class="at">HH1 =</span> <span class="fu">as.integer</span>(haven<span class="sc">::</span><span class="fu">zap_labels</span>(HH1)),</span>
+<span id="cb50-13"><a href="c07-current-grade.html#cb50-13" tabindex="-1"></a>    <span class="at">fsweight =</span> <span class="fu">as.numeric</span>(haven<span class="sc">::</span><span class="fu">zap_labels</span>(fsweight))</span>
+<span id="cb50-14"><a href="c07-current-grade.html#cb50-14" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb50-15"><a href="c07-current-grade.html#cb50-15" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb50-16"><a href="c07-current-grade.html#cb50-16" tabindex="-1"></a>    country_iso3 <span class="sc">==</span> <span class="st">&quot;GHA&quot;</span>,</span>
+<span id="cb50-17"><a href="c07-current-grade.html#cb50-17" tabindex="-1"></a>    enrolled_n <span class="sc">==</span> <span class="dv">1</span><span class="dt">L</span>,</span>
+<span id="cb50-18"><a href="c07-current-grade.html#cb50-18" tabindex="-1"></a>    grade <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>,</span>
+<span id="cb50-19"><a href="c07-current-grade.html#cb50-19" tabindex="-1"></a>    level <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb50-20"><a href="c07-current-grade.html#cb50-20" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(fsweight), fsweight <span class="sc">&gt;</span> <span class="dv">0</span></span>
+<span id="cb50-21"><a href="c07-current-grade.html#cb50-21" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb50-22"><a href="c07-current-grade.html#cb50-22" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb50-23"><a href="c07-current-grade.html#cb50-23" tabindex="-1"></a>    <span class="at">admin_grade =</span> <span class="fu">case_when</span>(</span>
+<span id="cb50-24"><a href="c07-current-grade.html#cb50-24" tabindex="-1"></a>      level <span class="sc">==</span> <span class="dv">1</span><span class="dt">L</span> <span class="sc">~</span> grade,</span>
+<span id="cb50-25"><a href="c07-current-grade.html#cb50-25" tabindex="-1"></a>      level <span class="sc">==</span> <span class="dv">2</span><span class="dt">L</span> <span class="sc">~</span> <span class="dv">6</span><span class="dt">L</span> <span class="sc">+</span> grade,</span>
+<span id="cb50-26"><a href="c07-current-grade.html#cb50-26" tabindex="-1"></a>      level <span class="sc">==</span> <span class="dv">3</span><span class="dt">L</span> <span class="sc">~</span> <span class="dv">9</span><span class="dt">L</span> <span class="sc">+</span> grade</span>
+<span id="cb50-27"><a href="c07-current-grade.html#cb50-27" tabindex="-1"></a>    )</span>
+<span id="cb50-28"><a href="c07-current-grade.html#cb50-28" tabindex="-1"></a>  )</span>
+<span id="cb50-29"><a href="c07-current-grade.html#cb50-29" tabindex="-1"></a></span>
+<span id="cb50-30"><a href="c07-current-grade.html#cb50-30" tabindex="-1"></a>gha <span class="sc">%&gt;%</span></span>
+<span id="cb50-31"><a href="c07-current-grade.html#cb50-31" tabindex="-1"></a>  <span class="fu">as_survey_design</span>(<span class="at">ids =</span> HH1, <span class="at">weights =</span> fsweight, <span class="at">nest =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb50-32"><a href="c07-current-grade.html#cb50-32" tabindex="-1"></a>  <span class="fu">group_by</span>(admin_grade) <span class="sc">%&gt;%</span></span>
+<span id="cb50-33"><a href="c07-current-grade.html#cb50-33" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb50-34"><a href="c07-current-grade.html#cb50-34" tabindex="-1"></a>    <span class="at">p =</span> <span class="fu">survey_mean</span>(<span class="at">vartype =</span> <span class="cn">NULL</span>),</span>
+<span id="cb50-35"><a href="c07-current-grade.html#cb50-35" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">unweighted</span>(<span class="fu">n</span>())</span>
+<span id="cb50-36"><a href="c07-current-grade.html#cb50-36" tabindex="-1"></a>  )</span></code></pre></div>
+<p class="code-lang code-lang-stata">
+Stata
+</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb51-1"><a href="c07-current-grade.html#cb51-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;data/mics6_fs_harmonized.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb51-2"><a href="c07-current-grade.html#cb51-2" tabindex="-1"></a><span class="kw">keep</span> <span class="kw">if</span> country_iso3 == <span class="st">&quot;GHA&quot;</span></span>
+<span id="cb51-3"><a href="c07-current-grade.html#cb51-3" tabindex="-1"></a><span class="kw">keep</span> <span class="kw">if</span> enrolled == 1</span>
+<span id="cb51-4"><a href="c07-current-grade.html#cb51-4" tabindex="-1"></a><span class="kw">keep</span> <span class="kw">if</span> <span class="fu">inrange</span>(current_grade, 1, 20)</span>
+<span id="cb51-5"><a href="c07-current-grade.html#cb51-5" tabindex="-1"></a><span class="kw">keep</span> <span class="kw">if</span> <span class="fu">inlist</span>(current_level_h, 1, 2, 3)</span>
+<span id="cb51-6"><a href="c07-current-grade.html#cb51-6" tabindex="-1"></a></span>
+<span id="cb51-7"><a href="c07-current-grade.html#cb51-7" tabindex="-1"></a><span class="kw">generate</span> admin_grade = .</span>
+<span id="cb51-8"><a href="c07-current-grade.html#cb51-8" tabindex="-1"></a><span class="kw">replace</span> admin_grade = current_grade <span class="kw">if</span> current_level_h == 1</span>
+<span id="cb51-9"><a href="c07-current-grade.html#cb51-9" tabindex="-1"></a><span class="kw">replace</span> admin_grade = 6 + current_grade <span class="kw">if</span> current_level_h == 2</span>
+<span id="cb51-10"><a href="c07-current-grade.html#cb51-10" tabindex="-1"></a><span class="kw">replace</span> admin_grade = 9 + current_grade <span class="kw">if</span> current_level_h == 3</span>
+<span id="cb51-11"><a href="c07-current-grade.html#cb51-11" tabindex="-1"></a></span>
+<span id="cb51-12"><a href="c07-current-grade.html#cb51-12" tabindex="-1"></a><span class="kw">svyset</span> HH1 [pw = fsweight]</span>
+<span id="cb51-13"><a href="c07-current-grade.html#cb51-13" tabindex="-1"></a><span class="kw">svy</span>: <span class="kw">tabulate</span> admin_grade</span></code></pre></div>
+</div>
+<div id="next-steps-3" class="section level2 hasAnchor" number="5.7">
+<h2><span class="header-section-number">5.7</span> Next steps<a href="c07-current-grade.html#next-steps-3" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<ul>
+<li>Build or refresh the FS file with
+<a href="c06-harmonize-fs.html#c06-harmonize-fs">Harmonising MICS6 FS background themes</a>.</li>
+<li>For reading outcomes, see
+<a href="c05-harmonize.html#c05-harmonize">Harmonising MICS6 reading outcomes</a>.</li>
+<li>Merge on <code>country_iso3</code>, <code>year</code>, and <code>HH1</code> / <code>HH2</code> / <code>LN</code> (or
+<code>cluster</code> / <code>hhno</code> / <code>linech</code>).</li>
+</ul>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="c06-harmonize-fs.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="c03-r.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+  "sharing": {
+    "github": false,
+    "facebook": true,
+    "twitter": true,
+    "linkedin": false,
+    "weibo": false,
+    "instapaper": false,
+    "vk": false,
+    "whatsapp": false,
+    "all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+  },
+  "fontsettings": {
+    "theme": "white",
+    "family": "sans",
+    "size": 2
+  },
+  "edit": {
+    "link": "https://github.com/datafirst-aflearn/mics-guide/edit/main/07-current-grade.Rmd",
+    "text": "Edit"
+  },
+  "history": {
+    "link": null,
+    "text": null
+  },
+  "view": {
+    "link": "https://github.com/datafirst-aflearn/mics-guide/blob/main/07-current-grade.Rmd",
+    "text": null
+  },
+  "download": null,
+  "search": {
+    "engine": "fuse",
+    "options": null
+  },
+  "toc": {
+    "collapse": "subsection"
+  }
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

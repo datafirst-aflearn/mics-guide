@@ -12,6 +12,8 @@ rmd_files:
   - 01-download.Rmd
   - 02-whats-in-the-data.Rmd
   - 05-harmonize.Rmd
-  #- 03-r.Rmd
-  #- 04-stata.Rmd
+  - 06-harmonize-fs.Rmd
+ # - 07-current-grade.Rmd
+  - 03-r.Rmd
+  - 04-stata.Rmd
 after_render: ["R/publish-nav.R"]
