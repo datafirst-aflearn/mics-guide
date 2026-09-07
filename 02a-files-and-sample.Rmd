@@ -1,0 +1,103 @@
+## Files, keys, and who is in `fs` {#c02-files}
+
+The exact files in a country download depend on which questionnaires that survey fielded. These are the files researchers meet most often.
+
+| File | Unit of observation | Examples of information |
+|------|---------------------|-------------------------|
+| `hh` | Household | Household characteristics, wealth, water and sanitation |
+| `hl` | Household member | Age, sex, relationship, education on the roster |
+| `wm` | Woman aged 15–49 | Women's individual questionnaire |
+| `mn` | Man aged 15–49, where administered | Men's individual questionnaire |
+| `ch` | Child under five | Under-five questionnaire |
+| `fs` | One randomly selected child aged 5–17 per sampled household | Child background, schooling, child labour, child functioning, parental involvement, FLS |
+| `bh` | Birth | Birth-history records from the women's questionnaire |
+
+::: alternativebox-header
+**For foundational learning**
+:::
+
+::: alternativebox
+The FLS assessment is in `fs`. Household and roster characteristics often still need to be added from `hh` and `hl`.
+:::
+
+### Keys
+
+``` text
+Household:              HH1 + HH2
+Person on the roster:   HH1 + HH2 + HL1
+Selected child:         fs: HH1 + HH2 + LN
+                        hl: HH1 + HH2 + HL1     (LN corresponds to HL1)
+Mother or caretaker:    fs: HH1 + HH2 + FS4
+                        hl: HH1 + HH2 + HL1     (FS4 is another person's line)
+```
+
+`HH1` is the cluster, `HH2` the household within the cluster. `LN` in `fs` is the selected child's line number (`FS3` on the questionnaire). `FS4` is the line number of the child's mother or caretaker, not the child.
+
+``` text
+                         HOUSEHOLD
+                            hh
+                         HH1 + HH2
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+              ▼                             ▼
+       HOUSEHOLD MEMBERS              SELECTED CHILD
+              hl                           fs
+       HH1 + HH2 + HL1              HH1 + HH2 + LN
+              ▲                             │
+              └──────── LN = HL1 ──────────┘
+
+       SELECTED CHILD                       HOUSEHOLD MEMBER
+              fs                                  hl
+       HH1 + HH2 + FS4  ─────────────►  HH1 + HH2 + HL1
+                    mother/caretaker
+```
+
+::: alternativebox-header
+**Same household is not the same person**
+:::
+
+::: alternativebox
+A merge on `HH1 + HH2` attaches household-level information to every person in that household. A merge on `HH1 + HH2` plus a line number identifies one person. If the question is the share of children aged 10 with foundational numeracy, by wealth, keep `fs` as the analysis file and add wealth from `hh`. Do not make `hh` the analysis population because wealth lives there.
+:::
+
+A line number is unique only within a household. `HL1 = 2` does not identify a person on its own.
+
+### Who is in `fs`
+
+`fs` is one randomly selected child aged 5–17 per sampled household, not every child of that age in the household listing.
+
+``` text
+Sampled household
+      │
+      ▼
+List all members (hl)
+      │
+      ▼
+Children aged 5–17
+      │
+      ▼
+Randomly select one child → fs record
+      │
+      ├──────── age 5–6 ────────► no FLS
+      ├──────── age 7–14 ───────► eligible for FLS
+      └──────── age 15–17 ──────► no FLS
+```
+
+A household can contain several children aged 5–17; only one of them is in `fs`. Do not merge `fs` onto every 5–17-year-old in `hl` and treat the result as if all of them were assessed.
+
+The FLS module targets ages 7–14. Age-eligible does not mean a completed assessment: permission, language, and skip patterns can stop the child before the story or the numeracy tasks. Those paths are in [Reading and numeracy](#c02-fls).
+
+Because the assessment is in the household, children out of school are in scope.
+
+::: alternativebox-header
+**Name the denominator**
+:::
+
+::: alternativebox
+"Percentage with foundational reading skills" is incomplete until the reader knows among whom: children aged 7–14, children of Grade 2/3 age, children attending Grade 2/3, or another population you define.
+:::
+
+A child aged 10 in Grade 2 can enter a grade-based Grade 2/3 estimate and still be over-age for that grade. A child of Grade 2/3 age may be in another grade or out of school. UNICEF tabulations use these denominators separately because they answer different questions.
+
+When the rows are selected children, use `fsweight`. Adding a variable from `hh` or `hl` does not change the weight. The analysis population does.

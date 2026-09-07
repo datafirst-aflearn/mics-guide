@@ -1,0 +1,23 @@
+## Which MICS weight {#c05-weights}
+
+MICS attaches a weight to each questionnaire population.
+
+| File / population | Weight |
+|-------------------|--------|
+| Household | `hhweight` |
+| Women | `wmweight` |
+| Men, where administered | `mnweight` |
+| Children under five | `chweight` |
+| Selected children aged 5–17 | `fsweight` |
+
+The [MICS6 Manual for Statistical Data Analysis](https://data.unicef.org/wp-content/uploads/2019/07/MICS6-manual-for-stats-data-analysis-English_2020_v2.pdf) matches those weights to those files.
+
+FLS sits on the 5–17 questionnaire. One eligible child is drawn per household, so a child in a large sibling group is less likely to enter `fs` than an only eligible child. `fsweight` includes that draw. Use it for foundational learning, including outcomes defined only for ages 7–14 or for children who reached the passage.
+
+`fshweight` is the household sample weight stored on `fs`. It does not include the within-household child draw. It is not a substitute for `fsweight`.
+
+Merging wealth from `hh` or parent education from `hl` does not change the weight. While one row remains a selected child, use `fsweight` ([Files, keys, and who is in fs](#c02-files)).
+
+Do not divide the weight by 1,000. Multiplying every weight in a survey by the same positive constant leaves a weighted mean unchanged. Supply the weights as released.
+
+MICS analysis weights are normalised within each survey. They are right for means, proportions, and regressions. The sum of weights is not a national population count. If the question is a census total, read the country sampling documentation and calibrate separately.

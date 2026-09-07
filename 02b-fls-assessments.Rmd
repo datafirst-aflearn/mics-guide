@@ -1,0 +1,91 @@
+## Reading and numeracy {#c02-fls}
+
+The Foundational Learning Skills (FLS) module assesses reading and numeracy among children aged 7–14 in the household, whether or not they are in school. Skills are those expected in early primary (about Grade 2/3).
+
+The official "foundational skills" indicators are conjunctive: the child must meet every component. The microdata still hold the items, so you can look at domains, totals, and distributions as well as the headline yes/no.
+
+### Reading
+
+``` text
+Eligible child age 7–14
+          │
+          ▼
+Permission / child participation
+          │
+          ▼
+Assessment language (is a booklet available?)
+          │
+          ▼
+Does the child agree to read?
+          │
+          ▼
+Practice / routing where it applies
+          │
+          ▼
+Read story → words attempted, words missed
+          │
+          ▼
+Comprehension: 3 literal, 2 inferential
+```
+
+The interviewer assigns a language from what the child speaks at home and, for children with schooling, the language teachers use. If no suitable booklet is available, the child never reaches the story. In surveys with more than one passage, use the UNICEF files, not the IPUMS reading variables ([Getting IPUMS MICS files](#c01-ipums)).
+
+A blank story result is not one kind of missing. A child with no suitable language, a child who declined to read, and a child who attempted the story and could not read it are different cases. Do not treat them all as `NA`.
+
+The official foundational-reading indicator requires all three:
+
+``` text
+≥ 90% of passage words correct
+           AND
+3/3 literal questions correct
+           AND
+2/2 inferential questions correct
+           ▼
+FOUNDATIONAL READING SKILLS
+```
+
+You cannot compute the 90% rule without the passage length. Attempted and incorrect words are not enough; story length varies by country and language.
+
+Reading comparisons across countries need more caution than numeracy. Differences can reflect language of instruction, language at home, the assessment language, the adapted story, and the child's schooling, not only reading skill. The assessment is for national monitoring with country adaptation, not a language-neutral test.
+
+### Numeracy
+
+Twenty-one items in four tasks. There is no language-specific passage of varying length.
+
+| Task | Items | What the child does |
+|------|------:|---------------------|
+| Number reading | 6 | Reads numbers shown by the interviewer |
+| Number discrimination | 5 | Identifies the larger of two numbers |
+| Addition | 5 | Solves addition problems |
+| Pattern recognition | 5 | Supplies the missing number in a sequence |
+| Total | 21 | |
+
+A task counts as completed only if every item in it is correct. Foundational numeracy requires all four tasks:
+
+``` text
+6/6 number reading
+          AND
+5/5 number discrimination
+          AND
+5/5 addition
+          AND
+5/5 pattern
+          ▼
+FOUNDATIONAL NUMERACY SKILLS
+```
+
+The binary hides large differences in performance:
+
+``` text
+                    Number   Discrim.   Addition   Pattern    Total
+Child A               6/6      5/5        5/5       4/5      20/21
+Child B               3/6      1/5        0/5       0/5       4/21
+
+Foundational numeracy?  NO                            NO
+```
+
+Use the official indicator when the question is mastery of all four tasks. Use task scores or the 21-item count when the question is how many items children get right. Neither is always better.
+
+The questionnaire has stop rules. Item responses can be correct, incorrect, or not attempted. Do not treat every blank as the same without the skip pattern.
+
+Numeracy avoids passage-language problems. Age, grade, current attendance, and when in the school year the survey ran still shape cross-country comparisons. A Grade 3 child assessed at the start of the year has had less Grade 3 instruction than one assessed at the end.

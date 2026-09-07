@@ -1,0 +1,31 @@
+# Getting MICS6 data {#c01-download}
+
+This chapter shows how to put MICS6 microdata on disk, ready for the rest of the guide.
+
+MICS6 is the UNICEF round that first fielded the Foundational Learning Skills (FLS) module. You can obtain the files in two ways:
+
+1.  UNICEF MICS: the original country survey files.
+2.  IPUMS MICS: a custom extract with variables already aligned across the surveys you select.
+
+Use UNICEF when you need the FLS assessment, country-specific items, or a single country. Use IPUMS when you want a pooled file of demographic, household, and schooling variables and have Stata to build the extract. A single-country study gains little from IPUMS.
+
+|   | UNICEF MICS | IPUMS MICS |
+|------------------------|------------------------|------------------------|
+| What you receive | Original country survey files | A custom extract with harmonised variables across selected surveys |
+| Best for | Country-specific items; the FLS assessment; reproducing MICS indicators | Multi-country work on demographic, household, and schooling variables |
+| Preparation | More: files must be unpacked and, for pooled work, harmonised | Less: IPUMS supplies syntax that builds the extract |
+| Software | R or Stata: the `.sav` files open in either | Stata to build the extract; then R or Stata for analysis |
+| Single-country work | Use this | Adds little: IPUMS earns its keep across surveys |
+
+::: warningbox-header
+**AFLEARN recommendation**
+:::
+
+::: warningbox
+If the analysis uses foundational reading, do not use the IPUMS reading variables for surveys that administered more than one passage. IPUMS keeps one passage and can drop a large share of children who completed the assessment. AFLEARN reconstructs reading outcomes from the complete UNICEF files; you can merge that file onto an IPUMS extract.
+:::
+
+The two routes complement each other: IPUMS for comparable background variables, UNICEF for every reading passage.
+
+- To download the UNICEF country files and unpack them with AFLEARN's scripts, go to [Getting UNICEF MICS files](#c01-unicef).
+- To build an IPUMS extract, go to [Getting IPUMS MICS files](#c01-ipums).

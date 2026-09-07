@@ -1,0 +1,139 @@
+## Attaching the AFLEARN file to IPUMS {#c03-ipums}
+
+Keep the IPUMS child extract for demographic, household, and schooling variables. Attach the AFLEARN file so reading includes every passage. The limit on IPUMS reading variables is in [Getting IPUMS MICS files](#ipums-reading-warning).
+
+The v2 file already carries `sample` (IPUMS `SAMPLE` from the spec).
+
+``` text
+AFLEARN                 IPUMS
+sample              <-> SAMPLE
+cluster             <-> CLUSTER
+hhno                <-> HHNO
+linech              <-> LINECH
+```
+
+::: warningbox-header
+**Do not guess IPUMS sample codes from country names**
+:::
+
+::: warningbox
+Use `sample` on the AFLEARN file and check it against `SAMPLE` in your extract. IPUMS identifiers distinguish survey year and, where needed, national and subnational samples.
+:::
+
+Build the extract as children aged 5–17 and keep `SAMPLE`, `CLUSTER`, `HHNO`, and `LINECH`. See [IPUMS MICS linking](https://mics.ipums.org/mics/linking.shtml). Select the AFLEARN columns you need so names do not collide with IPUMS.
+
+### Check uniqueness
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+use "Data/ipums_mics_fs.dta", clear
+duplicates report SAMPLE CLUSTER HHNO LINECH
+
+use "Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta", clear
+duplicates report sample cluster hhno linech
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+library(haven)
+library(dplyr)
+
+ipums <- read_dta("Data/ipums_mics_fs.dta")
+aflearn <- read_dta(
+  "Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta"
+)
+
+ipums %>%
+  count(SAMPLE, CLUSTER, HHNO, LINECH) %>%
+  filter(n > 1)
+
+aflearn %>%
+  count(sample, cluster, hhno, linech) %>%
+  filter(n > 1)
+```
+::::
+:::::
+
+If either check returns duplicates, stop before merging.
+
+### Join
+
+Keep IPUMS as the analysis population. Not every `fs` child has a completed reading assessment; ages 5–6 and 15–17 are outside the FLS target, and eligible children can leave the pathway earlier. The question is whether the child record links, not whether every child has a score.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+use "Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta", clear
+
+rename sample SAMPLE
+rename cluster CLUSTER
+rename hhno HHNO
+rename linech LINECH
+
+isid SAMPLE CLUSTER HHNO LINECH
+
+tempfile aflearn
+save `aflearn'
+
+use "Data/ipums_mics_fs.dta", clear
+
+merge 1:1 SAMPLE CLUSTER HHNO LINECH using `aflearn'
+tab _merge
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+library(haven)
+library(dplyr)
+
+ipums <- read_dta("Data/ipums_mics_fs.dta")
+aflearn <- read_dta(
+  "Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta"
+)
+
+analysis <- ipums %>%
+  left_join(
+    aflearn,
+    by = c(
+      "SAMPLE" = "sample",
+      "CLUSTER" = "cluster",
+      "HHNO" = "hhno",
+      "LINECH" = "linech"
+    ),
+    relationship = "one-to-one"
+  )
+```
+::::
+:::::
+
+Do not drop unmatched records until you know why they did not match. Once AFLEARN reading is on the file, drop or rename the IPUMS reading variables so you do not use them by accident.
+
+### After the merge
+
+Use the IPUMS age variable from your extract (often `AGE`). Malawi must show both assessment languages.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+tab SAMPLE
+tab reading_status if AGE >= 7 & AGE <= 14
+tab SAMPLE passage_language
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+analysis %>%
+  count(SAMPLE)
+
+analysis %>%
+  filter(AGE >= 7, AGE <= 14) %>%
+  count(SAMPLE, reading_status)
+
+analysis %>%
+  count(SAMPLE, passage_language)
+```
+::::
+:::::
+
+If the study uses only single-passage countries, the AFLEARN reading fields are still the simpler common definition: the same `reading_status`, passage length, and accuracy rule in every supported survey.

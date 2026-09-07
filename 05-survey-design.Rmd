@@ -1,0 +1,29 @@
+# Survey design, weights and standard errors {#c05-survey-design}
+
+MICS draws households in strata and clusters. Children in the same cluster are more alike than children drawn independently. An ordinary standard error treats those children as independent. It is too small.
+
+Selected-child analysis needs three things together:
+
+``` text
+fsweight   sampling weight for the selected child
+PSU        primary sampling unit
+stratum    sampling stratum
+```
+
+::: alternativebox-header
+**The basic rule**
+:::
+
+::: alternativebox
+A weighted mean with an ordinary standard error is not a design-based estimate. Tell the software the weight, the cluster, and the stratum together.
+:::
+
+Weights correct unequal selection. They do not describe clustering or stratification.
+
+UNICEF `fs.sav` files and IPUMS extracts carry `PSU` and `stratum` / `STRATUM`. Use them when they are on the analysis file. The AFLEARN v2 file keeps `fsweight` and `HH1` / `cluster`; merge `PSU` and `stratum` from the source `fs` file if you want the sampling-error variables ([Adding variables from UNICEF files](#c03-merge)). Otherwise treat `HH1` as the cluster and nest it inside the survey. Do not use `urban` as the stratum.
+
+If you do not yet have the analysis file, start from [Getting UNICEF MICS files](#c01-unicef).
+
+- [Which MICS weight](#c05-weights)
+- [Setting up one survey](#c05-single-survey)
+- [Several surveys, and the standard error](#c05-pooling)

@@ -3,8 +3,6 @@ site: bookdown::bookdown_site
 ---
 
 ```{r setup, include=FALSE}
-library(Statamarkdown)
-
 # Absolute project root — used by the Stata chapter so collectcode does not
 # depend on whatever working directory bookdown happens to be in.
 mics_guide_root <- if (file.exists("_bookdown.yml")) {
@@ -18,6 +16,8 @@ options(mics.guide.root = mics_guide_root)
 knitr::opts_knit$set(root.dir = mics_guide_root)
 setwd(mics_guide_root)
 
+# Stata engine. Chapters show Stata code with eval=FALSE by default, so a
+# local Stata installation is not required to build the book.
 stataexe <- "C:/Program Files/Stata18/StataMP-64.exe"
 knitr::opts_chunk$set(
   echo = TRUE,
@@ -26,4 +26,8 @@ knitr::opts_chunk$set(
   engine.path = list(stata = stataexe),
   cache = FALSE
 )
+
+if (requireNamespace("Statamarkdown", quietly = TRUE)) {
+  library(Statamarkdown)
+}
 ```

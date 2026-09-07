@@ -9,10 +9,20 @@ language:
     chapter_name: " "
 rmd_files:
   - index.Rmd
-  - 01-download.Rmd
+  - 01-getting-mics6-data.Rmd
+  - 01a-unicef-mics.Rmd
+  - 01c-ipums-mics.Rmd
   - 02-whats-in-the-data.Rmd
-  - 05-harmonize.Rmd
-  - 06-harmonize-fs.Rmd
+  - 02a-files-and-sample.Rmd
+  - 02b-fls-assessments.Rmd
+  - 03-harmonising.Rmd
+  - 03a-the-aflearn-file.Rmd
+  - 03b-merge-unicef.Rmd
+  - 03c-merge-ipums.Rmd
+  - 05-survey-design.Rmd
+  - 05a-weights.Rmd
+  - 05b-one-survey.Rmd
+  - 05c-pooling-and-se.Rmd
  # - 07-current-grade.Rmd
   - 03-r.Rmd
   - 04-stata.Rmd

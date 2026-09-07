@@ -1,0 +1,38 @@
+## Getting IPUMS MICS files {#c01-ipums}
+
+[IPUMS MICS](https://mics.ipums.org/mics/) builds a custom extract. You choose a unit of analysis, surveys, and variables. IPUMS returns the UNICEF source data plus Stata syntax that harmonises them. Registration is free and uses the same UNICEF MICS login. See [Getting Started with IPUMS MICS](https://mics.ipums.org/mics/user_guide.shtml).
+
+If you need foundational reading, read [the passage warning](#ipums-reading-warning) before you add reading variables to the cart.
+
+### Build the extract
+
+1.  Open GET DATA and choose a unit of analysis. For the FLS module, use children aged 5–17.
+2.  Select the MICS6 samples you need. Record the IPUMS sample identifiers, not only country names.
+3.  Add variables to the Data Cart. Before you add one, check that it exists in your samples, that the universe matches, and that the codes are comparable. Keep identifiers, sample, and weight variables for linking and survey design.
+4.  Create the extract. The download is source data plus Stata `.do` files. Run the main `.do` file to build the pooled dataset. An R workflow needs Stata once for this step; then read the `.dta` in R. See [Opening an Extract](https://mics.ipums.org/mics/extract_instructions.shtml).
+
+::: alternativebox-header
+**One extract has one unit of analysis**
+:::
+
+::: alternativebox
+Some household or parent items are already attached to the child file; others need a link. See [linking units of analysis](https://mics.ipums.org/mics/linking.shtml).
+:::
+
+IPUMS documents each variable's universe, codes, and questionnaire text. Comparisons go wrong when universes differ across surveys. See the [IPUMS MICS FAQ](https://mics.ipums.org/mics-action/faq).
+
+### Multi-passage reading {#ipums-reading-warning}
+
+::: warningbox-header
+**Do not use the IPUMS reading variables for a MICS6 survey that administered more than one passage.**
+:::
+
+::: warningbox
+IPUMS keeps one passage. Children assessed on another passage look like item non-response. They are missing by language or passage, and reading estimates can be badly wrong.
+:::
+
+Malawi MICS 2019–20 is the clear case. IPUMS records 1,720 children on `FLWORDSATTEMPT` (English). The UNICEF files show 3,970 who attempted Chichewa, of whom 130 also attempted English. Treating the IPUMS variable as the Malawi reading sample drops most of the children who completed the assessment.
+
+This limit applies to the harmonised reading variables in multi-passage surveys, not to the rest of IPUMS. AFLEARN rebuilds reading from the UNICEF files, all passages kept, in `mics6-fs-harmonised-v2.0.dta` (see [Getting UNICEF MICS files](#c01-unicef)). Merge that file onto the IPUMS child extract as shown in [Attaching the AFLEARN file to IPUMS](#c03-ipums).
+
+[Understanding MICS6 data](#ch-whats-in-data) explains the survey files and the FLS module.

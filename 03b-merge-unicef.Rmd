@@ -1,0 +1,170 @@
+## Adding variables from UNICEF files {#c03-merge}
+
+Decide what one row of the final dataset represents before you merge anything. For foundational learning, keep one row per selected child in `fs`.
+
+The keys are in [Files, keys, and who is in fs](#c02-files). The three common links are household (`HH1` + `HH2`), the child's own roster line (`LN` ↔ `HL1`), and another member such as the caretaker (`FS4` ↔ `HL1`). UNICEF's [MICS6 Manual for Statistical Data Analysis](https://data.unicef.org/wp-content/uploads/2019/07/MICS6-manual-for-stats-data-analysis-English_2020_v2.pdf) describes the same identifiers.
+
+The AFLEARN file already attaches selected `hl` fields (parent education, school type). Merge by hand only for variables that are not already on it.
+
+Replace `COUNTRY_SURVEY`, `variable_1`, and `variable_2` with the survey folder and the fields you need. If you work in Stata from UNICEF `.sav` files, import SPSS once and save temporary `.dta` versions.
+
+### Household variables onto `fs`
+
+Many children can share a household; each `HH1` + `HH2` should appear once in `hh`.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+use "Data/UNICEF/COUNTRY_SURVEY/fs.dta", clear
+
+merge m:1 HH1 HH2 using ///
+    "Data/UNICEF/COUNTRY_SURVEY/hh.dta", ///
+    keepusing(variable_1 variable_2)
+
+tab _merge
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+library(haven)
+library(dplyr)
+
+fs <- read_sav("Data/UNICEF/COUNTRY_SURVEY/fs.sav")
+hh <- read_sav("Data/UNICEF/COUNTRY_SURVEY/hh.sav")
+
+hh %>%
+  count(HH1, HH2) %>%
+  filter(n > 1)
+
+hh_keep <- hh %>%
+  select(HH1, HH2, variable_1, variable_2)
+
+fs_merged <- fs %>%
+  left_join(
+    hh_keep,
+    by = c("HH1", "HH2"),
+    relationship = "many-to-one"
+  )
+```
+::::
+:::::
+
+### The child's own `hl` row
+
+`LN` in `fs` is `HL1` in `hl`. The selected-child link should be one-to-one.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+import spss using ///
+    "Data/UNICEF/COUNTRY_SURVEY/hl.sav", clear
+
+keep HH1 HH2 HL1 variable_1 variable_2
+rename HL1 LN
+isid HH1 HH2 LN
+
+tempfile hl_child
+save `hl_child'
+
+import spss using ///
+    "Data/UNICEF/COUNTRY_SURVEY/fs.sav", clear
+
+isid HH1 HH2 LN
+merge 1:1 HH1 HH2 LN using `hl_child'
+tab _merge
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+library(haven)
+library(dplyr)
+
+fs <- read_sav("Data/UNICEF/COUNTRY_SURVEY/fs.sav")
+hl <- read_sav("Data/UNICEF/COUNTRY_SURVEY/hl.sav")
+
+hl %>%
+  count(HH1, HH2, HL1) %>%
+  filter(n > 1)
+
+hl_child <- hl %>%
+  select(HH1, HH2, HL1, variable_1, variable_2)
+
+fs_merged <- fs %>%
+  left_join(
+    hl_child,
+    by = c("HH1", "HH2", "LN" = "HL1"),
+    relationship = "one-to-one"
+  )
+```
+::::
+:::::
+
+### Mother or caretaker
+
+`FS4` is another person's line, not the child's. Link `HH1` + `HH2` + `FS4` to `HL1`.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+import spss using ///
+    "Data/UNICEF/COUNTRY_SURVEY/hl.sav", clear
+
+keep HH1 HH2 HL1 variable_1 variable_2
+rename HL1 FS4
+
+tempfile hl_care
+save `hl_care'
+
+import spss using ///
+    "Data/UNICEF/COUNTRY_SURVEY/fs.sav", clear
+
+merge m:1 HH1 HH2 FS4 using `hl_care'
+tab _merge
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+library(haven)
+library(dplyr)
+
+fs <- read_sav("Data/UNICEF/COUNTRY_SURVEY/fs.sav")
+hl <- read_sav("Data/UNICEF/COUNTRY_SURVEY/hl.sav")
+
+hl_care <- hl %>%
+  select(HH1, HH2, HL1, variable_1, variable_2)
+
+fs_merged <- fs %>%
+  left_join(
+    hl_care,
+    by = c("HH1", "HH2", "FS4" = "HL1"),
+    relationship = "many-to-one"
+  )
+```
+::::
+:::::
+
+### Check the merge
+
+A merge that completes without an error is not evidence that it is correct. Ask what one row represents in each file, whether the key is unique, and how many rows the analysis file should have afterwards.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+tab _merge
+* 1 = master only; 2 = using only; 3 = matched
+* Do not drop if _merge != 3 until you know why rows did not match.
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+nrow(fs)
+nrow(fs_merged)
+
+fs_merged %>%
+  count(HH1, HH2, LN) %>%
+  filter(n > 1)
+```
+::::
+:::::
+
+Adding an `hh` covariate does not change the weight. While the rows remain selected children, use `fsweight` ([Files, keys, and who is in fs](#c02-files)).

@@ -1,0 +1,128 @@
+## The AFLEARN analysis file {#c03-file}
+
+This is the file `run-it.R` writes: one row per selected child in `fs`. [Files, keys, and who is in fs](#c02-files) sets out who that is. How foundational reading and numeracy are scored is in [Reading and numeracy](#c02-fls). If you do not yet have the file, start from [Getting UNICEF MICS files](#c01-unicef).
+
+``` text
+prepare-mics-fs.R
+        → Data/UNICEF/<survey>/
+harmonize-mics-fs-v2.0.R     spec + crosswalk; already pulls selected hl fields
+derive-mics-fl-vars-v1.0.R   passage length, scores, reading_status, max_reading_*
+        → mics6-fs-harmonised-v2.0.dta
+```
+
+If you only unpacked the zip, `source("Script/run-it.R")` is enough. Re-run the two later scripts when you change the spec:
+
+```{r eval=FALSE}
+source("Script/harmonize-mics-fs-v2.0.R")
+source("Script/derive-mics-fl-vars-v1.0.R")
+```
+
+### Identifiers
+
+| AFLEARN | Source / role |
+|---------|----------------|
+| `country_iso3`, `year` | Survey |
+| `HH1` / `cluster` | Cluster (`HH1`) |
+| `HH2` / `hhno` | Household within the cluster |
+| `LN` / `linech` | Selected child's line number |
+| `sample` | IPUMS `SAMPLE` from the spec |
+
+Do not invent `sample` from country names. Use the value on the file and check it against your extract.
+
+### What is in the file
+
+| Area | Examples |
+|------|----------|
+| Survey design | `fsweight`, `fshweight` |
+| Geography | urban/rural, region |
+| Parents | mother and father education |
+| Schooling | attendance, education level and grade |
+| Child labour | work, chores, hours |
+| Parental involvement, functioning, discipline | as fielded |
+| Foundational learning | numeracy items; reading scores and `reading_status` |
+
+Source names for every column are in `mics6-crosswalk.xlsx` (also in the [guide repository](https://github.com/datafirst-aflearn/mics-guide/blob/main/Script/mics6-crosswalk.xlsx)). Look up the survey column before you pool a variable.
+
+A shared name does not always mean a shared code. `region`, raw grades, and `school_type` stay country-specific. For education, use the harmonised levels (`current_level_h`, `highest_level_h`, `mother_edu_h`, `father_edu_h`) when you pool. `current_grade` is the year *within* that level: primary year 1 and secondary year 1 both carry the code `1`.
+
+The spec already attaches selected `hl` fields such as parent education and school type. Merge by hand only for variables that are not on this file ([Adding variables from UNICEF files](#c03-merge)).
+
+### What `derive` added
+
+`harmonize-mics-fs-v2.0.R` aligns names. `derive-mics-fl-vars-v1.0.R` then builds the reading fields researchers actually analyse:
+
+| Variable | Meaning |
+|----------|---------|
+| `passage_language`, `passage_length` | Language and word count of the main passage |
+| `words_att`, `words_incorrect` | Words attempted and missed |
+| `reading_score`, `reading_accuracy` | Words correct; share of passage length |
+| `read_comp_1`–`read_comp_5`, `read_comp_score` | Comprehension items and total |
+| `reading_skills` | Official foundational-reading classification |
+| `reading_status` | Where the child stopped, or the outcome reached |
+| `*B*` / `*C*` and `max_reading_*` | Later passages, and the best result across them |
+
+The official 90% + five-comprehension rule is in [Reading and numeracy](#c02-fls). A missing score is not one kind of missing: children leave the pathway at different points.
+
+### `reading_status`
+
+| Code | Meaning |
+|---:|---------|
+| 0 | Not interviewed (`interview_result` > 1) |
+| 1 | Age outside 7–14 |
+| 2 | Caregiver FLS consent not given |
+| 3 | Child consent not given |
+| 4 | Language mismatch |
+| 5 | Child refuses the story |
+| 6 | Failed practice |
+| 7 | Attempted a passage (`max_reading_score` present) |
+| 8 | Met 90% accuracy |
+| 9 | Met foundational reading skills |
+| 10 | Otherwise |
+
+::: warningbox-header
+**Do not recode all non-attempts as children who cannot read**
+:::
+
+::: warningbox
+A child with no suitable booklet has not demonstrated the same thing as a child who attempted the passage and read no words correctly.
+:::
+
+### Checks
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+use "Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta", clear
+
+tab country_iso3 year
+isid country_iso3 year HH1 HH2 LN
+
+tab reading_status if age >= 7 & age <= 14
+tab passage_language if country_iso3 == "MWI"
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+library(haven)
+library(dplyr)
+
+d <- read_dta("Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta")
+
+d %>% count(country_iso3, year)
+
+d %>%
+  count(country_iso3, year, HH1, HH2, LN) %>%
+  filter(n > 1)
+
+d %>%
+  filter(age >= 7, age <= 14) %>%
+  count(reading_status)
+
+d %>%
+  filter(country_iso3 == "MWI") %>%
+  count(passage_language)
+```
+::::
+:::::
+
+Malawi should show both assessment languages. If the key is not unique, stop before any merge.

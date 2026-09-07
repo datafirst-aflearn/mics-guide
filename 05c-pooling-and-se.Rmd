@@ -1,0 +1,109 @@
+## Several surveys, and the standard error {#c05-pooling}
+
+Appending surveys raises two questions. How should the software see the design? What population does a pooled number describe? Making PSU codes unique answers the first. It does not answer the second.
+
+### Make PSU and stratum unique
+
+The same numeric `PSU` and `stratum` appear in more than one survey. They are not the same sampling units. Build identifiers from `country_iso3` + `year`. For an IPUMS extract, use `SAMPLE`. Tunisia 2018 and Tunisia 2023 are two surveys; country alone is not enough.
+
+Always make **both** PSU and stratum survey-specific.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+egen survey_id = group(country_iso3 year)
+egen psu_pool = group(survey_id PSU)
+egen stratum_pool = group(survey_id stratum)
+
+svyset psu_pool [pw=fsweight], strata(stratum_pool)
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+library(dplyr)
+library(survey)
+
+d <- d %>%
+  mutate(
+    survey_id = interaction(country_iso3, year, drop = TRUE),
+    psu_pool = interaction(survey_id, PSU, drop = TRUE),
+    stratum_pool = interaction(survey_id, stratum, drop = TRUE)
+  )
+
+des_pool <- svydesign(
+  ids = ~psu_pool,
+  strata = ~stratum_pool,
+  weights = ~fsweight,
+  data = d,
+  nest = TRUE
+)
+```
+::::
+:::::
+
+If you are using `HH1` in place of `PSU`, nest `HH1` inside the same survey identifier.
+
+### What a pooled mean means
+
+For most comparisons in this guide, estimate **by country**, then plot or tabulate those estimates.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+svy: mean reading_skills, over(country_iso3)
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+svyby(~reading_skills, ~country_iso3, des_pool, svymean, na.rm = TRUE)
+```
+::::
+:::::
+
+A single mean across all countries is a different estimand. Released `fsweight` values are normalised within each survey. Appended as they are, they do not produce a population-weighted regional figure. An equal-country average is another choice: estimate each country with its own design, then average those estimates with equal country weights, and say so.
+
+Pooled regressions need the same decision: what the weights imply about each country's contribution, whether country fixed effects belong, and whether the coefficient is a within-country or between-country relationship. There is no automatic MICS pooled weight.
+
+### Three ways to compute a mean
+
+| Approach | Point estimate | Standard error |
+|----------|----------------|----------------|
+| Unweighted mean | Ignores unequal selection | Treats children as a simple random sample |
+| Weighted mean, ordinary SE | Uses `fsweight` | Still ignores clustering and strata |
+| Survey-weighted mean, design-based SE | Uses `fsweight` | Uses PSU and stratum |
+
+Use the third.
+
+### Domains, missing outcomes, and regression
+
+A national file with thousands of children can have few contributing PSUs once you cut to Grade 2 × rural × poorest quintile in one country. Precision tracks those PSUs, not the raw child count. Check the standard error, the confidence interval, and the number of PSUs in the domain.
+
+Before a reading estimate, look at `reading_status` ([The AFLEARN analysis file](#c03-file)). A skip is not ordinary item non-response.
+
+Regressions use the same design:
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+svy: regress numeracy_score age i.sex
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+summary(svyglm(numeracy_score ~ age + sex, design = des))
+```
+::::
+:::::
+
+Report the estimate, a 95% confidence interval, and the unweighted analytic `N`. The `N` is context. It is not a substitute for the design-based interval.
+
+### Before you report
+
+- One row is a selected `fs` child. Merging `hh` or `hl` did not change the weight.
+- The weight is `fsweight`, not `fshweight` or `hhweight`.
+- The design names the PSU (or `HH1`), the stratum, and the weight together.
+- Ages 7–14 (or any other domain) were applied with `subpop()` / `subset()`, not by dropping rows first.
+- Appended surveys have survey-specific PSU and stratum identifiers.
+- A pooled number has an explicit estimand.
+- The estimate is published with a confidence interval and an unweighted `N`.
+- Reading estimates started from `reading_status`.

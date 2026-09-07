@@ -1,0 +1,101 @@
+## Getting UNICEF MICS files {#c01-unicef}
+
+UNICEF releases MICS microdata as SPSS (`.sav`) files. The files already carry variable and value labels, so you can open them in R or Stata without a separate codebook.
+
+### Download the country files
+
+1.  Open <https://mics.unicef.org/surveys>.
+2.  Log in if the site asks you to. Dataset downloads usually need an account.
+3.  Filter to the surveys you want: round **MICS6**, then region or countries, data type **MICS**, and status **Completed**.
+4.  Click **Download MICS datasets**. UNICEF packs every matching survey into one zip, usually named `MICS_Datasets.zip`.
+
+Make a project folder, for example `MICS project`, and save `MICS_Datasets.zip` in it.
+
+### Unpack with AFLEARN's scripts
+
+The bulk zip nests each survey in further archives and wrapper folders. Unpacking many countries by hand wastes time and invites path errors.
+
+``` text
+MICS_Datasets.zip
+└── survey folder
+    └── another archive
+        └── wrapper folder
+            ├── fs.sav
+            ├── hh.sav
+            └── ...
+```
+
+Download [Script.zip](https://github.com/datafirst-aflearn/mics-guide/raw/main/Script.zip) and unzip it into the same project folder, so `Script/` sits beside `MICS_Datasets.zip`:
+
+``` text
+MICS project/
+├── MICS_Datasets.zip
+└── Script/
+```
+
+In R, set the project folder as the working directory and source `run-it.R`:
+
+```{r eval=FALSE}
+setwd("C:/path/to/MICS project")
+source("Script/run-it.R")
+```
+
+The working directory must be the folder that holds `Script/`. If it is not, the script stops before creating anything.
+
+That one run unpacks the surveys and writes the AFLEARN analysis file. Later chapters explain those files. You do not need to source the other scripts on the first run.
+
+After a successful run:
+
+``` text
+MICS project/
+├── MICS_Datasets.zip
+├── Script/
+└── Data/
+    ├── UNICEF/
+    │   ├── BEN_2021_MICS6_v01_M/
+    │   │   ├── fs.sav
+    │   │   ├── hh.sav
+    │   │   ├── hl.sav
+    │   │   └── ...
+    │   └── ...
+    └── AFLEARN Harmonised Data/
+        ├── mics6-crosswalk.xlsx
+        └── mics6-fs-harmonised-v2.0.dta
+```
+
+Each survey then has a predictable path such as `Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav`.
+
+If the UNICEF zip is not in the project folder, pass its path:
+
+```{r eval=FALSE}
+source("Script/prepare-mics-fs.R")
+prepare_mics_data(zip = "C:/path/to/MICS_Datasets.zip")
+```
+
+Then source `Script/run-it.R` as usual, or source the remaining scripts from `Script/` yourself.
+
+### Check the result
+
+```{r eval=FALSE}
+dir.exists("Data/UNICEF")
+list.files("Data/UNICEF")
+file.exists("Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav")
+```
+
+Open one SPSS file:
+
+```{r eval=FALSE}
+library(haven)
+fs <- read_sav("Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav")
+dim(fs)
+```
+
+::: alternativebox-header
+**Keep the original download**
+:::
+
+::: alternativebox
+Keep the original UNICEF zip. The clean folders are for analysis; the zip is the unchanged source.
+:::
+
+[Understanding MICS6 data](#ch-whats-in-data) explains the survey files and the FLS module.

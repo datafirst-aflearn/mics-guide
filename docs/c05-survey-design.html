@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title> 2 Understanding MICS6 data | mics-guide.knit</title>
+  <title> 4 Survey design, weights and standard errors | mics-guide.knit</title>
   <meta name="description" content="" />
   <meta name="generator" content="bookdown 0.48 and GitBook 2.6.7" />
 
-  <meta property="og:title" content=" 2 Understanding MICS6 data | mics-guide.knit" />
+  <meta property="og:title" content=" 4 Survey design, weights and standard errors | mics-guide.knit" />
   <meta property="og:type" content="book" />
   
   
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content=" 2 Understanding MICS6 data | mics-guide.knit" />
+  <meta name="twitter:title" content=" 4 Survey design, weights and standard errors | mics-guide.knit" />
   
   
   
@@ -28,8 +28,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="c01-download.html"/>
-<link rel="next" href="c03-harmonise.html"/>
+<link rel="prev" href="c03-harmonise.html"/>
+<link rel="next" href="c03-r.html"/>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -299,245 +299,282 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p class="guide-home-link">
   <a href="index.html"><i class="fa fa-arrow-left"></i> Back to guide home</a>
 </p>
-<div id="ch-whats-in-data" class="section level1 hasAnchor" number="2">
-<h1><span class="header-section-number"> 2</span> Understanding MICS6 data<a href="ch-whats-in-data.html#ch-whats-in-data" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p>This chapter is about what sits in a MICS6 download: which file is which, who appears in <code>fs</code>, and how the Foundational Learning Skills (FLS) assessment is scored.</p>
-<p>MICS is a household survey with several questionnaires, so the microdata are several files with different units of observation. Using the wrong file, merging on an incomplete key, or treating a reading skip as ordinary missing data changes the population you describe.</p>
-<pre class="text"><code>HOUSEHOLD (hh)
-   │
-   ├── household members (hl)
-   │
-   └── one randomly selected child aged 5–17 (fs)
-           │
-           └── ages 7–14 may take the FLS assessment</code></pre>
-<p>For foundational learning, start with <code>fs</code>. Add household facts from <code>hh</code> and roster facts from <code>hl</code> when the question needs them.</p>
-<p>The <a href="https://data.unicef.org/wp-content/uploads/2019/07/MICS6-manual-for-stats-data-analysis-English_2020_v2.pdf">MICS6 Manual for Statistical Data Analysis</a> and UNICEF’s <a href="https://data.unicef.org/resources/the-foundational-learning-skills-module/">Foundational Learning Skills Module</a> are the official references.</p>
+<div id="c05-survey-design" class="section level1 hasAnchor" number="4">
+<h1><span class="header-section-number"> 4</span> Survey design, weights and standard errors<a href="c05-survey-design.html#c05-survey-design" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>MICS draws households in strata and clusters. Children in the same cluster are more alike than children drawn independently. An ordinary standard error treats those children as independent. It is too small.</p>
+<p>Selected-child analysis needs three things together:</p>
+<pre class="text"><code>fsweight   sampling weight for the selected child
+PSU        primary sampling unit
+stratum    sampling stratum</code></pre>
+<div class="alternativebox-header">
+<p><strong>The basic rule</strong></p>
+</div>
+<div class="alternativebox">
+<p>A weighted mean with an ordinary standard error is not a design-based estimate. Tell the software the weight, the cluster, and the stratum together.</p>
+</div>
+<p>Weights correct unequal selection. They do not describe clustering or stratification.</p>
+<p>UNICEF <code>fs.sav</code> files and IPUMS extracts carry <code>PSU</code> and <code>stratum</code> / <code>STRATUM</code>. Use them when they are on the analysis file. The AFLEARN v2 file keeps <code>fsweight</code> and <code>HH1</code> / <code>cluster</code>; merge <code>PSU</code> and <code>stratum</code> from the source <code>fs</code> file if you want the sampling-error variables (<a href="c03-harmonise.html#c03-merge">Adding variables from UNICEF files</a>). Otherwise treat <code>HH1</code> as the cluster and nest it inside the survey. Do not use <code>urban</code> as the stratum.</p>
+<p>If you do not yet have the analysis file, start from <a href="c01-download.html#c01-unicef">Getting UNICEF MICS files</a>.</p>
 <ul>
-<li><a href="ch-whats-in-data.html#c02-files">Files, keys, and who is in fs</a></li>
-<li><a href="ch-whats-in-data.html#c02-fls">Reading and numeracy</a></li>
+<li><a href="c05-survey-design.html#c05-weights">Which MICS weight</a></li>
+<li><a href="c05-survey-design.html#c05-single-survey">Setting up one survey</a></li>
+<li><a href="c05-survey-design.html#c05-pooling">Several surveys, and the standard error</a></li>
 </ul>
 
-<div id="c02-files" class="section level2 hasAnchor" number="2.1">
-<h2><span class="header-section-number">2.1</span> Files, keys, and who is in <code>fs</code><a href="ch-whats-in-data.html#c02-files" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The exact files in a country download depend on which questionnaires that survey fielded. These are the files researchers meet most often.</p>
+<div id="c05-weights" class="section level2 hasAnchor" number="4.1">
+<h2><span class="header-section-number">4.1</span> Which MICS weight<a href="c05-survey-design.html#c05-weights" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>MICS attaches a weight to each questionnaire population.</p>
+<table>
+<thead>
+<tr class="header">
+<th>File / population</th>
+<th>Weight</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Household</td>
+<td><code>hhweight</code></td>
+</tr>
+<tr class="even">
+<td>Women</td>
+<td><code>wmweight</code></td>
+</tr>
+<tr class="odd">
+<td>Men, where administered</td>
+<td><code>mnweight</code></td>
+</tr>
+<tr class="even">
+<td>Children under five</td>
+<td><code>chweight</code></td>
+</tr>
+<tr class="odd">
+<td>Selected children aged 5–17</td>
+<td><code>fsweight</code></td>
+</tr>
+</tbody>
+</table>
+<p>The <a href="https://data.unicef.org/wp-content/uploads/2019/07/MICS6-manual-for-stats-data-analysis-English_2020_v2.pdf">MICS6 Manual for Statistical Data Analysis</a> matches those weights to those files.</p>
+<p>FLS sits on the 5–17 questionnaire. One eligible child is drawn per household, so a child in a large sibling group is less likely to enter <code>fs</code> than an only eligible child. <code>fsweight</code> includes that draw. Use it for foundational learning, including outcomes defined only for ages 7–14 or for children who reached the passage.</p>
+<p><code>fshweight</code> is the household sample weight stored on <code>fs</code>. It does not include the within-household child draw. It is not a substitute for <code>fsweight</code>.</p>
+<p>Merging wealth from <code>hh</code> or parent education from <code>hl</code> does not change the weight. While one row remains a selected child, use <code>fsweight</code> (<a href="ch-whats-in-data.html#c02-files">Files, keys, and who is in fs</a>).</p>
+<p>Do not divide the weight by 1,000. Multiplying every weight in a survey by the same positive constant leaves a weighted mean unchanged. Supply the weights as released.</p>
+<p>MICS analysis weights are normalised within each survey. They are right for means, proportions, and regressions. The sum of weights is not a national population count. If the question is a census total, read the country sampling documentation and calibrate separately.</p>
+
+</div>
+<div id="c05-single-survey" class="section level2 hasAnchor" number="4.2">
+<h2><span class="header-section-number">4.2</span> Setting up one survey<a href="c05-survey-design.html#c05-single-survey" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>For one MICS6 survey the selected-child design is:</p>
+<pre class="text"><code>weight   = fsweight
+PSU      = PSU
+stratum  = stratum</code></pre>
+<p>If <code>PSU</code> and <code>stratum</code> are missing from the AFLEARN file, merge them from <code>Data/UNICEF/COUNTRY_SURVEY/fs.sav</code> (<a href="c03-harmonise.html#c03-merge">Adding variables from UNICEF files</a>), or use <code>HH1</code> as the cluster and nest it inside the survey.</p>
+<p>If you do not yet have the analysis file, start from <a href="c01-download.html#c01-unicef">Getting UNICEF MICS files</a>.</p>
+<div id="check-the-design-variables" class="section level3 hasAnchor" number="4.2.1">
+<h3><span class="header-section-number">4.2.1</span> Check the design variables<a href="c05-survey-design.html#check-the-design-variables" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Restrict to one survey first. Then count missing weights, PSUs, and strata, and how many PSUs sit in each stratum.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb39"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb39-1"><a href="c05-survey-design.html#cb39-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb39-2"><a href="c05-survey-design.html#cb39-2" tabindex="-1"></a><span class="kw">keep</span> <span class="kw">if</span> country_iso3 == <span class="st">&quot;GHA&quot;</span></span>
+<span id="cb39-3"><a href="c05-survey-design.html#cb39-3" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="c05-survey-design.html#cb39-4" tabindex="-1"></a>misstable <span class="kw">summarize</span> fsweight PSU stratum</span>
+<span id="cb39-5"><a href="c05-survey-design.html#cb39-5" tabindex="-1"></a>* If PSU is absent, <span class="kw">use</span> HH1 <span class="kw">in</span> its place.</span>
+<span id="cb39-6"><a href="c05-survey-design.html#cb39-6" tabindex="-1"></a>svydescribe</span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="c05-survey-design.html#cb40-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb40-2"><a href="c05-survey-design.html#cb40-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb40-3"><a href="c05-survey-design.html#cb40-3" tabindex="-1"></a></span>
+<span id="cb40-4"><a href="c05-survey-design.html#cb40-4" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb40-5"><a href="c05-survey-design.html#cb40-5" tabindex="-1"></a>  <span class="fu">filter</span>(country_iso3 <span class="sc">==</span> <span class="st">&quot;GHA&quot;</span>)</span>
+<span id="cb40-6"><a href="c05-survey-design.html#cb40-6" tabindex="-1"></a></span>
+<span id="cb40-7"><a href="c05-survey-design.html#cb40-7" tabindex="-1"></a>d <span class="sc">%&gt;%</span></span>
+<span id="cb40-8"><a href="c05-survey-design.html#cb40-8" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb40-9"><a href="c05-survey-design.html#cb40-9" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb40-10"><a href="c05-survey-design.html#cb40-10" tabindex="-1"></a>    <span class="at">missing_weight =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(fsweight)),</span>
+<span id="cb40-11"><a href="c05-survey-design.html#cb40-11" tabindex="-1"></a>    <span class="at">missing_psu =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(PSU)),</span>
+<span id="cb40-12"><a href="c05-survey-design.html#cb40-12" tabindex="-1"></a>    <span class="at">missing_stratum =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(stratum)),</span>
+<span id="cb40-13"><a href="c05-survey-design.html#cb40-13" tabindex="-1"></a>    <span class="at">n_psu =</span> <span class="fu">n_distinct</span>(PSU),</span>
+<span id="cb40-14"><a href="c05-survey-design.html#cb40-14" tabindex="-1"></a>    <span class="at">n_strata =</span> <span class="fu">n_distinct</span>(stratum)</span>
+<span id="cb40-15"><a href="c05-survey-design.html#cb40-15" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+</div>
+<p>Prefer the released <code>PSU</code> to <code>HH1</code>. They often agree; <code>PSU</code> is the sampling-error variable. IPUMS names them <code>PSU</code> and <code>STRATUM</code>. Check the names in your extract.</p>
+</div>
+<div id="declare-the-design" class="section level3 hasAnchor" number="4.2.2">
+<h3><span class="header-section-number">4.2.2</span> Declare the design<a href="c05-survey-design.html#declare-the-design" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p><code>nest = TRUE</code> tells R that PSU codes can repeat across strata.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb41"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb41-1"><a href="c05-survey-design.html#cb41-1" tabindex="-1"></a><span class="kw">svyset</span> PSU [pw=fsweight], <span class="kw">strata</span>(stratum)</span>
+<span id="cb41-2"><a href="c05-survey-design.html#cb41-2" tabindex="-1"></a>svydescribe</span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="c05-survey-design.html#cb42-1" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
+<span id="cb42-2"><a href="c05-survey-design.html#cb42-2" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="c05-survey-design.html#cb42-3" tabindex="-1"></a>des <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(</span>
+<span id="cb42-4"><a href="c05-survey-design.html#cb42-4" tabindex="-1"></a>  <span class="at">ids =</span> <span class="sc">~</span>PSU,</span>
+<span id="cb42-5"><a href="c05-survey-design.html#cb42-5" tabindex="-1"></a>  <span class="at">strata =</span> <span class="sc">~</span>stratum,</span>
+<span id="cb42-6"><a href="c05-survey-design.html#cb42-6" tabindex="-1"></a>  <span class="at">weights =</span> <span class="sc">~</span>fsweight,</span>
+<span id="cb42-7"><a href="c05-survey-design.html#cb42-7" tabindex="-1"></a>  <span class="at">data =</span> d,</span>
+<span id="cb42-8"><a href="c05-survey-design.html#cb42-8" tabindex="-1"></a>  <span class="at">nest =</span> <span class="cn">TRUE</span></span>
+<span id="cb42-9"><a href="c05-survey-design.html#cb42-9" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+</div>
+<p><code>srvyr::as_survey_design()</code> wraps the same specification if you want dplyr verbs.</p>
+</div>
+<div id="estimate-a-mean" class="section level3 hasAnchor" number="4.2.3">
+<h3><span class="header-section-number">4.2.3</span> Estimate a mean<a href="c05-survey-design.html#estimate-a-mean" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>The mean of a 0/1 variable is the estimated proportion equal to 1.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb43"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb43-1"><a href="c05-survey-design.html#cb43-1" tabindex="-1"></a><span class="kw">svy</span>: <span class="kw">mean</span> reading_skills</span>
+<span id="cb43-2"><a href="c05-survey-design.html#cb43-2" tabindex="-1"></a><span class="kw">svy</span>: <span class="kw">mean</span> numeracy_score</span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="c05-survey-design.html#cb44-1" tabindex="-1"></a><span class="fu">svymean</span>(<span class="sc">~</span>reading_skills, <span class="at">design =</span> des, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb44-2"><a href="c05-survey-design.html#cb44-2" tabindex="-1"></a><span class="fu">svymean</span>(<span class="sc">~</span>numeracy_score, <span class="at">design =</span> des, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="restrict-to-ages-714-after-declaring-the-design" class="section level3 hasAnchor" number="4.2.4">
+<h3><span class="header-section-number">4.2.4</span> Restrict to ages 7–14 after declaring the design<a href="c05-survey-design.html#restrict-to-ages-714-after-declaring-the-design" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Define the design on the full selected-child sample, then restrict the design object. Dropping rows first discards information the variance estimator needs.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb45"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb45-1"><a href="c05-survey-design.html#cb45-1" tabindex="-1"></a><span class="kw">svy</span>, subpop(<span class="kw">if</span> age &gt;= 7 &amp; age &lt;= 14): <span class="kw">mean</span> reading_skills</span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="c05-survey-design.html#cb46-1" tabindex="-1"></a>des_7_14 <span class="ot">&lt;-</span> <span class="fu">subset</span>(des, age <span class="sc">&gt;=</span> <span class="dv">7</span> <span class="sc">&amp;</span> age <span class="sc">&lt;=</span> <span class="dv">14</span>)</span>
+<span id="cb46-2"><a href="c05-survey-design.html#cb46-2" tabindex="-1"></a><span class="fu">svymean</span>(<span class="sc">~</span>reading_skills, <span class="at">design =</span> des_7_14, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="lonely-psus" class="section level3 hasAnchor" number="4.2.5">
+<h3><span class="header-section-number">4.2.5</span> Lonely PSUs<a href="c05-survey-design.html#lonely-psus" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Variance within a stratum needs more than one PSU. A small domain can leave a stratum with one contributing PSU. Inspect that before changing options. In R, a documented default when lonely domains occur is:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="c05-survey-design.html#cb47-1" tabindex="-1"></a><span class="fu">options</span>(</span>
+<span id="cb47-2"><a href="c05-survey-design.html#cb47-2" tabindex="-1"></a>  <span class="at">survey.lonely.psu =</span> <span class="st">&quot;adjust&quot;</span>,</span>
+<span id="cb47-3"><a href="c05-survey-design.html#cb47-3" tabindex="-1"></a>  <span class="at">survey.adjust.domain.lonely =</span> <span class="cn">TRUE</span></span>
+<span id="cb47-4"><a href="c05-survey-design.html#cb47-4" tabindex="-1"></a>)</span></code></pre></div>
+<p>In Stata, read singleton-unit messages rather than ignoring them.</p>
+
+</div>
+</div>
+<div id="c05-pooling" class="section level2 hasAnchor" number="4.3">
+<h2><span class="header-section-number">4.3</span> Several surveys, and the standard error<a href="c05-survey-design.html#c05-pooling" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Appending surveys raises two questions. How should the software see the design? What population does a pooled number describe? Making PSU codes unique answers the first. It does not answer the second.</p>
+<div id="make-psu-and-stratum-unique" class="section level3 hasAnchor" number="4.3.1">
+<h3><span class="header-section-number">4.3.1</span> Make PSU and stratum unique<a href="c05-survey-design.html#make-psu-and-stratum-unique" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>The same numeric <code>PSU</code> and <code>stratum</code> appear in more than one survey. They are not the same sampling units. Build identifiers from <code>country_iso3</code> + <code>year</code>. For an IPUMS extract, use <code>SAMPLE</code>. Tunisia 2018 and Tunisia 2023 are two surveys; country alone is not enough.</p>
+<p>Always make <strong>both</strong> PSU and stratum survey-specific.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb48"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb48-1"><a href="c05-survey-design.html#cb48-1" tabindex="-1"></a><span class="kw">egen</span> survey_id = <span class="fu">group</span>(country_iso3 <span class="fu">year</span>)</span>
+<span id="cb48-2"><a href="c05-survey-design.html#cb48-2" tabindex="-1"></a><span class="kw">egen</span> psu_pool = <span class="fu">group</span>(survey_id PSU)</span>
+<span id="cb48-3"><a href="c05-survey-design.html#cb48-3" tabindex="-1"></a><span class="kw">egen</span> stratum_pool = <span class="fu">group</span>(survey_id stratum)</span>
+<span id="cb48-4"><a href="c05-survey-design.html#cb48-4" tabindex="-1"></a></span>
+<span id="cb48-5"><a href="c05-survey-design.html#cb48-5" tabindex="-1"></a><span class="kw">svyset</span> psu_pool [pw=fsweight], <span class="kw">strata</span>(stratum_pool)</span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="c05-survey-design.html#cb49-1" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb49-2"><a href="c05-survey-design.html#cb49-2" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
+<span id="cb49-3"><a href="c05-survey-design.html#cb49-3" tabindex="-1"></a></span>
+<span id="cb49-4"><a href="c05-survey-design.html#cb49-4" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span></span>
+<span id="cb49-5"><a href="c05-survey-design.html#cb49-5" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb49-6"><a href="c05-survey-design.html#cb49-6" tabindex="-1"></a>    <span class="at">survey_id =</span> <span class="fu">interaction</span>(country_iso3, year, <span class="at">drop =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb49-7"><a href="c05-survey-design.html#cb49-7" tabindex="-1"></a>    <span class="at">psu_pool =</span> <span class="fu">interaction</span>(survey_id, PSU, <span class="at">drop =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb49-8"><a href="c05-survey-design.html#cb49-8" tabindex="-1"></a>    <span class="at">stratum_pool =</span> <span class="fu">interaction</span>(survey_id, stratum, <span class="at">drop =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb49-9"><a href="c05-survey-design.html#cb49-9" tabindex="-1"></a>  )</span>
+<span id="cb49-10"><a href="c05-survey-design.html#cb49-10" tabindex="-1"></a></span>
+<span id="cb49-11"><a href="c05-survey-design.html#cb49-11" tabindex="-1"></a>des_pool <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(</span>
+<span id="cb49-12"><a href="c05-survey-design.html#cb49-12" tabindex="-1"></a>  <span class="at">ids =</span> <span class="sc">~</span>psu_pool,</span>
+<span id="cb49-13"><a href="c05-survey-design.html#cb49-13" tabindex="-1"></a>  <span class="at">strata =</span> <span class="sc">~</span>stratum_pool,</span>
+<span id="cb49-14"><a href="c05-survey-design.html#cb49-14" tabindex="-1"></a>  <span class="at">weights =</span> <span class="sc">~</span>fsweight,</span>
+<span id="cb49-15"><a href="c05-survey-design.html#cb49-15" tabindex="-1"></a>  <span class="at">data =</span> d,</span>
+<span id="cb49-16"><a href="c05-survey-design.html#cb49-16" tabindex="-1"></a>  <span class="at">nest =</span> <span class="cn">TRUE</span></span>
+<span id="cb49-17"><a href="c05-survey-design.html#cb49-17" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+</div>
+<p>If you are using <code>HH1</code> in place of <code>PSU</code>, nest <code>HH1</code> inside the same survey identifier.</p>
+</div>
+<div id="what-a-pooled-mean-means" class="section level3 hasAnchor" number="4.3.2">
+<h3><span class="header-section-number">4.3.2</span> What a pooled mean means<a href="c05-survey-design.html#what-a-pooled-mean-means" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>For most comparisons in this guide, estimate <strong>by country</strong>, then plot or tabulate those estimates.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb50"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb50-1"><a href="c05-survey-design.html#cb50-1" tabindex="-1"></a><span class="kw">svy</span>: <span class="kw">mean</span> reading_skills, <span class="bn">over</span>(country_iso3)</span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="c05-survey-design.html#cb51-1" tabindex="-1"></a><span class="fu">svyby</span>(<span class="sc">~</span>reading_skills, <span class="sc">~</span>country_iso3, des_pool, svymean, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+</div>
+<p>A single mean across all countries is a different estimand. Released <code>fsweight</code> values are normalised within each survey. Appended as they are, they do not produce a population-weighted regional figure. An equal-country average is another choice: estimate each country with its own design, then average those estimates with equal country weights, and say so.</p>
+<p>Pooled regressions need the same decision: what the weights imply about each country’s contribution, whether country fixed effects belong, and whether the coefficient is a within-country or between-country relationship. There is no automatic MICS pooled weight.</p>
+</div>
+<div id="three-ways-to-compute-a-mean" class="section level3 hasAnchor" number="4.3.3">
+<h3><span class="header-section-number">4.3.3</span> Three ways to compute a mean<a href="c05-survey-design.html#three-ways-to-compute-a-mean" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <table>
 <colgroup>
-<col width="11%" />
-<col width="40%" />
-<col width="48%" />
+<col width="23%" />
+<col width="38%" />
+<col width="38%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>File</th>
-<th>Unit of observation</th>
-<th>Examples of information</th>
+<th>Approach</th>
+<th>Point estimate</th>
+<th>Standard error</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>hh</code></td>
-<td>Household</td>
-<td>Household characteristics, wealth, water and sanitation</td>
+<td>Unweighted mean</td>
+<td>Ignores unequal selection</td>
+<td>Treats children as a simple random sample</td>
 </tr>
 <tr class="even">
-<td><code>hl</code></td>
-<td>Household member</td>
-<td>Age, sex, relationship, education on the roster</td>
+<td>Weighted mean, ordinary SE</td>
+<td>Uses <code>fsweight</code></td>
+<td>Still ignores clustering and strata</td>
 </tr>
 <tr class="odd">
-<td><code>wm</code></td>
-<td>Woman aged 15–49</td>
-<td>Women’s individual questionnaire</td>
-</tr>
-<tr class="even">
-<td><code>mn</code></td>
-<td>Man aged 15–49, where administered</td>
-<td>Men’s individual questionnaire</td>
-</tr>
-<tr class="odd">
-<td><code>ch</code></td>
-<td>Child under five</td>
-<td>Under-five questionnaire</td>
-</tr>
-<tr class="even">
-<td><code>fs</code></td>
-<td>One randomly selected child aged 5–17 per sampled household</td>
-<td>Child background, schooling, child labour, child functioning, parental involvement, FLS</td>
-</tr>
-<tr class="odd">
-<td><code>bh</code></td>
-<td>Birth</td>
-<td>Birth-history records from the women’s questionnaire</td>
+<td>Survey-weighted mean, design-based SE</td>
+<td>Uses <code>fsweight</code></td>
+<td>Uses PSU and stratum</td>
 </tr>
 </tbody>
 </table>
-<div class="alternativebox-header">
-<p><strong>For foundational learning</strong></p>
+<p>Use the third.</p>
 </div>
-<div class="alternativebox">
-<p>The FLS assessment is in <code>fs</code>. Household and roster characteristics often still need to be added from <code>hh</code> and <code>hl</code>.</p>
+<div id="domains-missing-outcomes-and-regression" class="section level3 hasAnchor" number="4.3.4">
+<h3><span class="header-section-number">4.3.4</span> Domains, missing outcomes, and regression<a href="c05-survey-design.html#domains-missing-outcomes-and-regression" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>A national file with thousands of children can have few contributing PSUs once you cut to Grade 2 × rural × poorest quintile in one country. Precision tracks those PSUs, not the raw child count. Check the standard error, the confidence interval, and the number of PSUs in the domain.</p>
+<p>Before a reading estimate, look at <code>reading_status</code> (<a href="c03-harmonise.html#c03-file">The AFLEARN analysis file</a>). A skip is not ordinary item non-response.</p>
+<p>Regressions use the same design:</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb52"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb52-1"><a href="c05-survey-design.html#cb52-1" tabindex="-1"></a><span class="kw">svy</span>: <span class="kw">regress</span> numeracy_score age i.sex</span></code></pre></div>
 </div>
-<div id="keys" class="section level3 hasAnchor" number="2.1.1">
-<h3><span class="header-section-number">2.1.1</span> Keys<a href="ch-whats-in-data.html#keys" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<pre class="text"><code>Household:              HH1 + HH2
-Person on the roster:   HH1 + HH2 + HL1
-Selected child:         fs: HH1 + HH2 + LN
-                        hl: HH1 + HH2 + HL1     (LN corresponds to HL1)
-Mother or caretaker:    fs: HH1 + HH2 + FS4
-                        hl: HH1 + HH2 + HL1     (FS4 is another person&#39;s line)</code></pre>
-<p><code>HH1</code> is the cluster, <code>HH2</code> the household within the cluster. <code>LN</code> in <code>fs</code> is the selected child’s line number (<code>FS3</code> on the questionnaire). <code>FS4</code> is the line number of the child’s mother or caretaker, not the child.</p>
-<pre class="text"><code>                         HOUSEHOLD
-                            hh
-                         HH1 + HH2
-                             │
-              ┌──────────────┴──────────────┐
-              │                             │
-              ▼                             ▼
-       HOUSEHOLD MEMBERS              SELECTED CHILD
-              hl                           fs
-       HH1 + HH2 + HL1              HH1 + HH2 + LN
-              ▲                             │
-              └──────── LN = HL1 ──────────┘
-
-       SELECTED CHILD                       HOUSEHOLD MEMBER
-              fs                                  hl
-       HH1 + HH2 + FS4  ─────────────►  HH1 + HH2 + HL1
-                    mother/caretaker</code></pre>
-<div class="alternativebox-header">
-<p><strong>Same household is not the same person</strong></p>
-</div>
-<div class="alternativebox">
-<p>A merge on <code>HH1 + HH2</code> attaches household-level information to every person in that household. A merge on <code>HH1 + HH2</code> plus a line number identifies one person. If the question is the share of children aged 10 with foundational numeracy, by wealth, keep <code>fs</code> as the analysis file and add wealth from <code>hh</code>. Do not make <code>hh</code> the analysis population because wealth lives there.</p>
-</div>
-<p>A line number is unique only within a household. <code>HL1 = 2</code> does not identify a person on its own.</p>
-</div>
-<div id="who-is-in-fs" class="section level3 hasAnchor" number="2.1.2">
-<h3><span class="header-section-number">2.1.2</span> Who is in <code>fs</code><a href="ch-whats-in-data.html#who-is-in-fs" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p><code>fs</code> is one randomly selected child aged 5–17 per sampled household, not every child of that age in the household listing.</p>
-<pre class="text"><code>Sampled household
-      │
-      ▼
-List all members (hl)
-      │
-      ▼
-Children aged 5–17
-      │
-      ▼
-Randomly select one child → fs record
-      │
-      ├──────── age 5–6 ────────► no FLS
-      ├──────── age 7–14 ───────► eligible for FLS
-      └──────── age 15–17 ──────► no FLS</code></pre>
-<p>A household can contain several children aged 5–17; only one of them is in <code>fs</code>. Do not merge <code>fs</code> onto every 5–17-year-old in <code>hl</code> and treat the result as if all of them were assessed.</p>
-<p>The FLS module targets ages 7–14. Age-eligible does not mean a completed assessment: permission, language, and skip patterns can stop the child before the story or the numeracy tasks. Those paths are in <a href="ch-whats-in-data.html#c02-fls">Reading and numeracy</a>.</p>
-<p>Because the assessment is in the household, children out of school are in scope.</p>
-<div class="alternativebox-header">
-<p><strong>Name the denominator</strong></p>
-</div>
-<div class="alternativebox">
-<p>“Percentage with foundational reading skills” is incomplete until the reader knows among whom: children aged 7–14, children of Grade 2/3 age, children attending Grade 2/3, or another population you define.</p>
-</div>
-<p>A child aged 10 in Grade 2 can enter a grade-based Grade 2/3 estimate and still be over-age for that grade. A child of Grade 2/3 age may be in another grade or out of school. UNICEF tabulations use these denominators separately because they answer different questions.</p>
-<p>When the rows are selected children, use <code>fsweight</code>. Adding a variable from <code>hh</code> or <code>hl</code> does not change the weight. The analysis population does.</p>
-
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="c05-survey-design.html#cb53-1" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">svyglm</span>(numeracy_score <span class="sc">~</span> age <span class="sc">+</span> sex, <span class="at">design =</span> des))</span></code></pre></div>
 </div>
 </div>
-<div id="c02-fls" class="section level2 hasAnchor" number="2.2">
-<h2><span class="header-section-number">2.2</span> Reading and numeracy<a href="ch-whats-in-data.html#c02-fls" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The Foundational Learning Skills (FLS) module assesses reading and numeracy among children aged 7–14 in the household, whether or not they are in school. Skills are those expected in early primary (about Grade 2/3).</p>
-<p>The official “foundational skills” indicators are conjunctive: the child must meet every component. The microdata still hold the items, so you can look at domains, totals, and distributions as well as the headline yes/no.</p>
-<div id="reading" class="section level3 hasAnchor" number="2.2.1">
-<h3><span class="header-section-number">2.2.1</span> Reading<a href="ch-whats-in-data.html#reading" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<pre class="text"><code>Eligible child age 7–14
-          │
-          ▼
-Permission / child participation
-          │
-          ▼
-Assessment language (is a booklet available?)
-          │
-          ▼
-Does the child agree to read?
-          │
-          ▼
-Practice / routing where it applies
-          │
-          ▼
-Read story → words attempted, words missed
-          │
-          ▼
-Comprehension: 3 literal, 2 inferential</code></pre>
-<p>The interviewer assigns a language from what the child speaks at home and, for children with schooling, the language teachers use. If no suitable booklet is available, the child never reaches the story. In surveys with more than one passage, use the UNICEF files, not the IPUMS reading variables (<a href="c01-download.html#c01-ipums">Getting IPUMS MICS files</a>).</p>
-<p>A blank story result is not one kind of missing. A child with no suitable language, a child who declined to read, and a child who attempted the story and could not read it are different cases. Do not treat them all as <code>NA</code>.</p>
-<p>The official foundational-reading indicator requires all three:</p>
-<pre class="text"><code>≥ 90% of passage words correct
-           AND
-3/3 literal questions correct
-           AND
-2/2 inferential questions correct
-           ▼
-FOUNDATIONAL READING SKILLS</code></pre>
-<p>You cannot compute the 90% rule without the passage length. Attempted and incorrect words are not enough; story length varies by country and language.</p>
-<p>Reading comparisons across countries need more caution than numeracy. Differences can reflect language of instruction, language at home, the assessment language, the adapted story, and the child’s schooling, not only reading skill. The assessment is for national monitoring with country adaptation, not a language-neutral test.</p>
+<p>Report the estimate, a 95% confidence interval, and the unweighted analytic <code>N</code>. The <code>N</code> is context. It is not a substitute for the design-based interval.</p>
 </div>
-<div id="numeracy" class="section level3 hasAnchor" number="2.2.2">
-<h3><span class="header-section-number">2.2.2</span> Numeracy<a href="ch-whats-in-data.html#numeracy" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>Twenty-one items in four tasks. There is no language-specific passage of varying length.</p>
-<table>
-<thead>
-<tr class="header">
-<th>Task</th>
-<th align="right">Items</th>
-<th>What the child does</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Number reading</td>
-<td align="right">6</td>
-<td>Reads numbers shown by the interviewer</td>
-</tr>
-<tr class="even">
-<td>Number discrimination</td>
-<td align="right">5</td>
-<td>Identifies the larger of two numbers</td>
-</tr>
-<tr class="odd">
-<td>Addition</td>
-<td align="right">5</td>
-<td>Solves addition problems</td>
-</tr>
-<tr class="even">
-<td>Pattern recognition</td>
-<td align="right">5</td>
-<td>Supplies the missing number in a sequence</td>
-</tr>
-<tr class="odd">
-<td>Total</td>
-<td align="right">21</td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<p>A task counts as completed only if every item in it is correct. Foundational numeracy requires all four tasks:</p>
-<pre class="text"><code>6/6 number reading
-          AND
-5/5 number discrimination
-          AND
-5/5 addition
-          AND
-5/5 pattern
-          ▼
-FOUNDATIONAL NUMERACY SKILLS</code></pre>
-<p>The binary hides large differences in performance:</p>
-<pre class="text"><code>                    Number   Discrim.   Addition   Pattern    Total
-Child A               6/6      5/5        5/5       4/5      20/21
-Child B               3/6      1/5        0/5       0/5       4/21
-
-Foundational numeracy?  NO                            NO</code></pre>
-<p>Use the official indicator when the question is mastery of all four tasks. Use task scores or the 21-item count when the question is how many items children get right. Neither is always better.</p>
-<p>The questionnaire has stop rules. Item responses can be correct, incorrect, or not attempted. Do not treat every blank as the same without the skip pattern.</p>
-<p>Numeracy avoids passage-language problems. Age, grade, current attendance, and when in the school year the survey ran still shape cross-country comparisons. A Grade 3 child assessed at the start of the year has had less Grade 3 instruction than one assessed at the end.</p>
+<div id="before-you-report" class="section level3 hasAnchor" number="4.3.5">
+<h3><span class="header-section-number">4.3.5</span> Before you report<a href="c05-survey-design.html#before-you-report" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>One row is a selected <code>fs</code> child. Merging <code>hh</code> or <code>hl</code> did not change the weight.</li>
+<li>The weight is <code>fsweight</code>, not <code>fshweight</code> or <code>hhweight</code>.</li>
+<li>The design names the PSU (or <code>HH1</code>), the stratum, and the weight together.</li>
+<li>Ages 7–14 (or any other domain) were applied with <code>subpop()</code> / <code>subset()</code>, not by dropping rows first.</li>
+<li>Appended surveys have survey-specific PSU and stratum identifiers.</li>
+<li>A pooled number has an explicit estimand.</li>
+<li>The estimate is published with a confidence interval and an unweighted <code>N</code>.</li>
+<li>Reading estimates started from <code>reading_status</code>.</li>
+</ul>
 
 </div>
 </div>
@@ -548,8 +585,8 @@ Foundational numeracy?  NO                            NO</code></pre>
           </div>
         </div>
       </div>
-<a href="c01-download.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="c03-harmonise.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="c03-harmonise.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="c03-r.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -580,7 +617,7 @@ gitbook.start({
     "size": 2
   },
   "edit": {
-    "link": "https://github.com/datafirst-aflearn/mics-guide/edit/main/02-whats-in-the-data.Rmd",
+    "link": "https://github.com/datafirst-aflearn/mics-guide/edit/main/05-survey-design.Rmd",
     "text": "Edit"
   },
   "history": {
@@ -588,7 +625,7 @@ gitbook.start({
     "text": null
   },
   "view": {
-    "link": "https://github.com/datafirst-aflearn/mics-guide/blob/main/02-whats-in-the-data.Rmd",
+    "link": "https://github.com/datafirst-aflearn/mics-guide/blob/main/05-survey-design.Rmd",
     "text": null
   },
   "download": null,

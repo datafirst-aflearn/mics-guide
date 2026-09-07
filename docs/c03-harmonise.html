@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title> 3 Harmonising MICS6 data | mics-guide.knit</title>
+  <meta name="description" content="" />
+  <meta name="generator" content="bookdown 0.48 and GitBook 2.6.7" />
+
+  <meta property="og:title" content=" 3 Harmonising MICS6 data | mics-guide.knit" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content=" 3 Harmonising MICS6 data | mics-guide.knit" />
+  
+  
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="ch-whats-in-data.html"/>
+<link rel="next" href="c05-survey-design.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="toc-logo"><a href="index.html"><img src="files/AFLEARN logo.png" alt="AFLEARN"></a></li>
+<li class="home-link"><a href="index.html"><i class="fa fa-home"></i> Guide home</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="c01-download.html"><a href="c01-download.html"><i class="fa fa-check"></i><b>1</b> Getting MICS6 data</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="c01-download.html"><a href="c01-download.html#c01-unicef"><i class="fa fa-check"></i><b>1.1</b> Getting UNICEF MICS files</a>
+<ul>
+<li class="chapter" data-level="1.1.1" data-path="c01-download.html"><a href="c01-download.html#download-the-country-files"><i class="fa fa-check"></i><b>1.1.1</b> Download the country files</a></li>
+<li class="chapter" data-level="1.1.2" data-path="c01-download.html"><a href="c01-download.html#unpack-with-aflearns-scripts"><i class="fa fa-check"></i><b>1.1.2</b> Unpack with AFLEARN’s scripts</a></li>
+<li class="chapter" data-level="1.1.3" data-path="c01-download.html"><a href="c01-download.html#check-the-result"><i class="fa fa-check"></i><b>1.1.3</b> Check the result</a></li>
+</ul></li>
+<li class="chapter" data-level="1.2" data-path="c01-download.html"><a href="c01-download.html#c01-ipums"><i class="fa fa-check"></i><b>1.2</b> Getting IPUMS MICS files</a>
+<ul>
+<li class="chapter" data-level="1.2.1" data-path="c01-download.html"><a href="c01-download.html#build-the-extract"><i class="fa fa-check"></i><b>1.2.1</b> Build the extract</a></li>
+<li class="chapter" data-level="1.2.2" data-path="c01-download.html"><a href="c01-download.html#ipums-reading-warning"><i class="fa fa-check"></i><b>1.2.2</b> Multi-passage reading</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html"><i class="fa fa-check"></i><b>2</b> Understanding MICS6 data</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#c02-files"><i class="fa fa-check"></i><b>2.1</b> Files, keys, and who is in <code>fs</code></a>
+<ul>
+<li class="chapter" data-level="2.1.1" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#keys"><i class="fa fa-check"></i><b>2.1.1</b> Keys</a></li>
+<li class="chapter" data-level="2.1.2" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#who-is-in-fs"><i class="fa fa-check"></i><b>2.1.2</b> Who is in <code>fs</code></a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#c02-fls"><i class="fa fa-check"></i><b>2.2</b> Reading and numeracy</a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#reading"><i class="fa fa-check"></i><b>2.2.1</b> Reading</a></li>
+<li class="chapter" data-level="2.2.2" data-path="ch-whats-in-data.html"><a href="ch-whats-in-data.html#numeracy"><i class="fa fa-check"></i><b>2.2.2</b> Numeracy</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="c03-harmonise.html"><a href="c03-harmonise.html"><i class="fa fa-check"></i><b>3</b> Harmonising MICS6 data</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="c03-harmonise.html"><a href="c03-harmonise.html#c03-file"><i class="fa fa-check"></i><b>3.1</b> The AFLEARN analysis file</a>
+<ul>
+<li class="chapter" data-level="3.1.1" data-path="c03-harmonise.html"><a href="c03-harmonise.html#identifiers"><i class="fa fa-check"></i><b>3.1.1</b> Identifiers</a></li>
+<li class="chapter" data-level="3.1.2" data-path="c03-harmonise.html"><a href="c03-harmonise.html#what-is-in-the-file"><i class="fa fa-check"></i><b>3.1.2</b> What is in the file</a></li>
+<li class="chapter" data-level="3.1.3" data-path="c03-harmonise.html"><a href="c03-harmonise.html#what-derive-added"><i class="fa fa-check"></i><b>3.1.3</b> What <code>derive</code> added</a></li>
+<li class="chapter" data-level="3.1.4" data-path="c03-harmonise.html"><a href="c03-harmonise.html#reading_status"><i class="fa fa-check"></i><b>3.1.4</b> <code>reading_status</code></a></li>
+<li class="chapter" data-level="3.1.5" data-path="c03-harmonise.html"><a href="c03-harmonise.html#checks"><i class="fa fa-check"></i><b>3.1.5</b> Checks</a></li>
+</ul></li>
+<li class="chapter" data-level="3.2" data-path="c03-harmonise.html"><a href="c03-harmonise.html#c03-merge"><i class="fa fa-check"></i><b>3.2</b> Adding variables from UNICEF files</a>
+<ul>
+<li class="chapter" data-level="3.2.1" data-path="c03-harmonise.html"><a href="c03-harmonise.html#household-variables-onto-fs"><i class="fa fa-check"></i><b>3.2.1</b> Household variables onto <code>fs</code></a></li>
+<li class="chapter" data-level="3.2.2" data-path="c03-harmonise.html"><a href="c03-harmonise.html#the-childs-own-hl-row"><i class="fa fa-check"></i><b>3.2.2</b> The child’s own <code>hl</code> row</a></li>
+<li class="chapter" data-level="3.2.3" data-path="c03-harmonise.html"><a href="c03-harmonise.html#mother-or-caretaker"><i class="fa fa-check"></i><b>3.2.3</b> Mother or caretaker</a></li>
+<li class="chapter" data-level="3.2.4" data-path="c03-harmonise.html"><a href="c03-harmonise.html#check-the-merge"><i class="fa fa-check"></i><b>3.2.4</b> Check the merge</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="c03-harmonise.html"><a href="c03-harmonise.html#c03-ipums"><i class="fa fa-check"></i><b>3.3</b> Attaching the AFLEARN file to IPUMS</a>
+<ul>
+<li class="chapter" data-level="3.3.1" data-path="c03-harmonise.html"><a href="c03-harmonise.html#check-uniqueness"><i class="fa fa-check"></i><b>3.3.1</b> Check uniqueness</a></li>
+<li class="chapter" data-level="3.3.2" data-path="c03-harmonise.html"><a href="c03-harmonise.html#join"><i class="fa fa-check"></i><b>3.3.2</b> Join</a></li>
+<li class="chapter" data-level="3.3.3" data-path="c03-harmonise.html"><a href="c03-harmonise.html#after-the-merge"><i class="fa fa-check"></i><b>3.3.3</b> After the merge</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="c05-survey-design.html"><a href="c05-survey-design.html"><i class="fa fa-check"></i><b>4</b> Survey design, weights and standard errors</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="c05-survey-design.html"><a href="c05-survey-design.html#c05-weights"><i class="fa fa-check"></i><b>4.1</b> Which MICS weight</a></li>
+<li class="chapter" data-level="4.2" data-path="c05-survey-design.html"><a href="c05-survey-design.html#c05-single-survey"><i class="fa fa-check"></i><b>4.2</b> Setting up one survey</a>
+<ul>
+<li class="chapter" data-level="4.2.1" data-path="c05-survey-design.html"><a href="c05-survey-design.html#check-the-design-variables"><i class="fa fa-check"></i><b>4.2.1</b> Check the design variables</a></li>
+<li class="chapter" data-level="4.2.2" data-path="c05-survey-design.html"><a href="c05-survey-design.html#declare-the-design"><i class="fa fa-check"></i><b>4.2.2</b> Declare the design</a></li>
+<li class="chapter" data-level="4.2.3" data-path="c05-survey-design.html"><a href="c05-survey-design.html#estimate-a-mean"><i class="fa fa-check"></i><b>4.2.3</b> Estimate a mean</a></li>
+<li class="chapter" data-level="4.2.4" data-path="c05-survey-design.html"><a href="c05-survey-design.html#restrict-to-ages-714-after-declaring-the-design"><i class="fa fa-check"></i><b>4.2.4</b> Restrict to ages 7–14 after declaring the design</a></li>
+<li class="chapter" data-level="4.2.5" data-path="c05-survey-design.html"><a href="c05-survey-design.html#lonely-psus"><i class="fa fa-check"></i><b>4.2.5</b> Lonely PSUs</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="c05-survey-design.html"><a href="c05-survey-design.html#c05-pooling"><i class="fa fa-check"></i><b>4.3</b> Several surveys, and the standard error</a>
+<ul>
+<li class="chapter" data-level="4.3.1" data-path="c05-survey-design.html"><a href="c05-survey-design.html#make-psu-and-stratum-unique"><i class="fa fa-check"></i><b>4.3.1</b> Make PSU and stratum unique</a></li>
+<li class="chapter" data-level="4.3.2" data-path="c05-survey-design.html"><a href="c05-survey-design.html#what-a-pooled-mean-means"><i class="fa fa-check"></i><b>4.3.2</b> What a pooled mean means</a></li>
+<li class="chapter" data-level="4.3.3" data-path="c05-survey-design.html"><a href="c05-survey-design.html#three-ways-to-compute-a-mean"><i class="fa fa-check"></i><b>4.3.3</b> Three ways to compute a mean</a></li>
+<li class="chapter" data-level="4.3.4" data-path="c05-survey-design.html"><a href="c05-survey-design.html#domains-missing-outcomes-and-regression"><i class="fa fa-check"></i><b>4.3.4</b> Domains, missing outcomes, and regression</a></li>
+<li class="chapter" data-level="4.3.5" data-path="c05-survey-design.html"><a href="c05-survey-design.html#before-you-report"><i class="fa fa-check"></i><b>4.3.5</b> Before you report</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="c03-r.html"><a href="c03-r.html"><i class="fa fa-check"></i><b>5</b> Analysing MICS6 data in R</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="c03-r.html"><a href="c03-r.html#packages"><i class="fa fa-check"></i><b>5.1</b> Packages</a></li>
+<li class="chapter" data-level="5.2" data-path="c03-r.html"><a href="c03-r.html#load-the-harmonised-file"><i class="fa fa-check"></i><b>5.2</b> Load the harmonised file</a></li>
+<li class="chapter" data-level="5.3" data-path="c03-r.html"><a href="c03-r.html#explore-and-unique-child-id"><i class="fa fa-check"></i><b>5.3</b> Explore and unique child ID</a></li>
+<li class="chapter" data-level="5.4" data-path="c03-r.html"><a href="c03-r.html#survey-design"><i class="fa fa-check"></i><b>5.4</b> Survey design</a></li>
+<li class="chapter" data-level="5.5" data-path="c03-r.html"><a href="c03-r.html#mean-age"><i class="fa fa-check"></i><b>5.5</b> Mean age</a></li>
+<li class="chapter" data-level="5.6" data-path="c03-r.html"><a href="c03-r.html#over-age-children-in-primary-grade-2"><i class="fa fa-check"></i><b>5.6</b> Over-age children in primary grade 2</a></li>
+<li class="chapter" data-level="5.7" data-path="c03-r.html"><a href="c03-r.html#numeracy-and-reading-skills"><i class="fa fa-check"></i><b>5.7</b> Numeracy and reading skills</a></li>
+<li class="chapter" data-level="5.8" data-path="c03-r.html"><a href="c03-r.html#private-versus-non-private-schools"><i class="fa fa-check"></i><b>5.8</b> Private versus non-private schools</a></li>
+<li class="chapter" data-level="5.9" data-path="c03-r.html"><a href="c03-r.html#multivariate-regression-ghana"><i class="fa fa-check"></i><b>5.9</b> Multivariate regression (Ghana)</a></li>
+<li class="chapter" data-level="5.10" data-path="c03-r.html"><a href="c03-r.html#private-female-interaction"><i class="fa fa-check"></i><b>5.10</b> Private × female interaction</a></li>
+<li class="chapter" data-level="5.11" data-path="c03-r.html"><a href="c03-r.html#predicted-means"><i class="fa fa-check"></i><b>5.11</b> Predicted means</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="c04-stata.html"><a href="c04-stata.html"><i class="fa fa-check"></i><b>6</b> Analyzing MICS6 data in Stata</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="c04-stata.html"><a href="c04-stata.html#getting-to-know-your-data"><i class="fa fa-check"></i><b>6.1</b> Getting to know your data</a>
+<ul>
+<li class="chapter" data-level="6.1.1" data-path="c04-stata.html"><a href="c04-stata.html#getting-started-in-stata"><i class="fa fa-check"></i><b>6.1.1</b> Getting started in Stata</a></li>
+<li class="chapter" data-level="6.1.2" data-path="c04-stata.html"><a href="c04-stata.html#looking-at-some-of-the-data-and-how-it-is-captured-in-stata"><i class="fa fa-check"></i><b>6.1.2</b> Looking at some of the data, and how it is captured in Stata</a></li>
+<li class="chapter" data-level="6.1.3" data-path="c04-stata.html"><a href="c04-stata.html#simple-summarising-commands"><i class="fa fa-check"></i><b>6.1.3</b> Simple summarising commands</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-tab-row-col"><i class="fa fa-check"></i>BOX: TAB WITH ROW, COL, CELL</a></li>
+<li class="chapter" data-level="6.1.4" data-path="c04-stata.html"><a href="c04-stata.html#finding-a-unique-identifier"><i class="fa fa-check"></i><b>6.1.4</b> Finding a unique identifier</a></li>
+<li class="chapter" data-level="6.1.5" data-path="c04-stata.html"><a href="c04-stata.html#examining-variables"><i class="fa fa-check"></i><b>6.1.5</b> Examining variables</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-if-statements"><i class="fa fa-check"></i>BOX: IF STATEMENTS</a></li>
+<li class="chapter" data-level="6.1.6" data-path="c04-stata.html"><a href="c04-stata.html#examining-variables-further"><i class="fa fa-check"></i><b>6.1.6</b> Examining variables further</a></li>
+<li class="chapter" data-level="6.1.7" data-path="c04-stata.html"><a href="c04-stata.html#quick-introduction-to-do-files"><i class="fa fa-check"></i><b>6.1.7</b> Quick introduction to do files</a></li>
+<li class="chapter" data-level="6.1.8" data-path="c04-stata.html"><a href="c04-stata.html#missing-data-codes"><i class="fa fa-check"></i><b>6.1.8</b> Missing data codes</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-types-of-variables"><i class="fa fa-check"></i>BOX: TYPES OF VARIABLES</a></li>
+<li class="chapter" data-level="6.1.9" data-path="c04-stata.html"><a href="c04-stata.html#creating-new-variables"><i class="fa fa-check"></i><b>6.1.9</b> Creating new variables</a></li>
+<li class="chapter" data-level="6.1.10" data-path="c04-stata.html"><a href="c04-stata.html#extensions-to-creating-new-variables"><i class="fa fa-check"></i><b>6.1.10</b> Extensions to creating new variables</a></li>
+<li class="chapter" data-level="6.1.11" data-path="c04-stata.html"><a href="c04-stata.html#using-complex-survey-data-the-svy-suite"><i class="fa fa-check"></i><b>6.1.11</b> Using complex survey data: the svy suite</a></li>
+<li class="chapter" data-level="6.1.12" data-path="c04-stata.html"><a href="c04-stata.html#weights"><i class="fa fa-check"></i><b>6.1.12</b> Weights</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-weights"><i class="fa fa-check"></i>BOX: TYPES OF WEIGHTS IN STATA</a></li>
+<li class="chapter" data-level="6.1.13" data-path="c04-stata.html"><a href="c04-stata.html#describing-data-plots-and-tables"><i class="fa fa-check"></i><b>6.1.13</b> Describing data: plots and tables</a></li>
+<li class="chapter" data-level="6.1.14" data-path="c04-stata.html"><a href="c04-stata.html#list-of-stata-commands-introduced-in-module-1"><i class="fa fa-check"></i><b>6.1.14</b> List of Stata commands introduced in Module 1</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="c04-stata.html"><a href="c04-stata.html#introduction-to-regression-analysis"><i class="fa fa-check"></i><b>6.2</b> Introduction to Regression Analysis</a>
+<ul>
+<li class="chapter" data-level="6.2.1" data-path="c04-stata.html"><a href="c04-stata.html#running-a-regression"><i class="fa fa-check"></i><b>6.2.1</b> Running a regression</a></li>
+<li class="chapter" data-level="6.2.2" data-path="c04-stata.html"><a href="c04-stata.html#interaction-terms-in-regressions"><i class="fa fa-check"></i><b>6.2.2</b> Interaction terms in regressions</a></li>
+<li class="chapter" data-level="6.2.3" data-path="c04-stata.html"><a href="c04-stata.html#a-new-example-returns-to-education"><i class="fa fa-check"></i><b>6.2.3</b> A new example: returns to education</a></li>
+<li class="chapter" data-level="6.2.4" data-path="c04-stata.html"><a href="c04-stata.html#logging-a-dependent-variable"><i class="fa fa-check"></i><b>6.2.4</b> Logging a dependent variable</a></li>
+<li class="chapter" data-level="6.2.5" data-path="c04-stata.html"><a href="c04-stata.html#education-as-a-continuous-variable"><i class="fa fa-check"></i><b>6.2.5</b> Education as a continuous variable</a></li>
+<li class="chapter" data-level="6.2.6" data-path="c04-stata.html"><a href="c04-stata.html#try-it-yourself"><i class="fa fa-check"></i><b>6.2.6</b> Try it yourself</a></li>
+<li class="chapter" data-level="6.2.7" data-path="c04-stata.html"><a href="c04-stata.html#same-data-different-question"><i class="fa fa-check"></i><b>6.2.7</b> Same data, different question</a></li>
+<li class="chapter" data-level="6.2.8" data-path="c04-stata.html"><a href="c04-stata.html#exporting-results"><i class="fa fa-check"></i><b>6.2.8</b> Exporting results</a></li>
+<li class="chapter" data-level="6.2.9" data-path="c04-stata.html"><a href="c04-stata.html#list-of-stata-commands-used-in-module-2"><i class="fa fa-check"></i><b>6.2.9</b> List of Stata commands used in Module 2</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="c04-stata.html"><a href="c04-stata.html#replication-lab"><i class="fa fa-check"></i><b>6.3</b> Replication lab</a>
+<ul>
+<li class="chapter" data-level="6.3.1" data-path="c04-stata.html"><a href="c04-stata.html#question-1"><i class="fa fa-check"></i><b>6.3.1</b> Question 1</a></li>
+<li class="chapter" data-level="6.3.2" data-path="c04-stata.html"><a href="c04-stata.html#question-2"><i class="fa fa-check"></i><b>6.3.2</b> Question 2</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-m3-tag"><i class="fa fa-check"></i>LEARNING BIT: tag() for school-level tests</a></li>
+<li class="chapter" data-level="6.3.3" data-path="c04-stata.html"><a href="c04-stata.html#question-3"><i class="fa fa-check"></i><b>6.3.3</b> Question 3</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-m3-cluster"><i class="fa fa-check"></i>LEARNING BIT: clustered standard errors</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-m3-interact"><i class="fa fa-check"></i>LEARNING BIT: interaction terms with</a></li>
+<li class="chapter" data-level="6.3.4" data-path="c04-stata.html"><a href="c04-stata.html#question-4"><i class="fa fa-check"></i><b>6.3.4</b> Question 4</a></li>
+<li class="chapter" data-level="6.3.5" data-path="c04-stata.html"><a href="c04-stata.html#question-5"><i class="fa fa-check"></i><b>6.3.5</b> Question 5</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-m3-missing-age"><i class="fa fa-check"></i>LEARNING BIT: missing-age dummy</a></li>
+<li class="chapter" data-level="6.3.6" data-path="c04-stata.html"><a href="c04-stata.html#question-6"><i class="fa fa-check"></i><b>6.3.6</b> Question 6</a></li>
+<li class="chapter" data-level="" data-path="c04-stata.html"><a href="c04-stata.html#box-m3-strata"><i class="fa fa-check"></i>LEARNING BIT: strata dummies</a></li>
+<li class="chapter" data-level="6.3.7" data-path="c04-stata.html"><a href="c04-stata.html#question-7"><i class="fa fa-check"></i><b>6.3.7</b> Question 7</a></li>
+<li class="chapter" data-level="6.3.8" data-path="c04-stata.html"><a href="c04-stata.html#list-of-stata-commands-used-in-module-3"><i class="fa fa-check"></i><b>6.3.8</b> List of Stata commands used in Module 3</a></li>
+</ul></li>
+</ul></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./"></a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<p class="guide-home-link">
+  <a href="index.html"><i class="fa fa-arrow-left"></i> Back to guide home</a>
+</p>
+<div id="c03-harmonise" class="section level1 hasAnchor" number="3">
+<h1><span class="header-section-number"> 3</span> Harmonising MICS6 data<a href="c03-harmonise.html#c03-harmonise" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>MICS6 questionnaires are standardised. The released country files are not. Variable names, education codes, languages, and omitted modules differ across surveys. Stacking <code>fs.sav</code> files does not give a comparable child-level file.</p>
+<p><a href="https://mics.ipums.org/mics/">IPUMS MICS</a> aligns much of the background data. It still keeps only one reading passage, so it is a poor base for foundational reading in multi-passage surveys (<a href="c01-download.html#ipums-reading-warning">Getting IPUMS MICS files</a>).</p>
+<p>AFLEARN’s R script <code>run-it.R</code> unpacks the UNICEF zip and writes one child-level analysis file: shared names, selected household-list fields, and research-ready reading outcomes (passage length, scores, <code>reading_status</code>).</p>
+<pre class="text"><code>Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta</code></pre>
+<p>plus the Excel map <code>mics6-crosswalk.xlsx</code>. Reading sits in that file. There is no second <code>.dta</code>.</p>
+<p>If you do not yet have this file, go to <a href="c01-download.html#c01-unicef">Getting UNICEF MICS files</a>. Put <code>MICS_Datasets.zip</code> beside <code>Script/</code> in a project folder and run:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="c03-harmonise.html#cb17-1" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/run-it.R&quot;</span>)</span></code></pre></div>
+<p>If you already have the file, you still merge only if:</p>
+<ol style="list-style-type: decimal">
+<li>You need a UNICEF source variable the spec did not keep. Start from <code>fs</code> and add from <code>hh</code> or <code>hl</code>.</li>
+<li>You are analysing an IPUMS extract. Keep IPUMS as the analysis table and attach AFLEARN reading and FLS fields.</li>
+</ol>
+<p>If the file already has what you need, skip the merge pages and go to the <a href="c03-r.html#c03-r">R</a> or <a href="c04-stata.html#c04-stata">Stata</a> tutorial.</p>
+<ul>
+<li><a href="c03-harmonise.html#c03-file">The AFLEARN analysis file</a> — what is in the file and how to read it.</li>
+<li><a href="c03-harmonise.html#c03-merge">Adding variables from UNICEF files</a> — optional extra merges.</li>
+<li><a href="c03-harmonise.html#c03-ipums">Attaching the AFLEARN file to IPUMS</a> — join on <code>SAMPLE</code>, <code>CLUSTER</code>, <code>HHNO</code>, <code>LINECH</code>.</li>
+</ul>
+
+<div id="c03-file" class="section level2 hasAnchor" number="3.1">
+<h2><span class="header-section-number">3.1</span> The AFLEARN analysis file<a href="c03-harmonise.html#c03-file" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>This is the file <code>run-it.R</code> writes: one row per selected child in <code>fs</code>. <a href="ch-whats-in-data.html#c02-files">Files, keys, and who is in fs</a> sets out who that is. How foundational reading and numeracy are scored is in <a href="ch-whats-in-data.html#c02-fls">Reading and numeracy</a>. If you do not yet have the file, start from <a href="c01-download.html#c01-unicef">Getting UNICEF MICS files</a>.</p>
+<pre class="text"><code>prepare-mics-fs.R
+        → Data/UNICEF/&lt;survey&gt;/
+harmonize-mics-fs-v2.0.R     spec + crosswalk; already pulls selected hl fields
+derive-mics-fl-vars-v1.0.R   passage length, scores, reading_status, max_reading_*
+        → mics6-fs-harmonised-v2.0.dta</code></pre>
+<p>If you only unpacked the zip, <code>source("Script/run-it.R")</code> is enough. Re-run the two later scripts when you change the spec:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="c03-harmonise.html#cb19-1" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/harmonize-mics-fs-v2.0.R&quot;</span>)</span>
+<span id="cb19-2"><a href="c03-harmonise.html#cb19-2" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/derive-mics-fl-vars-v1.0.R&quot;</span>)</span></code></pre></div>
+<div id="identifiers" class="section level3 hasAnchor" number="3.1.1">
+<h3><span class="header-section-number">3.1.1</span> Identifiers<a href="c03-harmonise.html#identifiers" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<table>
+<thead>
+<tr class="header">
+<th>AFLEARN</th>
+<th>Source / role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>country_iso3</code>, <code>year</code></td>
+<td>Survey</td>
+</tr>
+<tr class="even">
+<td><code>HH1</code> / <code>cluster</code></td>
+<td>Cluster (<code>HH1</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>HH2</code> / <code>hhno</code></td>
+<td>Household within the cluster</td>
+</tr>
+<tr class="even">
+<td><code>LN</code> / <code>linech</code></td>
+<td>Selected child’s line number</td>
+</tr>
+<tr class="odd">
+<td><code>sample</code></td>
+<td>IPUMS <code>SAMPLE</code> from the spec</td>
+</tr>
+</tbody>
+</table>
+<p>Do not invent <code>sample</code> from country names. Use the value on the file and check it against your extract.</p>
+</div>
+<div id="what-is-in-the-file" class="section level3 hasAnchor" number="3.1.2">
+<h3><span class="header-section-number">3.1.2</span> What is in the file<a href="c03-harmonise.html#what-is-in-the-file" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<table>
+<colgroup>
+<col width="37%" />
+<col width="62%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Area</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Survey design</td>
+<td><code>fsweight</code>, <code>fshweight</code></td>
+</tr>
+<tr class="even">
+<td>Geography</td>
+<td>urban/rural, region</td>
+</tr>
+<tr class="odd">
+<td>Parents</td>
+<td>mother and father education</td>
+</tr>
+<tr class="even">
+<td>Schooling</td>
+<td>attendance, education level and grade</td>
+</tr>
+<tr class="odd">
+<td>Child labour</td>
+<td>work, chores, hours</td>
+</tr>
+<tr class="even">
+<td>Parental involvement, functioning, discipline</td>
+<td>as fielded</td>
+</tr>
+<tr class="odd">
+<td>Foundational learning</td>
+<td>numeracy items; reading scores and <code>reading_status</code></td>
+</tr>
+</tbody>
+</table>
+<p>Source names for every column are in <code>mics6-crosswalk.xlsx</code> (also in the <a href="https://github.com/datafirst-aflearn/mics-guide/blob/main/Script/mics6-crosswalk.xlsx">guide repository</a>). Look up the survey column before you pool a variable.</p>
+<p>A shared name does not always mean a shared code. <code>region</code>, raw grades, and <code>school_type</code> stay country-specific. For education, use the harmonised levels (<code>current_level_h</code>, <code>highest_level_h</code>, <code>mother_edu_h</code>, <code>father_edu_h</code>) when you pool. <code>current_grade</code> is the year <em>within</em> that level: primary year 1 and secondary year 1 both carry the code <code>1</code>.</p>
+<p>The spec already attaches selected <code>hl</code> fields such as parent education and school type. Merge by hand only for variables that are not on this file (<a href="c03-harmonise.html#c03-merge">Adding variables from UNICEF files</a>).</p>
+</div>
+<div id="what-derive-added" class="section level3 hasAnchor" number="3.1.3">
+<h3><span class="header-section-number">3.1.3</span> What <code>derive</code> added<a href="c03-harmonise.html#what-derive-added" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p><code>harmonize-mics-fs-v2.0.R</code> aligns names. <code>derive-mics-fl-vars-v1.0.R</code> then builds the reading fields researchers actually analyse:</p>
+<table>
+<colgroup>
+<col width="52%" />
+<col width="47%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>passage_language</code>, <code>passage_length</code></td>
+<td>Language and word count of the main passage</td>
+</tr>
+<tr class="even">
+<td><code>words_att</code>, <code>words_incorrect</code></td>
+<td>Words attempted and missed</td>
+</tr>
+<tr class="odd">
+<td><code>reading_score</code>, <code>reading_accuracy</code></td>
+<td>Words correct; share of passage length</td>
+</tr>
+<tr class="even">
+<td><code>read_comp_1</code>–<code>read_comp_5</code>, <code>read_comp_score</code></td>
+<td>Comprehension items and total</td>
+</tr>
+<tr class="odd">
+<td><code>reading_skills</code></td>
+<td>Official foundational-reading classification</td>
+</tr>
+<tr class="even">
+<td><code>reading_status</code></td>
+<td>Where the child stopped, or the outcome reached</td>
+</tr>
+<tr class="odd">
+<td><code>*B*</code> / <code>*C*</code> and <code>max_reading_*</code></td>
+<td>Later passages, and the best result across them</td>
+</tr>
+</tbody>
+</table>
+<p>The official 90% + five-comprehension rule is in <a href="ch-whats-in-data.html#c02-fls">Reading and numeracy</a>. A missing score is not one kind of missing: children leave the pathway at different points.</p>
+</div>
+<div id="reading_status" class="section level3 hasAnchor" number="3.1.4">
+<h3><span class="header-section-number">3.1.4</span> <code>reading_status</code><a href="c03-harmonise.html#reading_status" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0</td>
+<td>Not interviewed (<code>interview_result</code> &gt; 1)</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td>Age outside 7–14</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td>Caregiver FLS consent not given</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td>Child consent not given</td>
+</tr>
+<tr class="odd">
+<td align="right">4</td>
+<td>Language mismatch</td>
+</tr>
+<tr class="even">
+<td align="right">5</td>
+<td>Child refuses the story</td>
+</tr>
+<tr class="odd">
+<td align="right">6</td>
+<td>Failed practice</td>
+</tr>
+<tr class="even">
+<td align="right">7</td>
+<td>Attempted a passage (<code>max_reading_score</code> present)</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td>Met 90% accuracy</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td>Met foundational reading skills</td>
+</tr>
+<tr class="odd">
+<td align="right">10</td>
+<td>Otherwise</td>
+</tr>
+</tbody>
+</table>
+<div class="warningbox-header">
+<p><strong>Do not recode all non-attempts as children who cannot read</strong></p>
+</div>
+<div class="warningbox">
+<p>A child with no suitable booklet has not demonstrated the same thing as a child who attempted the passage and read no words correctly.</p>
+</div>
+</div>
+<div id="checks" class="section level3 hasAnchor" number="3.1.5">
+<h3><span class="header-section-number">3.1.5</span> Checks<a href="c03-harmonise.html#checks" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb20"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb20-1"><a href="c03-harmonise.html#cb20-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb20-2"><a href="c03-harmonise.html#cb20-2" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="c03-harmonise.html#cb20-3" tabindex="-1"></a><span class="kw">tab</span> country_iso3 <span class="fu">year</span></span>
+<span id="cb20-4"><a href="c03-harmonise.html#cb20-4" tabindex="-1"></a><span class="kw">isid</span> country_iso3 <span class="fu">year</span> HH1 HH2 LN</span>
+<span id="cb20-5"><a href="c03-harmonise.html#cb20-5" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="c03-harmonise.html#cb20-6" tabindex="-1"></a><span class="kw">tab</span> reading_status <span class="kw">if</span> age &gt;= 7 &amp; age &lt;= 14</span>
+<span id="cb20-7"><a href="c03-harmonise.html#cb20-7" tabindex="-1"></a><span class="kw">tab</span> passage_language <span class="kw">if</span> country_iso3 == <span class="st">&quot;MWI&quot;</span></span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="c03-harmonise.html#cb21-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb21-2"><a href="c03-harmonise.html#cb21-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb21-3"><a href="c03-harmonise.html#cb21-3" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="c03-harmonise.html#cb21-4" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>)</span>
+<span id="cb21-5"><a href="c03-harmonise.html#cb21-5" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="c03-harmonise.html#cb21-6" tabindex="-1"></a>d <span class="sc">%&gt;%</span> <span class="fu">count</span>(country_iso3, year)</span>
+<span id="cb21-7"><a href="c03-harmonise.html#cb21-7" tabindex="-1"></a></span>
+<span id="cb21-8"><a href="c03-harmonise.html#cb21-8" tabindex="-1"></a>d <span class="sc">%&gt;%</span></span>
+<span id="cb21-9"><a href="c03-harmonise.html#cb21-9" tabindex="-1"></a>  <span class="fu">count</span>(country_iso3, year, HH1, HH2, LN) <span class="sc">%&gt;%</span></span>
+<span id="cb21-10"><a href="c03-harmonise.html#cb21-10" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb21-11"><a href="c03-harmonise.html#cb21-11" tabindex="-1"></a></span>
+<span id="cb21-12"><a href="c03-harmonise.html#cb21-12" tabindex="-1"></a>d <span class="sc">%&gt;%</span></span>
+<span id="cb21-13"><a href="c03-harmonise.html#cb21-13" tabindex="-1"></a>  <span class="fu">filter</span>(age <span class="sc">&gt;=</span> <span class="dv">7</span>, age <span class="sc">&lt;=</span> <span class="dv">14</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-14"><a href="c03-harmonise.html#cb21-14" tabindex="-1"></a>  <span class="fu">count</span>(reading_status)</span>
+<span id="cb21-15"><a href="c03-harmonise.html#cb21-15" tabindex="-1"></a></span>
+<span id="cb21-16"><a href="c03-harmonise.html#cb21-16" tabindex="-1"></a>d <span class="sc">%&gt;%</span></span>
+<span id="cb21-17"><a href="c03-harmonise.html#cb21-17" tabindex="-1"></a>  <span class="fu">filter</span>(country_iso3 <span class="sc">==</span> <span class="st">&quot;MWI&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-18"><a href="c03-harmonise.html#cb21-18" tabindex="-1"></a>  <span class="fu">count</span>(passage_language)</span></code></pre></div>
+</div>
+</div>
+<p>Malawi should show both assessment languages. If the key is not unique, stop before any merge.</p>
+
+</div>
+</div>
+<div id="c03-merge" class="section level2 hasAnchor" number="3.2">
+<h2><span class="header-section-number">3.2</span> Adding variables from UNICEF files<a href="c03-harmonise.html#c03-merge" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Decide what one row of the final dataset represents before you merge anything. For foundational learning, keep one row per selected child in <code>fs</code>.</p>
+<p>The keys are in <a href="ch-whats-in-data.html#c02-files">Files, keys, and who is in fs</a>. The three common links are household (<code>HH1</code> + <code>HH2</code>), the child’s own roster line (<code>LN</code> ↔︎ <code>HL1</code>), and another member such as the caretaker (<code>FS4</code> ↔︎ <code>HL1</code>). UNICEF’s <a href="https://data.unicef.org/wp-content/uploads/2019/07/MICS6-manual-for-stats-data-analysis-English_2020_v2.pdf">MICS6 Manual for Statistical Data Analysis</a> describes the same identifiers.</p>
+<p>The AFLEARN file already attaches selected <code>hl</code> fields (parent education, school type). Merge by hand only for variables that are not already on it.</p>
+<p>Replace <code>COUNTRY_SURVEY</code>, <code>variable_1</code>, and <code>variable_2</code> with the survey folder and the fields you need. If you work in Stata from UNICEF <code>.sav</code> files, import SPSS once and save temporary <code>.dta</code> versions.</p>
+<div id="household-variables-onto-fs" class="section level3 hasAnchor" number="3.2.1">
+<h3><span class="header-section-number">3.2.1</span> Household variables onto <code>fs</code><a href="c03-harmonise.html#household-variables-onto-fs" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Many children can share a household; each <code>HH1</code> + <code>HH2</code> should appear once in <code>hh</code>.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb22"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb22-1"><a href="c03-harmonise.html#cb22-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb22-2"><a href="c03-harmonise.html#cb22-2" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="c03-harmonise.html#cb22-3" tabindex="-1"></a><span class="kw">merge</span> <span class="fu">m</span>:1 HH1 HH2 <span class="kw">using</span> <span class="co">///</span></span>
+<span id="cb22-4"><a href="c03-harmonise.html#cb22-4" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hh.dta&quot;</span>, <span class="co">///</span></span>
+<span id="cb22-5"><a href="c03-harmonise.html#cb22-5" tabindex="-1"></a>    keepusing(variable_1 variable_2)</span>
+<span id="cb22-6"><a href="c03-harmonise.html#cb22-6" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="c03-harmonise.html#cb22-7" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="c03-harmonise.html#cb23-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb23-2"><a href="c03-harmonise.html#cb23-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb23-3"><a href="c03-harmonise.html#cb23-3" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="c03-harmonise.html#cb23-4" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>)</span>
+<span id="cb23-5"><a href="c03-harmonise.html#cb23-5" tabindex="-1"></a>hh <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hh.sav&quot;</span>)</span>
+<span id="cb23-6"><a href="c03-harmonise.html#cb23-6" tabindex="-1"></a></span>
+<span id="cb23-7"><a href="c03-harmonise.html#cb23-7" tabindex="-1"></a>hh <span class="sc">%&gt;%</span></span>
+<span id="cb23-8"><a href="c03-harmonise.html#cb23-8" tabindex="-1"></a>  <span class="fu">count</span>(HH1, HH2) <span class="sc">%&gt;%</span></span>
+<span id="cb23-9"><a href="c03-harmonise.html#cb23-9" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb23-10"><a href="c03-harmonise.html#cb23-10" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="c03-harmonise.html#cb23-11" tabindex="-1"></a>hh_keep <span class="ot">&lt;-</span> hh <span class="sc">%&gt;%</span></span>
+<span id="cb23-12"><a href="c03-harmonise.html#cb23-12" tabindex="-1"></a>  <span class="fu">select</span>(HH1, HH2, variable_1, variable_2)</span>
+<span id="cb23-13"><a href="c03-harmonise.html#cb23-13" tabindex="-1"></a></span>
+<span id="cb23-14"><a href="c03-harmonise.html#cb23-14" tabindex="-1"></a>fs_merged <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
+<span id="cb23-15"><a href="c03-harmonise.html#cb23-15" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb23-16"><a href="c03-harmonise.html#cb23-16" tabindex="-1"></a>    hh_keep,</span>
+<span id="cb23-17"><a href="c03-harmonise.html#cb23-17" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;HH1&quot;</span>, <span class="st">&quot;HH2&quot;</span>),</span>
+<span id="cb23-18"><a href="c03-harmonise.html#cb23-18" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;many-to-one&quot;</span></span>
+<span id="cb23-19"><a href="c03-harmonise.html#cb23-19" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="the-childs-own-hl-row" class="section level3 hasAnchor" number="3.2.2">
+<h3><span class="header-section-number">3.2.2</span> The child’s own <code>hl</code> row<a href="c03-harmonise.html#the-childs-own-hl-row" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p><code>LN</code> in <code>fs</code> is <code>HL1</code> in <code>hl</code>. The selected-child link should be one-to-one.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb24"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb24-1"><a href="c03-harmonise.html#cb24-1" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
+<span id="cb24-2"><a href="c03-harmonise.html#cb24-2" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb24-3"><a href="c03-harmonise.html#cb24-3" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="c03-harmonise.html#cb24-4" tabindex="-1"></a><span class="kw">keep</span> HH1 HH2 HL1 variable_1 variable_2</span>
+<span id="cb24-5"><a href="c03-harmonise.html#cb24-5" tabindex="-1"></a><span class="kw">rename</span> HL1 LN</span>
+<span id="cb24-6"><a href="c03-harmonise.html#cb24-6" tabindex="-1"></a><span class="kw">isid</span> HH1 HH2 LN</span>
+<span id="cb24-7"><a href="c03-harmonise.html#cb24-7" tabindex="-1"></a></span>
+<span id="cb24-8"><a href="c03-harmonise.html#cb24-8" tabindex="-1"></a><span class="kw">tempfile</span> hl_child</span>
+<span id="cb24-9"><a href="c03-harmonise.html#cb24-9" tabindex="-1"></a><span class="kw">save</span> <span class="ot">`hl_child&#39;</span></span>
+<span id="cb24-10"><a href="c03-harmonise.html#cb24-10" tabindex="-1"></a></span>
+<span id="cb24-11"><a href="c03-harmonise.html#cb24-11" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
+<span id="cb24-12"><a href="c03-harmonise.html#cb24-12" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb24-13"><a href="c03-harmonise.html#cb24-13" tabindex="-1"></a></span>
+<span id="cb24-14"><a href="c03-harmonise.html#cb24-14" tabindex="-1"></a><span class="kw">isid</span> HH1 HH2 LN</span>
+<span id="cb24-15"><a href="c03-harmonise.html#cb24-15" tabindex="-1"></a><span class="kw">merge</span> 1:1 HH1 HH2 LN <span class="kw">using</span> <span class="ot">`hl_child&#39;</span></span>
+<span id="cb24-16"><a href="c03-harmonise.html#cb24-16" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="c03-harmonise.html#cb25-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb25-2"><a href="c03-harmonise.html#cb25-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb25-3"><a href="c03-harmonise.html#cb25-3" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="c03-harmonise.html#cb25-4" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>)</span>
+<span id="cb25-5"><a href="c03-harmonise.html#cb25-5" tabindex="-1"></a>hl <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>)</span>
+<span id="cb25-6"><a href="c03-harmonise.html#cb25-6" tabindex="-1"></a></span>
+<span id="cb25-7"><a href="c03-harmonise.html#cb25-7" tabindex="-1"></a>hl <span class="sc">%&gt;%</span></span>
+<span id="cb25-8"><a href="c03-harmonise.html#cb25-8" tabindex="-1"></a>  <span class="fu">count</span>(HH1, HH2, HL1) <span class="sc">%&gt;%</span></span>
+<span id="cb25-9"><a href="c03-harmonise.html#cb25-9" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb25-10"><a href="c03-harmonise.html#cb25-10" tabindex="-1"></a></span>
+<span id="cb25-11"><a href="c03-harmonise.html#cb25-11" tabindex="-1"></a>hl_child <span class="ot">&lt;-</span> hl <span class="sc">%&gt;%</span></span>
+<span id="cb25-12"><a href="c03-harmonise.html#cb25-12" tabindex="-1"></a>  <span class="fu">select</span>(HH1, HH2, HL1, variable_1, variable_2)</span>
+<span id="cb25-13"><a href="c03-harmonise.html#cb25-13" tabindex="-1"></a></span>
+<span id="cb25-14"><a href="c03-harmonise.html#cb25-14" tabindex="-1"></a>fs_merged <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
+<span id="cb25-15"><a href="c03-harmonise.html#cb25-15" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb25-16"><a href="c03-harmonise.html#cb25-16" tabindex="-1"></a>    hl_child,</span>
+<span id="cb25-17"><a href="c03-harmonise.html#cb25-17" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;HH1&quot;</span>, <span class="st">&quot;HH2&quot;</span>, <span class="st">&quot;LN&quot;</span> <span class="ot">=</span> <span class="st">&quot;HL1&quot;</span>),</span>
+<span id="cb25-18"><a href="c03-harmonise.html#cb25-18" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;one-to-one&quot;</span></span>
+<span id="cb25-19"><a href="c03-harmonise.html#cb25-19" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="mother-or-caretaker" class="section level3 hasAnchor" number="3.2.3">
+<h3><span class="header-section-number">3.2.3</span> Mother or caretaker<a href="c03-harmonise.html#mother-or-caretaker" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p><code>FS4</code> is another person’s line, not the child’s. Link <code>HH1</code> + <code>HH2</code> + <code>FS4</code> to <code>HL1</code>.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb26"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb26-1"><a href="c03-harmonise.html#cb26-1" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
+<span id="cb26-2"><a href="c03-harmonise.html#cb26-2" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb26-3"><a href="c03-harmonise.html#cb26-3" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="c03-harmonise.html#cb26-4" tabindex="-1"></a><span class="kw">keep</span> HH1 HH2 HL1 variable_1 variable_2</span>
+<span id="cb26-5"><a href="c03-harmonise.html#cb26-5" tabindex="-1"></a><span class="kw">rename</span> HL1 FS4</span>
+<span id="cb26-6"><a href="c03-harmonise.html#cb26-6" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="c03-harmonise.html#cb26-7" tabindex="-1"></a><span class="kw">tempfile</span> hl_care</span>
+<span id="cb26-8"><a href="c03-harmonise.html#cb26-8" tabindex="-1"></a><span class="kw">save</span> <span class="ot">`hl_care&#39;</span></span>
+<span id="cb26-9"><a href="c03-harmonise.html#cb26-9" tabindex="-1"></a></span>
+<span id="cb26-10"><a href="c03-harmonise.html#cb26-10" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
+<span id="cb26-11"><a href="c03-harmonise.html#cb26-11" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb26-12"><a href="c03-harmonise.html#cb26-12" tabindex="-1"></a></span>
+<span id="cb26-13"><a href="c03-harmonise.html#cb26-13" tabindex="-1"></a><span class="kw">merge</span> <span class="fu">m</span>:1 HH1 HH2 FS4 <span class="kw">using</span> <span class="ot">`hl_care&#39;</span></span>
+<span id="cb26-14"><a href="c03-harmonise.html#cb26-14" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="c03-harmonise.html#cb27-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb27-2"><a href="c03-harmonise.html#cb27-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb27-3"><a href="c03-harmonise.html#cb27-3" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="c03-harmonise.html#cb27-4" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>)</span>
+<span id="cb27-5"><a href="c03-harmonise.html#cb27-5" tabindex="-1"></a>hl <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>)</span>
+<span id="cb27-6"><a href="c03-harmonise.html#cb27-6" tabindex="-1"></a></span>
+<span id="cb27-7"><a href="c03-harmonise.html#cb27-7" tabindex="-1"></a>hl_care <span class="ot">&lt;-</span> hl <span class="sc">%&gt;%</span></span>
+<span id="cb27-8"><a href="c03-harmonise.html#cb27-8" tabindex="-1"></a>  <span class="fu">select</span>(HH1, HH2, HL1, variable_1, variable_2)</span>
+<span id="cb27-9"><a href="c03-harmonise.html#cb27-9" tabindex="-1"></a></span>
+<span id="cb27-10"><a href="c03-harmonise.html#cb27-10" tabindex="-1"></a>fs_merged <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
+<span id="cb27-11"><a href="c03-harmonise.html#cb27-11" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb27-12"><a href="c03-harmonise.html#cb27-12" tabindex="-1"></a>    hl_care,</span>
+<span id="cb27-13"><a href="c03-harmonise.html#cb27-13" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;HH1&quot;</span>, <span class="st">&quot;HH2&quot;</span>, <span class="st">&quot;FS4&quot;</span> <span class="ot">=</span> <span class="st">&quot;HL1&quot;</span>),</span>
+<span id="cb27-14"><a href="c03-harmonise.html#cb27-14" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;many-to-one&quot;</span></span>
+<span id="cb27-15"><a href="c03-harmonise.html#cb27-15" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="check-the-merge" class="section level3 hasAnchor" number="3.2.4">
+<h3><span class="header-section-number">3.2.4</span> Check the merge<a href="c03-harmonise.html#check-the-merge" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>A merge that completes without an error is not evidence that it is correct. Ask what one row represents in each file, whether the key is unique, and how many rows the analysis file should have afterwards.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb28"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb28-1"><a href="c03-harmonise.html#cb28-1" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span>
+<span id="cb28-2"><a href="c03-harmonise.html#cb28-2" tabindex="-1"></a>* 1 = master only; 2 = <span class="kw">using</span> only; 3 = matched</span>
+<span id="cb28-3"><a href="c03-harmonise.html#cb28-3" tabindex="-1"></a>* Do <span class="kw">not</span> <span class="kw">drop</span> <span class="kw">if</span> <span class="dt">_merge</span> != 3 <span class="kw">until</span> you know why <span class="bn">rows</span> did <span class="kw">not</span> <span class="fu">match</span>.</span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="c03-harmonise.html#cb29-1" tabindex="-1"></a><span class="fu">nrow</span>(fs)</span>
+<span id="cb29-2"><a href="c03-harmonise.html#cb29-2" tabindex="-1"></a><span class="fu">nrow</span>(fs_merged)</span>
+<span id="cb29-3"><a href="c03-harmonise.html#cb29-3" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="c03-harmonise.html#cb29-4" tabindex="-1"></a>fs_merged <span class="sc">%&gt;%</span></span>
+<span id="cb29-5"><a href="c03-harmonise.html#cb29-5" tabindex="-1"></a>  <span class="fu">count</span>(HH1, HH2, LN) <span class="sc">%&gt;%</span></span>
+<span id="cb29-6"><a href="c03-harmonise.html#cb29-6" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div>
+</div>
+</div>
+<p>Adding an <code>hh</code> covariate does not change the weight. While the rows remain selected children, use <code>fsweight</code> (<a href="ch-whats-in-data.html#c02-files">Files, keys, and who is in fs</a>).</p>
+
+</div>
+</div>
+<div id="c03-ipums" class="section level2 hasAnchor" number="3.3">
+<h2><span class="header-section-number">3.3</span> Attaching the AFLEARN file to IPUMS<a href="c03-harmonise.html#c03-ipums" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Keep the IPUMS child extract for demographic, household, and schooling variables. Attach the AFLEARN file so reading includes every passage. The limit on IPUMS reading variables is in <a href="c01-download.html#ipums-reading-warning">Getting IPUMS MICS files</a>.</p>
+<p>The v2 file already carries <code>sample</code> (IPUMS <code>SAMPLE</code> from the spec).</p>
+<pre class="text"><code>AFLEARN                 IPUMS
+sample              &lt;-&gt; SAMPLE
+cluster             &lt;-&gt; CLUSTER
+hhno                &lt;-&gt; HHNO
+linech              &lt;-&gt; LINECH</code></pre>
+<div class="warningbox-header">
+<p><strong>Do not guess IPUMS sample codes from country names</strong></p>
+</div>
+<div class="warningbox">
+<p>Use <code>sample</code> on the AFLEARN file and check it against <code>SAMPLE</code> in your extract. IPUMS identifiers distinguish survey year and, where needed, national and subnational samples.</p>
+</div>
+<p>Build the extract as children aged 5–17 and keep <code>SAMPLE</code>, <code>CLUSTER</code>, <code>HHNO</code>, and <code>LINECH</code>. See <a href="https://mics.ipums.org/mics/linking.shtml">IPUMS MICS linking</a>. Select the AFLEARN columns you need so names do not collide with IPUMS.</p>
+<div id="check-uniqueness" class="section level3 hasAnchor" number="3.3.1">
+<h3><span class="header-section-number">3.3.1</span> Check uniqueness<a href="c03-harmonise.html#check-uniqueness" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb31"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb31-1"><a href="c03-harmonise.html#cb31-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb31-2"><a href="c03-harmonise.html#cb31-2" tabindex="-1"></a><span class="kw">duplicates</span> <span class="kw">report</span> SAMPLE CLUSTER HHNO LINECH</span>
+<span id="cb31-3"><a href="c03-harmonise.html#cb31-3" tabindex="-1"></a></span>
+<span id="cb31-4"><a href="c03-harmonise.html#cb31-4" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb31-5"><a href="c03-harmonise.html#cb31-5" tabindex="-1"></a><span class="kw">duplicates</span> <span class="kw">report</span> <span class="kw">sample</span> <span class="kw">cluster</span> hhno linech</span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="c03-harmonise.html#cb32-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb32-2"><a href="c03-harmonise.html#cb32-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb32-3"><a href="c03-harmonise.html#cb32-3" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="c03-harmonise.html#cb32-4" tabindex="-1"></a>ipums <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>)</span>
+<span id="cb32-5"><a href="c03-harmonise.html#cb32-5" tabindex="-1"></a>aflearn <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(</span>
+<span id="cb32-6"><a href="c03-harmonise.html#cb32-6" tabindex="-1"></a>  <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span></span>
+<span id="cb32-7"><a href="c03-harmonise.html#cb32-7" tabindex="-1"></a>)</span>
+<span id="cb32-8"><a href="c03-harmonise.html#cb32-8" tabindex="-1"></a></span>
+<span id="cb32-9"><a href="c03-harmonise.html#cb32-9" tabindex="-1"></a>ipums <span class="sc">%&gt;%</span></span>
+<span id="cb32-10"><a href="c03-harmonise.html#cb32-10" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE, CLUSTER, HHNO, LINECH) <span class="sc">%&gt;%</span></span>
+<span id="cb32-11"><a href="c03-harmonise.html#cb32-11" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb32-12"><a href="c03-harmonise.html#cb32-12" tabindex="-1"></a></span>
+<span id="cb32-13"><a href="c03-harmonise.html#cb32-13" tabindex="-1"></a>aflearn <span class="sc">%&gt;%</span></span>
+<span id="cb32-14"><a href="c03-harmonise.html#cb32-14" tabindex="-1"></a>  <span class="fu">count</span>(sample, cluster, hhno, linech) <span class="sc">%&gt;%</span></span>
+<span id="cb32-15"><a href="c03-harmonise.html#cb32-15" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div>
+</div>
+</div>
+<p>If either check returns duplicates, stop before merging.</p>
+</div>
+<div id="join" class="section level3 hasAnchor" number="3.3.2">
+<h3><span class="header-section-number">3.3.2</span> Join<a href="c03-harmonise.html#join" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Keep IPUMS as the analysis population. Not every <code>fs</code> child has a completed reading assessment; ages 5–6 and 15–17 are outside the FLS target, and eligible children can leave the pathway earlier. The question is whether the child record links, not whether every child has a score.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb33"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb33-1"><a href="c03-harmonise.html#cb33-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb33-2"><a href="c03-harmonise.html#cb33-2" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="c03-harmonise.html#cb33-3" tabindex="-1"></a><span class="kw">rename</span> <span class="kw">sample</span> SAMPLE</span>
+<span id="cb33-4"><a href="c03-harmonise.html#cb33-4" tabindex="-1"></a><span class="kw">rename</span> <span class="kw">cluster</span> CLUSTER</span>
+<span id="cb33-5"><a href="c03-harmonise.html#cb33-5" tabindex="-1"></a><span class="kw">rename</span> hhno HHNO</span>
+<span id="cb33-6"><a href="c03-harmonise.html#cb33-6" tabindex="-1"></a><span class="kw">rename</span> linech LINECH</span>
+<span id="cb33-7"><a href="c03-harmonise.html#cb33-7" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="c03-harmonise.html#cb33-8" tabindex="-1"></a><span class="kw">isid</span> SAMPLE CLUSTER HHNO LINECH</span>
+<span id="cb33-9"><a href="c03-harmonise.html#cb33-9" tabindex="-1"></a></span>
+<span id="cb33-10"><a href="c03-harmonise.html#cb33-10" tabindex="-1"></a><span class="kw">tempfile</span> aflearn</span>
+<span id="cb33-11"><a href="c03-harmonise.html#cb33-11" tabindex="-1"></a><span class="kw">save</span> <span class="ot">`aflearn&#39;</span></span>
+<span id="cb33-12"><a href="c03-harmonise.html#cb33-12" tabindex="-1"></a></span>
+<span id="cb33-13"><a href="c03-harmonise.html#cb33-13" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb33-14"><a href="c03-harmonise.html#cb33-14" tabindex="-1"></a></span>
+<span id="cb33-15"><a href="c03-harmonise.html#cb33-15" tabindex="-1"></a><span class="kw">merge</span> 1:1 SAMPLE CLUSTER HHNO LINECH <span class="kw">using</span> <span class="ot">`aflearn&#39;</span></span>
+<span id="cb33-16"><a href="c03-harmonise.html#cb33-16" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="c03-harmonise.html#cb34-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb34-2"><a href="c03-harmonise.html#cb34-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb34-3"><a href="c03-harmonise.html#cb34-3" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="c03-harmonise.html#cb34-4" tabindex="-1"></a>ipums <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>)</span>
+<span id="cb34-5"><a href="c03-harmonise.html#cb34-5" tabindex="-1"></a>aflearn <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(</span>
+<span id="cb34-6"><a href="c03-harmonise.html#cb34-6" tabindex="-1"></a>  <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span></span>
+<span id="cb34-7"><a href="c03-harmonise.html#cb34-7" tabindex="-1"></a>)</span>
+<span id="cb34-8"><a href="c03-harmonise.html#cb34-8" tabindex="-1"></a></span>
+<span id="cb34-9"><a href="c03-harmonise.html#cb34-9" tabindex="-1"></a>analysis <span class="ot">&lt;-</span> ipums <span class="sc">%&gt;%</span></span>
+<span id="cb34-10"><a href="c03-harmonise.html#cb34-10" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb34-11"><a href="c03-harmonise.html#cb34-11" tabindex="-1"></a>    aflearn,</span>
+<span id="cb34-12"><a href="c03-harmonise.html#cb34-12" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(</span>
+<span id="cb34-13"><a href="c03-harmonise.html#cb34-13" tabindex="-1"></a>      <span class="st">&quot;SAMPLE&quot;</span> <span class="ot">=</span> <span class="st">&quot;sample&quot;</span>,</span>
+<span id="cb34-14"><a href="c03-harmonise.html#cb34-14" tabindex="-1"></a>      <span class="st">&quot;CLUSTER&quot;</span> <span class="ot">=</span> <span class="st">&quot;cluster&quot;</span>,</span>
+<span id="cb34-15"><a href="c03-harmonise.html#cb34-15" tabindex="-1"></a>      <span class="st">&quot;HHNO&quot;</span> <span class="ot">=</span> <span class="st">&quot;hhno&quot;</span>,</span>
+<span id="cb34-16"><a href="c03-harmonise.html#cb34-16" tabindex="-1"></a>      <span class="st">&quot;LINECH&quot;</span> <span class="ot">=</span> <span class="st">&quot;linech&quot;</span></span>
+<span id="cb34-17"><a href="c03-harmonise.html#cb34-17" tabindex="-1"></a>    ),</span>
+<span id="cb34-18"><a href="c03-harmonise.html#cb34-18" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;one-to-one&quot;</span></span>
+<span id="cb34-19"><a href="c03-harmonise.html#cb34-19" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+</div>
+<p>Do not drop unmatched records until you know why they did not match. Once AFLEARN reading is on the file, drop or rename the IPUMS reading variables so you do not use them by accident.</p>
+</div>
+<div id="after-the-merge" class="section level3 hasAnchor" number="3.3.3">
+<h3><span class="header-section-number">3.3.3</span> After the merge<a href="c03-harmonise.html#after-the-merge" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Use the IPUMS age variable from your extract (often <code>AGE</code>). Malawi must show both assessment languages.</p>
+<div class="code-tabs">
+<div class="code-panel" data-lang="Stata">
+<div class="sourceCode" id="cb35"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb35-1"><a href="c03-harmonise.html#cb35-1" tabindex="-1"></a><span class="kw">tab</span> SAMPLE</span>
+<span id="cb35-2"><a href="c03-harmonise.html#cb35-2" tabindex="-1"></a><span class="kw">tab</span> reading_status <span class="kw">if</span> AGE &gt;= 7 &amp; AGE &lt;= 14</span>
+<span id="cb35-3"><a href="c03-harmonise.html#cb35-3" tabindex="-1"></a><span class="kw">tab</span> SAMPLE passage_language</span></code></pre></div>
+</div>
+<div class="code-panel" data-lang="R">
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="c03-harmonise.html#cb36-1" tabindex="-1"></a>analysis <span class="sc">%&gt;%</span></span>
+<span id="cb36-2"><a href="c03-harmonise.html#cb36-2" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE)</span>
+<span id="cb36-3"><a href="c03-harmonise.html#cb36-3" tabindex="-1"></a></span>
+<span id="cb36-4"><a href="c03-harmonise.html#cb36-4" tabindex="-1"></a>analysis <span class="sc">%&gt;%</span></span>
+<span id="cb36-5"><a href="c03-harmonise.html#cb36-5" tabindex="-1"></a>  <span class="fu">filter</span>(AGE <span class="sc">&gt;=</span> <span class="dv">7</span>, AGE <span class="sc">&lt;=</span> <span class="dv">14</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb36-6"><a href="c03-harmonise.html#cb36-6" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE, reading_status)</span>
+<span id="cb36-7"><a href="c03-harmonise.html#cb36-7" tabindex="-1"></a></span>
+<span id="cb36-8"><a href="c03-harmonise.html#cb36-8" tabindex="-1"></a>analysis <span class="sc">%&gt;%</span></span>
+<span id="cb36-9"><a href="c03-harmonise.html#cb36-9" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE, passage_language)</span></code></pre></div>
+</div>
+</div>
+<p>If the study uses only single-passage countries, the AFLEARN reading fields are still the simpler common definition: the same <code>reading_status</code>, passage length, and accuracy rule in every supported survey.</p>
+
+</div>
+</div>
+</div>
+<script src="files/code-tabs.js"></script>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="ch-whats-in-data.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="c05-survey-design.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+  "sharing": {
+    "github": false,
+    "facebook": true,
+    "twitter": true,
+    "linkedin": false,
+    "weibo": false,
+    "instapaper": false,
+    "vk": false,
+    "whatsapp": false,
+    "all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+  },
+  "fontsettings": {
+    "theme": "white",
+    "family": "sans",
+    "size": 2
+  },
+  "edit": {
+    "link": "https://github.com/datafirst-aflearn/mics-guide/edit/main/03-harmonising.Rmd",
+    "text": "Edit"
+  },
+  "history": {
+    "link": null,
+    "text": null
+  },
+  "view": {
+    "link": "https://github.com/datafirst-aflearn/mics-guide/blob/main/03-harmonising.Rmd",
+    "text": null
+  },
+  "download": null,
+  "search": {
+    "engine": "fuse",
+    "options": null
+  },
+  "toc": {
+    "collapse": "subsection"
+  }
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

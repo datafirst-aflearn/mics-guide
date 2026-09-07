@@ -1,0 +1,129 @@
+## Setting up one survey {#c05-single-survey}
+
+For one MICS6 survey the selected-child design is:
+
+``` text
+weight   = fsweight
+PSU      = PSU
+stratum  = stratum
+```
+
+If `PSU` and `stratum` are missing from the AFLEARN file, merge them from `Data/UNICEF/COUNTRY_SURVEY/fs.sav` ([Adding variables from UNICEF files](#c03-merge)), or use `HH1` as the cluster and nest it inside the survey.
+
+If you do not yet have the analysis file, start from [Getting UNICEF MICS files](#c01-unicef).
+
+### Check the design variables
+
+Restrict to one survey first. Then count missing weights, PSUs, and strata, and how many PSUs sit in each stratum.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+use "Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta", clear
+keep if country_iso3 == "GHA"
+
+misstable summarize fsweight PSU stratum
+* If PSU is absent, use HH1 in its place.
+svydescribe
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+library(haven)
+library(dplyr)
+
+d <- read_dta("Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta") %>%
+  filter(country_iso3 == "GHA")
+
+d %>%
+  summarise(
+    n = n(),
+    missing_weight = sum(is.na(fsweight)),
+    missing_psu = sum(is.na(PSU)),
+    missing_stratum = sum(is.na(stratum)),
+    n_psu = n_distinct(PSU),
+    n_strata = n_distinct(stratum)
+  )
+```
+::::
+:::::
+
+Prefer the released `PSU` to `HH1`. They often agree; `PSU` is the sampling-error variable. IPUMS names them `PSU` and `STRATUM`. Check the names in your extract.
+
+### Declare the design
+
+`nest = TRUE` tells R that PSU codes can repeat across strata.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+svyset PSU [pw=fsweight], strata(stratum)
+svydescribe
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+library(survey)
+
+des <- svydesign(
+  ids = ~PSU,
+  strata = ~stratum,
+  weights = ~fsweight,
+  data = d,
+  nest = TRUE
+)
+```
+::::
+:::::
+
+`srvyr::as_survey_design()` wraps the same specification if you want dplyr verbs.
+
+### Estimate a mean
+
+The mean of a 0/1 variable is the estimated proportion equal to 1.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+svy: mean reading_skills
+svy: mean numeracy_score
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+svymean(~reading_skills, design = des, na.rm = TRUE)
+svymean(~numeracy_score, design = des, na.rm = TRUE)
+```
+::::
+:::::
+
+### Restrict to ages 7–14 after declaring the design
+
+Define the design on the full selected-child sample, then restrict the design object. Dropping rows first discards information the variance estimator needs.
+
+::::: {.code-tabs}
+:::: {.code-panel data-lang="Stata"}
+```stata
+svy, subpop(if age >= 7 & age <= 14): mean reading_skills
+```
+::::
+:::: {.code-panel data-lang="R"}
+```{r eval=FALSE}
+des_7_14 <- subset(des, age >= 7 & age <= 14)
+svymean(~reading_skills, design = des_7_14, na.rm = TRUE)
+```
+::::
+:::::
+
+### Lonely PSUs
+
+Variance within a stratum needs more than one PSU. A small domain can leave a stratum with one contributing PSU. Inspect that before changing options. In R, a documented default when lonely domains occur is:
+
+```{r eval=FALSE}
+options(
+  survey.lonely.psu = "adjust",
+  survey.adjust.domain.lonely = TRUE
+)
+```
+
+In Stata, read singleton-unit messages rather than ignoring them.

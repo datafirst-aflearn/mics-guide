@@ -5,16 +5,17 @@ harmonised file in Stata. It follows a three-module lab: getting to know
 the data, regression, and a short replication exercise. You should already
 have a basic working knowledge of Stata.
 
-The MICS examples use `data/mics6-harmonized-v1.dta`, the pooled African
-file built in this guide (~166,980 children aged 5–17 across 19 surveys;
-Tunisia appears in both 2018 and 2023). Download and harmonisation steps
-are covered in [Download the MICS Data](#c01-download),
-[Harmonising MICS6 reading outcomes](#c05-harmonize), and
-[Harmonising MICS6 FS background themes](#c06-harmonize-fs). This is not
-an IPUMS extract.
+The MICS examples use `Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta`.
+That is the AFLEARN analysis file: one row per selected child in `fs`
+(Tunisia appears in both 2018 and 2023). Build it with `run-it.R` as in
+[Getting UNICEF MICS files](#c01-unicef) and
+[Harmonising MICS6 data](#c03-harmonise). This is not an IPUMS extract.
 
 ```{r setup-stata, include=FALSE}
-library(Statamarkdown)
+has_statamd <- requireNamespace("Statamarkdown", quietly = TRUE)
+if (has_statamd) {
+  library(Statamarkdown)
+}
 
 stataexe <- "C:/Program Files/Stata18/StataMP-64.exe"
 
@@ -40,6 +41,16 @@ knitr::opts_chunk$set(
   error = TRUE
 )
 
+has_mics <- file.exists("Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta") &&
+  has_statamd
+has_glss <- file.exists("data/data_glss7.dta")
+has_rct  <- file.exists("data/rctprac1.dta")
+
+if (!has_statamd) {
+  knitr::knit_engines$set(stata = function(options) {
+    knitr::engine_output(options, options$code, "")
+  })
+} else {
 # Statamarkdown collectcode uses profile.do from the process working
 # directory. Under bookdown that directory can drift after earlier chapters,
 # so chaining fails with empty Stata sessions ("no variables defined").
@@ -121,14 +132,11 @@ knitr::knit_hooks$set(output = function(x, options) {
     x
   }
 })
-
-has_mics <- file.exists("data/mics6-harmonized-v1.dta")
-has_glss <- file.exists("data/data_glss7.dta")
-has_rct  <- file.exists("data/rctprac1.dta")
+}
 ```
 
 ```{stata mics-setup, include=FALSE, collectcode=TRUE, eval=has_mics, message=FALSE, warning=FALSE}
-use "data/mics6-harmonized-v1.dta", clear
+use "Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta", clear
 egen childid = group(country_iso3 year HH1 HH2 LN)
 * Rebuild private like the shipped variable (COD taxonomy differs — leave missing)
 capture drop private
@@ -170,11 +178,11 @@ Right now the Variables window is empty — this is because we have not loaded a
 
 ### Looking at some of the data, and how it is captured in Stata
 
-The file for this lab already sits in the guide repository. From the project root, load it with:
+From the project root, after you have built the file, load it with:
 
 ```{stata m1-use, eval=FALSE}
 clear
-use "data/mics6-harmonized-v1.dta", clear
+use "Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta", clear
 ```
 
 You should now see the list of variables appear in the Variables window. Do you notice a line has appeared in your History window starting with the word `use` and then a file path?
@@ -188,10 +196,10 @@ clear
 The variables are gone in the Variables window. You can reload your data in two ways. Either click on the `use` command that appeared in your History window. Or type in the command line (note the quotation marks):
 
 ```{stata m1-use-again, eval=FALSE}
-use "data/mics6-harmonized-v1.dta", clear
+use "Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta", clear
 ```
 
-The dataset we are using is a harmonised version of several African MICS6 surveys. MICS stands for the Multiple Indicator Cluster Survey and is a household survey run by UNICEF in many different countries around the world with a focus on health and education outcomes. If you go to the [MICS website](https://mics.unicef.org/) and navigate to the surveys tab, you will only find individual country datasets available for download. The file you have now loaded was built for this guide by pooling the African MICS6 Foundational Skills (FS) modules and related household information, with shared names and value codes across surveys (see [Download](#c01-download), [Harmonising reading](#c05-harmonize), and [Harmonising FS](#c06-harmonize-fs)).
+The dataset we are using is a harmonised version of several African MICS6 surveys. MICS stands for the Multiple Indicator Cluster Survey and is a household survey run by UNICEF in many different countries around the world with a focus on health and education outcomes. If you go to the [MICS website](https://mics.unicef.org/) and navigate to the surveys tab, you will only find individual country datasets available for download. The file you have now loaded was built for this guide by pooling the African MICS6 Foundational Skills (FS) modules and related household information, with shared names and value codes across surveys (see [Download](#c01-download) and [Harmonising MICS6 data](#c03-harmonise)).
 
 First let's take a more detailed look at what variables are stored in the data set. In the Stata command line, type:
 
@@ -207,7 +215,7 @@ Now type:
 count
 ```
 
-This command counts the number of observations in your dataset. This information (the number of variables and observations) can also be seen in the Properties window in Stata. You should see around **166,980** children.
+This command counts the number of observations in your dataset. This information (the number of variables and observations) can also be seen in the Properties window in Stata. You should see one row per selected child in `fs`.
 
 Next, type:
 
@@ -322,7 +330,7 @@ And this time click on **tabulate twoway**.
 
 ### Finding a unique identifier
 
-An important first step in getting to know your dataset is finding out the unit of analysis and what uniquely identifies observations. Remember when we used the `count` command, we saw there were about 166,980 observations in this dataset. It is important to know which variable or combination of variables will uniquely identify these observations and what each row represents (a person, a classroom, a school?) when we browse our data.
+An important first step in getting to know your dataset is finding out the unit of analysis and what uniquely identifies observations. Remember when we used the `count` command: each row is one selected child in `fs`. It is important to know which variable or combination of variables will uniquely identify these observations and what each row represents (a person, a classroom, a school?) when we browse our data.
 
 This file does **not** include a convenience variable such as `unitanalysis`. Each row is a child aged 5–17 from the MICS6 Foundational Skills (FS) module, pooled across the African surveys in this guide. Typically, datasets include some type of “ID” variable or “unique number” variable. The way to confirm this is by using the `isid` command. This command confirms whether the variable(s) you list after it uniquely identify your observations.
 
@@ -392,7 +400,7 @@ This brings up variables like `number_compare_1` and `number_add_1`. Do you noti
 lookfor number_
 ```
 
-Now we see a full range of assessment variables for foundational numeracy: number identification (`number_id_1`–`number_id_6`), comparison (`number_compare_1`–`number_compare_5`), addition (`number_add_1`–`number_add_5`), and pattern recognition (`number_pattern_1`–`number_pattern_5`) — **21 items** in total. The file also already ships a ready-made `numeracy_score` (0–21). Let's use the browse command to take a closer look at these variables. A useful trick when you have similarly named variables with numbers in the name is linking them with a hyphen or using an asterisk so you don't have to type them all out. We are going to browse our unique identifier and all of these numeracy variables:
+Now we see a full range of assessment variables for foundational numeracy: number identification (`number_id_1`–`number_id_6`), comparison (`number_compare_1`–`number_compare_5`), addition (`number_add_1`–`number_add_5`), and pattern recognition (`number_pattern_1`–`number_pattern_5`) — **21 items** in total. The lab setup builds a 0–21 `numeracy_score` from those items; you will rebuild it with `egen` below. Let's use the browse command to take a closer look at these variables. A useful trick when you have similarly named variables with numbers in the name is linking them with a hyphen or using an asterisk so you don't have to type them all out. We are going to browse our unique identifier and all of these numeracy variables:
 
 ```{stata m1-browse-numeracy, eval=FALSE}
 browse childid number_id_1-number_id_6 number_compare* number_add* number_pattern*
@@ -517,7 +525,7 @@ Open Stata and type the following commands:
 
 ```{stata m1-dofile-example, eval=FALSE}
 clear all
-use "data/mics6-harmonized-v1.dta", clear
+use "Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta", clear
 numlabel, add
 tab country_iso3 urban
 ```
@@ -552,7 +560,7 @@ Tabbing `school_type` gives us a break down of which children are in which type 
 | 8 | Don't know |
 | 9 | No response |
 
-How many children are in private school (`school_type == 3`)? Note that **COD** (DR Congo) uses a different taxonomy, so the shipped `private` indicator is missing there. If we try to `sum school_type` we get something like this:
+How many children are in private school (`school_type == 3`)? Note that **COD** (DR Congo) uses a different taxonomy, so the lab's `private` indicator is missing there. If we try to `sum school_type` we get something like this:
 
 ```{stata m1-sum-school-type, eval=FALSE}
 sum school_type
@@ -807,6 +815,8 @@ tab numscore numeracy_score if age >= 7 & age <= 14, m
 ```
 
 ### Using complex survey data: the svy suite
+
+See [Survey design, weights and standard errors](#c05-survey-design) for the official MICS recipe (`fsweight`, `PSU`, `stratum`). The lab below walks through clustering with `HH1` and uses `urban` as a teaching stratum; that is not the released MICS stratum variable.
 
 Often, we are interested in calculating inferential statistics from our dataset and not just sample characteristics. That is, statistics we can infer represent a true population in the outside world as opposed to just a characteristic of the data in front of us. In order to make this leap (from our desktops to the real world) we use the tools of inferential statistics, which account for how certain we are that our estimate matches the real world.
 

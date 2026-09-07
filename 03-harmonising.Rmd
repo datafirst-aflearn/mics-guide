@@ -1,0 +1,30 @@
+# Harmonising MICS6 data {#c03-harmonise}
+
+MICS6 questionnaires are standardised. The released country files are not. Variable names, education codes, languages, and omitted modules differ across surveys. Stacking `fs.sav` files does not give a comparable child-level file.
+
+[IPUMS MICS](https://mics.ipums.org/mics/) aligns much of the background data. It still keeps only one reading passage, so it is a poor base for foundational reading in multi-passage surveys ([Getting IPUMS MICS files](#ipums-reading-warning)).
+
+AFLEARN's R script `run-it.R` unpacks the UNICEF zip and writes one child-level analysis file: shared names, selected household-list fields, and research-ready reading outcomes (passage length, scores, `reading_status`).
+
+``` text
+Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta
+```
+
+plus the Excel map `mics6-crosswalk.xlsx`. Reading sits in that file. There is no second `.dta`.
+
+If you do not yet have this file, go to [Getting UNICEF MICS files](#c01-unicef). Put `MICS_Datasets.zip` beside `Script/` in a project folder and run:
+
+```{r eval=FALSE}
+source("Script/run-it.R")
+```
+
+If you already have the file, you still merge only if:
+
+1.  You need a UNICEF source variable the spec did not keep. Start from `fs` and add from `hh` or `hl`.
+2.  You are analysing an IPUMS extract. Keep IPUMS as the analysis table and attach AFLEARN reading and FLS fields.
+
+If the file already has what you need, skip the merge pages and go to the [R](#c03-r) or [Stata](#c04-stata) tutorial.
+
+- [The AFLEARN analysis file](#c03-file) — what is in the file and how to read it.
+- [Adding variables from UNICEF files](#c03-merge) — optional extra merges.
+- [Attaching the AFLEARN file to IPUMS](#c03-ipums) — join on `SAMPLE`, `CLUSTER`, `HHNO`, `LINECH`.
