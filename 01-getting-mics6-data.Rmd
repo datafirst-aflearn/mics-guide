@@ -10,7 +10,7 @@ MICS6 is the UNICEF round that first fielded the Foundational Learning Skills (F
 Use UNICEF when you need the FLS assessment, country-specific items, or a single country. Use IPUMS when you want a pooled file of demographic, household, and schooling variables and have Stata to build the extract. A single-country study gains little from IPUMS.
 
 |   | UNICEF MICS | IPUMS MICS |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | What you receive | Original country survey files | A custom extract with harmonised variables across selected surveys |
 | Best for | Country-specific items; the FLS assessment; reproducing MICS indicators | Multi-country work on demographic, household, and schooling variables |
 | Preparation | More: files must be unpacked and, for pooled work, harmonised | Less: IPUMS supplies syntax that builds the extract |

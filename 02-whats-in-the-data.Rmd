@@ -1,8 +1,6 @@
-# Understanding MICS6 data {#ch-whats-in-data}
+# Understanding MICS data {#ch-whats-in-data}
 
-This chapter is about what sits in a MICS6 download: which file is which, who appears in `fs`, and how the Foundational Learning Skills (FLS) assessment is scored.
-
-MICS is a household survey with several questionnaires, so the microdata are several files with different units of observation. Using the wrong file, merging on an incomplete key, or treating a reading skip as ordinary missing data changes the population you describe.
+MICS microdata are collected through face-to-face interviews in carefully selected nationally or subnationally representative sample of households. The survey primarily collects data on issues that may affect children's lives. It routinely collects household and individual background data so that differences associated with age, gender, education, wealth, location of residence, ethnicity and other characteristics can be analysed. To this end, MICS uses several questionnaires (at most 8) which come as several microdata files with different units of observation. A useful way to think about MICS microdata is as a set of linked microdata files below:
 
 ``` text
 HOUSEHOLD (hh)
@@ -14,9 +12,4 @@ HOUSEHOLD (hh)
            └── ages 7–14 may take the FLS assessment
 ```
 
-For foundational learning, start with `fs`. Add household facts from `hh` and roster facts from `hl` when the question needs them.
-
-The [MICS6 Manual for Statistical Data Analysis](https://data.unicef.org/wp-content/uploads/2019/07/MICS6-manual-for-stats-data-analysis-English_2020_v2.pdf) and UNICEF's [Foundational Learning Skills Module](https://data.unicef.org/resources/the-foundational-learning-skills-module/) are the official references.
-
-- [Files, keys, and who is in fs](#c02-files)
-- [Reading and numeracy](#c02-fls)
+The household questionnaire (`hh`) tells us about the household and every member listed in it. Additional questionnaires collect more detailed information for particular populations, including women (`wm`) , men (`mn`), children under five (`ch`) and one randomly selected child aged 5–17 per household (`fs`).
