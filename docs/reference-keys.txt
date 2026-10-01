@@ -8,8 +8,8 @@ build-the-extract
 ipums-reading-warning
 ch-whats-in-data
 c02-files
-keys
-who-is-in-fs
+key-identifiers-in-each-microdata-file
+who-is-in-fs-microdata-file
 c02-fls
 reading
 numeracy
