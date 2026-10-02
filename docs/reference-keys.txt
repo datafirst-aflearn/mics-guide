@@ -2,9 +2,8 @@ c01-download
 c01-unicef
 download-the-country-files
 unpack-with-aflearns-scripts
-check-the-result
 c01-ipums
-build-the-extract
+download-ipums-mics-microdata
 ipums-reading-warning
 ch-whats-in-data
 c02-files

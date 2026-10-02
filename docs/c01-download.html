@@ -146,11 +146,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="1.1.1" data-path="c01-download.html"><a href="c01-download.html#download-the-country-files"><i class="fa fa-check"></i><b>1.1.1</b> Download the country files</a></li>
 <li class="chapter" data-level="1.1.2" data-path="c01-download.html"><a href="c01-download.html#unpack-with-aflearns-scripts"><i class="fa fa-check"></i><b>1.1.2</b> Unpack with AFLEARN’s scripts</a></li>
-<li class="chapter" data-level="1.1.3" data-path="c01-download.html"><a href="c01-download.html#check-the-result"><i class="fa fa-check"></i><b>1.1.3</b> Check the result</a></li>
 </ul></li>
 <li class="chapter" data-level="1.2" data-path="c01-download.html"><a href="c01-download.html#c01-ipums"><i class="fa fa-check"></i><b>1.2</b> Getting IPUMS MICS files</a>
 <ul>
-<li class="chapter" data-level="1.2.1" data-path="c01-download.html"><a href="c01-download.html#build-the-extract"><i class="fa fa-check"></i><b>1.2.1</b> Build the extract</a></li>
+<li class="chapter" data-level="1.2.1" data-path="c01-download.html"><a href="c01-download.html#download-ipums-mics-microdata"><i class="fa fa-check"></i><b>1.2.1</b> Download IPUMS MICS microdata</a></li>
 <li class="chapter" data-level="1.2.2" data-path="c01-download.html"><a href="c01-download.html#ipums-reading-warning"><i class="fa fa-check"></i><b>1.2.2</b> Multi-passage reading</a></li>
 </ul></li>
 </ul></li>
@@ -302,13 +301,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="c01-download" class="section level1 hasAnchor" number="1">
 <h1><span class="header-section-number"> 1</span> Getting MICS6 data<a href="c01-download.html#c01-download" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>The Multiple Indicator Cluster Survey (MICS) is a national household survey implemented by countries under the programme developed by the United Nation’s Children’s Fund (UNICEF) to provide internationally comparable, statistically rigorous data on the situation of children and women. Among other topics included in the survey, MICS6 covers the Foundational Learning Skills (FLS) Module. This is a data collection tool that directly assesses whether children have acquired essential reading and mathematics skills at the early primary level. It focuses on children aged 7 to 14 and captures learning outcomes at grades 2 and 3.</p>
-<p>To make the MICS6 microdata more accessible, this chapter of this guide shows how to download and unpack (the crucial the MICS6 for multi-country early foundational learning research.</p>
-<p>Generally, researchers can access the MICS6 microdata in two ways:</p>
+<p>To make the MICS6 microdata more accessible, this chapter of this guide shows how to download and unpack (the crucial!) the MICS6 for multi-country early foundational learning research. Generally, researchers can access the MICS6 microdata in two ways:</p>
 <ol style="list-style-type: decimal">
 <li><a href="https://mics.unicef.org/surveys">UNICEF MICS</a>: the original country survey files.</li>
 <li><a href="https://mics.ipums.org/mics/">IPUMS MICS</a>: a custom extract with variables already harmonised across the surveys you select.</li>
 </ol>
-<p>Use UNICEF when you need the FLS assessment, country-specific items, or a single country. Use IPUMS when you want a pooled file of demographic, household, and schooling variables and have Stata to build the extract. A single-country study gains little from IPUMS.</p>
 <table>
 <colgroup>
 <col width="33%" />
@@ -354,11 +351,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><strong>AFLEARN recommendation</strong></p>
 </div>
 <div class="warningbox">
-<p>If the analysis uses foundational reading, do not use the IPUMS reading variables for surveys that administered more than one passage. IPUMS keeps one passage and can drop a large share of children who completed the assessment. AFLEARN reconstructs reading outcomes from the complete UNICEF files; you can merge that file onto an IPUMS extract.</p>
+<p>If the analysis uses foundational reading, do not use the IPUMS reading variables for surveys that administered more than one reading passage. IPUMS keeps one passage and can drop a large share of children who completed the assessment. AFLEARN reconstructs reading outcomes from the complete UNICEF files.</p>
 </div>
 <p>The two routes complement each other: IPUMS for comparable background variables, UNICEF for every reading passage.</p>
 <ul>
-<li>To download the UNICEF country files and unpack them with AFLEARN’s scripts, go to <a href="c01-download.html#c01-unicef">Getting UNICEF MICS files</a>.</li>
+<li>To download the UNICEF country files and unpack them with AFLEARN’s R scripts, go to <a href="c01-download.html#c01-unicef">Getting UNICEF MICS files</a>.</li>
 <li>To build an IPUMS extract, go to <a href="c01-download.html#c01-ipums">Getting IPUMS MICS files</a>.</li>
 </ul>
 
@@ -371,13 +368,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>Open <a href="https://mics.unicef.org/surveys" class="uri">https://mics.unicef.org/surveys</a>.</li>
 <li>Log in if the site asks you to. Dataset downloads usually need an account.</li>
 <li>Filter to the surveys you want: round <strong>MICS6</strong>, then region or countries, data type <strong>MICS</strong>, and status <strong>Completed</strong>.</li>
-<li>Click <strong>Download MICS datasets</strong>. UNICEF packs every matching survey into one zip, usually named <code>MICS_Datasets.zip</code>.</li>
+<li>Click <strong>Download MICS datasets</strong>. UNICEF packs every matching survey into one bulk zip, usually named <code>MICS_Datasets.zip</code>.</li>
 </ol>
-<p>Make a project folder, for example <code>MICS project</code>, and save <code>MICS_Datasets.zip</code> in it.</p>
+<p>Create a project folder in your local computer, for example <code>MICS project</code>, and save <code>MICS_Datasets.zip</code> in it.</p>
 </div>
 <div id="unpack-with-aflearns-scripts" class="section level3 hasAnchor" number="1.1.2">
 <h3><span class="header-section-number">1.1.2</span> Unpack with AFLEARN’s scripts<a href="c01-download.html#unpack-with-aflearns-scripts" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>The bulk zip nests each survey in further archives and wrapper folders. Unpacking many countries by hand wastes time and invites path errors.</p>
+<p>The <code>MICS_Datasets.zip</code> bulk zip nests each country survey in further archives and wrapper folders, as shown in the illustration below. Unpacking a large number of country surveys by hand wastes time and invites path errors.</p>
 <pre class="text"><code>MICS_Datasets.zip
 └── survey folder
     └── another archive
@@ -385,16 +382,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             ├── fs.sav
             ├── hh.sav
             └── ...</code></pre>
-<p>Download <a href="https://github.com/datafirst-aflearn/mics-guide/raw/main/Script.zip">Script.zip</a> and unzip it into the same project folder, so <code>Script/</code> sits beside <code>MICS_Datasets.zip</code>:</p>
+<p>To avoid this, firstly download from <a href="https://github.com/datafirst-aflearn/mics-guide/raw/main/Script.zip">AFLEARN’s repository</a> <code>Script.zip</code> and unzip it into the same project folder, i.e., <code>MICS project</code>, so <code>Script/</code> sits beside <code>MICS_Datasets.zip</code>. See blow:</p>
 <pre class="text"><code>MICS project/
 ├── MICS_Datasets.zip
 └── Script/</code></pre>
-<p>In R, set the project folder as the working directory and source <code>run-it.R</code>:</p>
+<p>Next, open R, set the <code>MICS project</code> folder as the working directory and source <code>run-it.R</code> as shown below:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="c01-download.html#cb3-1" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">&quot;C:/path/to/MICS project&quot;</span>)</span>
 <span id="cb3-2"><a href="c01-download.html#cb3-2" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/run-it.R&quot;</span>)</span></code></pre></div>
-<p>The working directory must be the folder that holds <code>Script/</code>. If it is not, the script stops before creating anything.</p>
-<p>That one run unpacks the surveys and writes the AFLEARN analysis file. Later chapters explain those files. You do not need to source the other scripts on the first run.</p>
-<p>After a successful run:</p>
+<p>You have to ascertain that the working directory must be the folder that holds <code>Script/</code>. After a successful run, you will notice that there is now a <code>Data/</code> folder with a <code>UNICEF/</code> folder inside that carries all the unpacked and tidy country surveys you would have downloaded. Each survey then has a predictable path such as <code>Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav</code>.</p>
 <pre class="text"><code>MICS project/
 ├── MICS_Datasets.zip
 ├── Script/
@@ -407,41 +402,26 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     │   │   └── ...
     │   └── ...
     └── AFLEARN Harmonised Data/
-        ├── mics6-crosswalk.xlsx
-        └── mics6-fs-harmonised-v2.0.dta</code></pre>
-<p>Each survey then has a predictable path such as <code>Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav</code>.</p>
-<p>If the UNICEF zip is not in the project folder, pass its path:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="c01-download.html#cb5-1" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/prepare-mics-fs.R&quot;</span>)</span>
-<span id="cb5-2"><a href="c01-download.html#cb5-2" tabindex="-1"></a><span class="fu">prepare_mics_data</span>(<span class="at">zip =</span> <span class="st">&quot;C:/path/to/MICS_Datasets.zip&quot;</span>)</span></code></pre></div>
-<p>Then source <code>Script/run-it.R</code> as usual, or source the remaining scripts from <code>Script/</code> yourself.</p>
-</div>
-<div id="check-the-result" class="section level3 hasAnchor" number="1.1.3">
-<h3><span class="header-section-number">1.1.3</span> Check the result<a href="c01-download.html#check-the-result" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="c01-download.html#cb6-1" tabindex="-1"></a><span class="fu">dir.exists</span>(<span class="st">&quot;Data/UNICEF&quot;</span>)</span>
-<span id="cb6-2"><a href="c01-download.html#cb6-2" tabindex="-1"></a><span class="fu">list.files</span>(<span class="st">&quot;Data/UNICEF&quot;</span>)</span>
-<span id="cb6-3"><a href="c01-download.html#cb6-3" tabindex="-1"></a><span class="fu">file.exists</span>(<span class="st">&quot;Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav&quot;</span>)</span></code></pre></div>
-<p>Open one SPSS file:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="c01-download.html#cb7-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
-<span id="cb7-2"><a href="c01-download.html#cb7-2" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav&quot;</span>)</span>
-<span id="cb7-3"><a href="c01-download.html#cb7-3" tabindex="-1"></a><span class="fu">dim</span>(fs)</span></code></pre></div>
+       </code></pre>
+<p>You will also notice a folder called <code>AFLEARN Harmonised Data/</code>. This folder carried the AFLEARN harmonised microdata file, which will be explained in depth in Chapter 3 on Harmonising MICS6 microdata.</p>
 <div class="alternativebox-header">
 <p><strong>Keep the original download</strong></p>
 </div>
 <div class="alternativebox">
-<p>Keep the original UNICEF zip. The clean folders are for analysis; the zip is the unchanged source.</p>
+<p>Keep the original <code>MICS_Datasets.zip</code> file. The clean country survey folders are for analysis, while the <code>MICS_Datasets.zip</code> file is the unchanged source.</p>
 </div>
-<p><a href="ch-whats-in-data.html#ch-whats-in-data">Understanding MICS6 data</a> explains the survey files and the FLS module.</p>
+<p>After setting up, <a href="ch-whats-in-data.html#ch-whats-in-data">Understanding MICS6 data</a> explains the survey files and the FLS module.</p>
 
 </div>
 </div>
 <div id="c01-ipums" class="section level2 hasAnchor" number="1.2">
 <h2><span class="header-section-number">1.2</span> Getting IPUMS MICS files<a href="c01-download.html#c01-ipums" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p><a href="https://mics.ipums.org/mics/">IPUMS MICS</a> builds a custom extract. You choose a unit of analysis, surveys, and variables. IPUMS returns the UNICEF source data plus Stata syntax that harmonises them. Registration is free and uses the same UNICEF MICS login. See <a href="https://mics.ipums.org/mics/user_guide.shtml">Getting Started with IPUMS MICS</a>.</p>
-<p>If you need foundational reading, read <a href="c01-download.html#ipums-reading-warning">the passage warning</a> before you add reading variables to the cart.</p>
-<div id="build-the-extract" class="section level3 hasAnchor" number="1.2.1">
-<h3><span class="header-section-number">1.2.1</span> Build the extract<a href="c01-download.html#build-the-extract" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p><a href="https://mics.ipums.org/mics/">IPUMS MICS</a> lets you work with MICS microdata across countries without downloading every variable from every original survey microdata file. You select the unit of observation, country surveys and variables. IPUMS then supplies the original UNICEF source microdata together with syntax that harmonises those selections and builds a pooled microdata extract. For many multi-country research, this reduces data preparation. This includes the unpacking of the country surveys you previously saw in <a href="c01-download.html#c01-unicef">Getting UNICEF MICS data</a>.</p>
+<div id="download-ipums-mics-microdata" class="section level3 hasAnchor" number="1.2.1">
+<h3><span class="header-section-number">1.2.1</span> Download IPUMS MICS microdata<a href="c01-download.html#download-ipums-mics-microdata" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <ol style="list-style-type: decimal">
-<li>Open GET DATA and choose a unit of analysis. For the FLS module, use children aged 5–17.</li>
+<li>Open IPUMS MICS <a href="https://mics.ipums.org/mics/" class="uri">https://mics.ipums.org/mics/</a></li>
+<li>Click SELECT DATA and choose a unit of observation. For the FLS module, use children aged 5–17.</li>
 <li>Select the MICS6 samples you need. Record the IPUMS sample identifiers, not only country names.</li>
 <li>Add variables to the Data Cart. Before you add one, check that it exists in your samples, that the universe matches, and that the codes are comparable. Keep identifiers, sample, and weight variables for linking and survey design.</li>
 <li>Create the extract. The download is source data plus Stata <code>.do</code> files. Run the main <code>.do</code> file to build the pooled dataset. An R workflow needs Stata once for this step; then read the <code>.dta</code> in R. See <a href="https://mics.ipums.org/mics/extract_instructions.shtml">Opening an Extract</a>.</li>
@@ -450,21 +430,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><strong>One extract has one unit of analysis</strong></p>
 </div>
 <div class="alternativebox">
-<p>Some household or parent items are already attached to the child file; others need a link. See <a href="https://mics.ipums.org/mics/linking.shtml">linking units of analysis</a>.</p>
+<p>Some household or parent items are already attached to the <code>fs</code> file while others need a link. See <a href="https://mics.ipums.org/mics/linking.shtml">linking units of analysis</a>.</p>
 </div>
-<p>IPUMS documents each variable’s universe, codes, and questionnaire text. Comparisons go wrong when universes differ across surveys. See the <a href="https://mics.ipums.org/mics-action/faq">IPUMS MICS FAQ</a>.</p>
+<p>IPUMS documents each variable’s universe, codes and questionnaire text. Comparisons go wrong when universes differ across surveys. See the <a href="https://mics.ipums.org/mics-action/faq">IPUMS MICS FAQ</a>.</p>
 </div>
 <div id="ipums-reading-warning" class="section level3 hasAnchor" number="1.2.2">
 <h3><span class="header-section-number">1.2.2</span> Multi-passage reading<a href="c01-download.html#ipums-reading-warning" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div class="warningbox-header">
-<p><strong>Do not use the IPUMS reading variables for a MICS6 survey that administered more than one passage.</strong></p>
+<p><strong>Do not use the IPUMS reading variables for a MICS6 survey that administered more than one reading passage.</strong></p>
 </div>
 <div class="warningbox">
-<p>IPUMS keeps one passage. Children assessed on another passage look like item non-response. They are missing by language or passage, and reading estimates can be badly wrong.</p>
+<p>In these surveys, IPUMS retains data for only one of the reading passages. Children assessed using another reading passage therefore appear to have no data on the IPUMS harmonised reading variables. This systematically excludes children according to the language or reading passage in which they were assessed and can make estimates of reading performance seriously misleading.</p>
 </div>
-<p>Malawi MICS 2019–20 is the clear case. IPUMS records 1,720 children on <code>FLWORDSATTEMPT</code> (English). The UNICEF files show 3,970 who attempted Chichewa, of whom 130 also attempted English. Treating the IPUMS variable as the Malawi reading sample drops most of the children who completed the assessment.</p>
-<p>This limit applies to the harmonised reading variables in multi-passage surveys, not to the rest of IPUMS. AFLEARN rebuilds reading from the UNICEF files, all passages kept, in <code>mics6-fs-harmonised-v2.0.dta</code> (see <a href="c01-download.html#c01-unicef">Getting UNICEF MICS files</a>). Merge that file onto the IPUMS child extract as shown in <a href="c03-harmonise.html#c03-ipums">Attaching the AFLEARN file to IPUMS</a>.</p>
-<p><a href="ch-whats-in-data.html#ch-whats-in-data">Understanding MICS6 data</a> explains the survey files and the FLS module.</p>
+<p>This issue is especially important in multilingual African countries. The FLS module allowed countries to adapt the reading assessment to local languages. The country-specific microdata files can therefore contain separate variables for different reading passages or languages, while the corresponding IPUMS harmonised reading variable represents only one of them.</p>
+<p>Malawi MICS 2019–20 is the clear case. IPUMS records 1,720 children on <code>FLWORDSATTEMPT</code> variable (the English passage). The UNICEF microdata files show 3,970 who attempted Chichewa, of whom 130 also attempted English. Treating the IPUMS variable as the Malawi reading sample drops most of the children who completed the assessment.</p>
+<p>This limit applies to the harmonised reading variables in multi-passage surveys, not to the rest of IPUMS. To solve this issue, AFLEARN reconstructs the reading data from the original UNICEF microdata files, retaining all relevant passages and languages. All of this is shown in full detail in the <a href="c03-harmonise.html#c03-harmonise">Harmonising MICS6 microdata</a></p>
+<p>Before you can reach that, <a href="ch-whats-in-data.html#ch-whats-in-data">Understanding MICS6 data</a> explains the survey files and the FLS module in the next chapter.</p>
 
 </div>
 </div>

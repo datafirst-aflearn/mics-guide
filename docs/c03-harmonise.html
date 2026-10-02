@@ -146,11 +146,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="1.1.1" data-path="c01-download.html"><a href="c01-download.html#download-the-country-files"><i class="fa fa-check"></i><b>1.1.1</b> Download the country files</a></li>
 <li class="chapter" data-level="1.1.2" data-path="c01-download.html"><a href="c01-download.html#unpack-with-aflearns-scripts"><i class="fa fa-check"></i><b>1.1.2</b> Unpack with AFLEARN’s scripts</a></li>
-<li class="chapter" data-level="1.1.3" data-path="c01-download.html"><a href="c01-download.html#check-the-result"><i class="fa fa-check"></i><b>1.1.3</b> Check the result</a></li>
 </ul></li>
 <li class="chapter" data-level="1.2" data-path="c01-download.html"><a href="c01-download.html#c01-ipums"><i class="fa fa-check"></i><b>1.2</b> Getting IPUMS MICS files</a>
 <ul>
-<li class="chapter" data-level="1.2.1" data-path="c01-download.html"><a href="c01-download.html#build-the-extract"><i class="fa fa-check"></i><b>1.2.1</b> Build the extract</a></li>
+<li class="chapter" data-level="1.2.1" data-path="c01-download.html"><a href="c01-download.html#download-ipums-mics-microdata"><i class="fa fa-check"></i><b>1.2.1</b> Download IPUMS MICS microdata</a></li>
 <li class="chapter" data-level="1.2.2" data-path="c01-download.html"><a href="c01-download.html#ipums-reading-warning"><i class="fa fa-check"></i><b>1.2.2</b> Multi-passage reading</a></li>
 </ul></li>
 </ul></li>
@@ -305,7 +304,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <pre class="text"><code>Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta</code></pre>
 <p>plus the Excel map <code>mics6-crosswalk.xlsx</code>. Reading sits in that file. There is no second <code>.dta</code>.</p>
 <p>If you do not yet have this file, go to <a href="c01-download.html#c01-unicef">Getting UNICEF MICS files</a>. Put <code>MICS_Datasets.zip</code> beside <code>Script/</code> in a project folder and run:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="c03-harmonise.html#cb17-1" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/run-it.R&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="c03-harmonise.html#cb14-1" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/run-it.R&quot;</span>)</span></code></pre></div>
 <p>If you already have the file, you still merge only if:</p>
 <ol style="list-style-type: decimal">
 <li>You need a UNICEF source variable the spec did not keep. Start from <code>fs</code> and add from <code>hh</code> or <code>hl</code>.</li>
@@ -327,8 +326,8 @@ harmonize-mics-fs-v2.0.R     spec + crosswalk; already pulls selected hl fields
 derive-mics-fl-vars-v1.0.R   passage length, scores, reading_status, max_reading_*
         → mics6-fs-harmonised-v2.0.dta</code></pre>
 <p>If you only unpacked the zip, <code>source("Script/run-it.R")</code> is enough. Re-run the two later scripts when you change the spec:</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="c03-harmonise.html#cb19-1" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/harmonize-mics-fs-v2.0.R&quot;</span>)</span>
-<span id="cb19-2"><a href="c03-harmonise.html#cb19-2" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/derive-mics-fl-vars-v1.0.R&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="c03-harmonise.html#cb16-1" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/harmonize-mics-fs-v2.0.R&quot;</span>)</span>
+<span id="cb16-2"><a href="c03-harmonise.html#cb16-2" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;Script/derive-mics-fl-vars-v1.0.R&quot;</span>)</span></code></pre></div>
 <div id="identifiers" class="section level3 hasAnchor" number="3.1.1">
 <h3><span class="header-section-number">3.1.1</span> Identifiers<a href="c03-harmonise.html#identifiers" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <table>
@@ -525,33 +524,33 @@ derive-mics-fl-vars-v1.0.R   passage length, scores, reading_status, max_reading
 <h3><span class="header-section-number">3.1.5</span> Checks<a href="c03-harmonise.html#checks" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div class="code-tabs">
 <div class="code-panel" data-lang="Stata">
-<div class="sourceCode" id="cb20"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb20-1"><a href="c03-harmonise.html#cb20-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb20-2"><a href="c03-harmonise.html#cb20-2" tabindex="-1"></a></span>
-<span id="cb20-3"><a href="c03-harmonise.html#cb20-3" tabindex="-1"></a><span class="kw">tab</span> country_iso3 <span class="fu">year</span></span>
-<span id="cb20-4"><a href="c03-harmonise.html#cb20-4" tabindex="-1"></a><span class="kw">isid</span> country_iso3 <span class="fu">year</span> HH1 HH2 LN</span>
-<span id="cb20-5"><a href="c03-harmonise.html#cb20-5" tabindex="-1"></a></span>
-<span id="cb20-6"><a href="c03-harmonise.html#cb20-6" tabindex="-1"></a><span class="kw">tab</span> reading_status <span class="kw">if</span> age &gt;= 7 &amp; age &lt;= 14</span>
-<span id="cb20-7"><a href="c03-harmonise.html#cb20-7" tabindex="-1"></a><span class="kw">tab</span> passage_language <span class="kw">if</span> country_iso3 == <span class="st">&quot;MWI&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb17-1"><a href="c03-harmonise.html#cb17-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb17-2"><a href="c03-harmonise.html#cb17-2" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="c03-harmonise.html#cb17-3" tabindex="-1"></a><span class="kw">tab</span> country_iso3 <span class="fu">year</span></span>
+<span id="cb17-4"><a href="c03-harmonise.html#cb17-4" tabindex="-1"></a><span class="kw">isid</span> country_iso3 <span class="fu">year</span> HH1 HH2 LN</span>
+<span id="cb17-5"><a href="c03-harmonise.html#cb17-5" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="c03-harmonise.html#cb17-6" tabindex="-1"></a><span class="kw">tab</span> reading_status <span class="kw">if</span> age &gt;= 7 &amp; age &lt;= 14</span>
+<span id="cb17-7"><a href="c03-harmonise.html#cb17-7" tabindex="-1"></a><span class="kw">tab</span> passage_language <span class="kw">if</span> country_iso3 == <span class="st">&quot;MWI&quot;</span></span></code></pre></div>
 </div>
 <div class="code-panel" data-lang="R">
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="c03-harmonise.html#cb21-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
-<span id="cb21-2"><a href="c03-harmonise.html#cb21-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb21-3"><a href="c03-harmonise.html#cb21-3" tabindex="-1"></a></span>
-<span id="cb21-4"><a href="c03-harmonise.html#cb21-4" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>)</span>
-<span id="cb21-5"><a href="c03-harmonise.html#cb21-5" tabindex="-1"></a></span>
-<span id="cb21-6"><a href="c03-harmonise.html#cb21-6" tabindex="-1"></a>d <span class="sc">%&gt;%</span> <span class="fu">count</span>(country_iso3, year)</span>
-<span id="cb21-7"><a href="c03-harmonise.html#cb21-7" tabindex="-1"></a></span>
-<span id="cb21-8"><a href="c03-harmonise.html#cb21-8" tabindex="-1"></a>d <span class="sc">%&gt;%</span></span>
-<span id="cb21-9"><a href="c03-harmonise.html#cb21-9" tabindex="-1"></a>  <span class="fu">count</span>(country_iso3, year, HH1, HH2, LN) <span class="sc">%&gt;%</span></span>
-<span id="cb21-10"><a href="c03-harmonise.html#cb21-10" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
-<span id="cb21-11"><a href="c03-harmonise.html#cb21-11" tabindex="-1"></a></span>
-<span id="cb21-12"><a href="c03-harmonise.html#cb21-12" tabindex="-1"></a>d <span class="sc">%&gt;%</span></span>
-<span id="cb21-13"><a href="c03-harmonise.html#cb21-13" tabindex="-1"></a>  <span class="fu">filter</span>(age <span class="sc">&gt;=</span> <span class="dv">7</span>, age <span class="sc">&lt;=</span> <span class="dv">14</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb21-14"><a href="c03-harmonise.html#cb21-14" tabindex="-1"></a>  <span class="fu">count</span>(reading_status)</span>
-<span id="cb21-15"><a href="c03-harmonise.html#cb21-15" tabindex="-1"></a></span>
-<span id="cb21-16"><a href="c03-harmonise.html#cb21-16" tabindex="-1"></a>d <span class="sc">%&gt;%</span></span>
-<span id="cb21-17"><a href="c03-harmonise.html#cb21-17" tabindex="-1"></a>  <span class="fu">filter</span>(country_iso3 <span class="sc">==</span> <span class="st">&quot;MWI&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb21-18"><a href="c03-harmonise.html#cb21-18" tabindex="-1"></a>  <span class="fu">count</span>(passage_language)</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="c03-harmonise.html#cb18-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb18-2"><a href="c03-harmonise.html#cb18-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb18-3"><a href="c03-harmonise.html#cb18-3" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="c03-harmonise.html#cb18-4" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>)</span>
+<span id="cb18-5"><a href="c03-harmonise.html#cb18-5" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="c03-harmonise.html#cb18-6" tabindex="-1"></a>d <span class="sc">%&gt;%</span> <span class="fu">count</span>(country_iso3, year)</span>
+<span id="cb18-7"><a href="c03-harmonise.html#cb18-7" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="c03-harmonise.html#cb18-8" tabindex="-1"></a>d <span class="sc">%&gt;%</span></span>
+<span id="cb18-9"><a href="c03-harmonise.html#cb18-9" tabindex="-1"></a>  <span class="fu">count</span>(country_iso3, year, HH1, HH2, LN) <span class="sc">%&gt;%</span></span>
+<span id="cb18-10"><a href="c03-harmonise.html#cb18-10" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb18-11"><a href="c03-harmonise.html#cb18-11" tabindex="-1"></a></span>
+<span id="cb18-12"><a href="c03-harmonise.html#cb18-12" tabindex="-1"></a>d <span class="sc">%&gt;%</span></span>
+<span id="cb18-13"><a href="c03-harmonise.html#cb18-13" tabindex="-1"></a>  <span class="fu">filter</span>(age <span class="sc">&gt;=</span> <span class="dv">7</span>, age <span class="sc">&lt;=</span> <span class="dv">14</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-14"><a href="c03-harmonise.html#cb18-14" tabindex="-1"></a>  <span class="fu">count</span>(reading_status)</span>
+<span id="cb18-15"><a href="c03-harmonise.html#cb18-15" tabindex="-1"></a></span>
+<span id="cb18-16"><a href="c03-harmonise.html#cb18-16" tabindex="-1"></a>d <span class="sc">%&gt;%</span></span>
+<span id="cb18-17"><a href="c03-harmonise.html#cb18-17" tabindex="-1"></a>  <span class="fu">filter</span>(country_iso3 <span class="sc">==</span> <span class="st">&quot;MWI&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-18"><a href="c03-harmonise.html#cb18-18" tabindex="-1"></a>  <span class="fu">count</span>(passage_language)</span></code></pre></div>
 </div>
 </div>
 <p>Malawi should show both assessment languages. If the key is not unique, stop before any merge.</p>
@@ -569,34 +568,34 @@ derive-mics-fl-vars-v1.0.R   passage length, scores, reading_status, max_reading
 <p>Many children can share a household; each <code>HH1</code> + <code>HH2</code> should appear once in <code>hh</code>.</p>
 <div class="code-tabs">
 <div class="code-panel" data-lang="Stata">
-<div class="sourceCode" id="cb22"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb22-1"><a href="c03-harmonise.html#cb22-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.dta&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb22-2"><a href="c03-harmonise.html#cb22-2" tabindex="-1"></a></span>
-<span id="cb22-3"><a href="c03-harmonise.html#cb22-3" tabindex="-1"></a><span class="kw">merge</span> <span class="fu">m</span>:1 HH1 HH2 <span class="kw">using</span> <span class="co">///</span></span>
-<span id="cb22-4"><a href="c03-harmonise.html#cb22-4" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hh.dta&quot;</span>, <span class="co">///</span></span>
-<span id="cb22-5"><a href="c03-harmonise.html#cb22-5" tabindex="-1"></a>    keepusing(variable_1 variable_2)</span>
-<span id="cb22-6"><a href="c03-harmonise.html#cb22-6" tabindex="-1"></a></span>
-<span id="cb22-7"><a href="c03-harmonise.html#cb22-7" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb19-1"><a href="c03-harmonise.html#cb19-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb19-2"><a href="c03-harmonise.html#cb19-2" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="c03-harmonise.html#cb19-3" tabindex="-1"></a><span class="kw">merge</span> <span class="fu">m</span>:1 HH1 HH2 <span class="kw">using</span> <span class="co">///</span></span>
+<span id="cb19-4"><a href="c03-harmonise.html#cb19-4" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hh.dta&quot;</span>, <span class="co">///</span></span>
+<span id="cb19-5"><a href="c03-harmonise.html#cb19-5" tabindex="-1"></a>    keepusing(variable_1 variable_2)</span>
+<span id="cb19-6"><a href="c03-harmonise.html#cb19-6" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="c03-harmonise.html#cb19-7" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
 </div>
 <div class="code-panel" data-lang="R">
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="c03-harmonise.html#cb23-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
-<span id="cb23-2"><a href="c03-harmonise.html#cb23-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb23-3"><a href="c03-harmonise.html#cb23-3" tabindex="-1"></a></span>
-<span id="cb23-4"><a href="c03-harmonise.html#cb23-4" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>)</span>
-<span id="cb23-5"><a href="c03-harmonise.html#cb23-5" tabindex="-1"></a>hh <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hh.sav&quot;</span>)</span>
-<span id="cb23-6"><a href="c03-harmonise.html#cb23-6" tabindex="-1"></a></span>
-<span id="cb23-7"><a href="c03-harmonise.html#cb23-7" tabindex="-1"></a>hh <span class="sc">%&gt;%</span></span>
-<span id="cb23-8"><a href="c03-harmonise.html#cb23-8" tabindex="-1"></a>  <span class="fu">count</span>(HH1, HH2) <span class="sc">%&gt;%</span></span>
-<span id="cb23-9"><a href="c03-harmonise.html#cb23-9" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
-<span id="cb23-10"><a href="c03-harmonise.html#cb23-10" tabindex="-1"></a></span>
-<span id="cb23-11"><a href="c03-harmonise.html#cb23-11" tabindex="-1"></a>hh_keep <span class="ot">&lt;-</span> hh <span class="sc">%&gt;%</span></span>
-<span id="cb23-12"><a href="c03-harmonise.html#cb23-12" tabindex="-1"></a>  <span class="fu">select</span>(HH1, HH2, variable_1, variable_2)</span>
-<span id="cb23-13"><a href="c03-harmonise.html#cb23-13" tabindex="-1"></a></span>
-<span id="cb23-14"><a href="c03-harmonise.html#cb23-14" tabindex="-1"></a>fs_merged <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
-<span id="cb23-15"><a href="c03-harmonise.html#cb23-15" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
-<span id="cb23-16"><a href="c03-harmonise.html#cb23-16" tabindex="-1"></a>    hh_keep,</span>
-<span id="cb23-17"><a href="c03-harmonise.html#cb23-17" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;HH1&quot;</span>, <span class="st">&quot;HH2&quot;</span>),</span>
-<span id="cb23-18"><a href="c03-harmonise.html#cb23-18" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;many-to-one&quot;</span></span>
-<span id="cb23-19"><a href="c03-harmonise.html#cb23-19" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="c03-harmonise.html#cb20-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb20-2"><a href="c03-harmonise.html#cb20-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb20-3"><a href="c03-harmonise.html#cb20-3" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="c03-harmonise.html#cb20-4" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>)</span>
+<span id="cb20-5"><a href="c03-harmonise.html#cb20-5" tabindex="-1"></a>hh <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hh.sav&quot;</span>)</span>
+<span id="cb20-6"><a href="c03-harmonise.html#cb20-6" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="c03-harmonise.html#cb20-7" tabindex="-1"></a>hh <span class="sc">%&gt;%</span></span>
+<span id="cb20-8"><a href="c03-harmonise.html#cb20-8" tabindex="-1"></a>  <span class="fu">count</span>(HH1, HH2) <span class="sc">%&gt;%</span></span>
+<span id="cb20-9"><a href="c03-harmonise.html#cb20-9" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb20-10"><a href="c03-harmonise.html#cb20-10" tabindex="-1"></a></span>
+<span id="cb20-11"><a href="c03-harmonise.html#cb20-11" tabindex="-1"></a>hh_keep <span class="ot">&lt;-</span> hh <span class="sc">%&gt;%</span></span>
+<span id="cb20-12"><a href="c03-harmonise.html#cb20-12" tabindex="-1"></a>  <span class="fu">select</span>(HH1, HH2, variable_1, variable_2)</span>
+<span id="cb20-13"><a href="c03-harmonise.html#cb20-13" tabindex="-1"></a></span>
+<span id="cb20-14"><a href="c03-harmonise.html#cb20-14" tabindex="-1"></a>fs_merged <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
+<span id="cb20-15"><a href="c03-harmonise.html#cb20-15" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb20-16"><a href="c03-harmonise.html#cb20-16" tabindex="-1"></a>    hh_keep,</span>
+<span id="cb20-17"><a href="c03-harmonise.html#cb20-17" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;HH1&quot;</span>, <span class="st">&quot;HH2&quot;</span>),</span>
+<span id="cb20-18"><a href="c03-harmonise.html#cb20-18" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;many-to-one&quot;</span></span>
+<span id="cb20-19"><a href="c03-harmonise.html#cb20-19" tabindex="-1"></a>  )</span></code></pre></div>
 </div>
 </div>
 </div>
@@ -605,43 +604,43 @@ derive-mics-fl-vars-v1.0.R   passage length, scores, reading_status, max_reading
 <p><code>LN</code> in <code>fs</code> is <code>HL1</code> in <code>hl</code>. The selected-child link should be one-to-one.</p>
 <div class="code-tabs">
 <div class="code-panel" data-lang="Stata">
-<div class="sourceCode" id="cb24"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb24-1"><a href="c03-harmonise.html#cb24-1" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
-<span id="cb24-2"><a href="c03-harmonise.html#cb24-2" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb24-3"><a href="c03-harmonise.html#cb24-3" tabindex="-1"></a></span>
-<span id="cb24-4"><a href="c03-harmonise.html#cb24-4" tabindex="-1"></a><span class="kw">keep</span> HH1 HH2 HL1 variable_1 variable_2</span>
-<span id="cb24-5"><a href="c03-harmonise.html#cb24-5" tabindex="-1"></a><span class="kw">rename</span> HL1 LN</span>
-<span id="cb24-6"><a href="c03-harmonise.html#cb24-6" tabindex="-1"></a><span class="kw">isid</span> HH1 HH2 LN</span>
-<span id="cb24-7"><a href="c03-harmonise.html#cb24-7" tabindex="-1"></a></span>
-<span id="cb24-8"><a href="c03-harmonise.html#cb24-8" tabindex="-1"></a><span class="kw">tempfile</span> hl_child</span>
-<span id="cb24-9"><a href="c03-harmonise.html#cb24-9" tabindex="-1"></a><span class="kw">save</span> <span class="ot">`hl_child&#39;</span></span>
-<span id="cb24-10"><a href="c03-harmonise.html#cb24-10" tabindex="-1"></a></span>
-<span id="cb24-11"><a href="c03-harmonise.html#cb24-11" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
-<span id="cb24-12"><a href="c03-harmonise.html#cb24-12" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb24-13"><a href="c03-harmonise.html#cb24-13" tabindex="-1"></a></span>
-<span id="cb24-14"><a href="c03-harmonise.html#cb24-14" tabindex="-1"></a><span class="kw">isid</span> HH1 HH2 LN</span>
-<span id="cb24-15"><a href="c03-harmonise.html#cb24-15" tabindex="-1"></a><span class="kw">merge</span> 1:1 HH1 HH2 LN <span class="kw">using</span> <span class="ot">`hl_child&#39;</span></span>
-<span id="cb24-16"><a href="c03-harmonise.html#cb24-16" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb21-1"><a href="c03-harmonise.html#cb21-1" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
+<span id="cb21-2"><a href="c03-harmonise.html#cb21-2" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb21-3"><a href="c03-harmonise.html#cb21-3" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="c03-harmonise.html#cb21-4" tabindex="-1"></a><span class="kw">keep</span> HH1 HH2 HL1 variable_1 variable_2</span>
+<span id="cb21-5"><a href="c03-harmonise.html#cb21-5" tabindex="-1"></a><span class="kw">rename</span> HL1 LN</span>
+<span id="cb21-6"><a href="c03-harmonise.html#cb21-6" tabindex="-1"></a><span class="kw">isid</span> HH1 HH2 LN</span>
+<span id="cb21-7"><a href="c03-harmonise.html#cb21-7" tabindex="-1"></a></span>
+<span id="cb21-8"><a href="c03-harmonise.html#cb21-8" tabindex="-1"></a><span class="kw">tempfile</span> hl_child</span>
+<span id="cb21-9"><a href="c03-harmonise.html#cb21-9" tabindex="-1"></a><span class="kw">save</span> <span class="ot">`hl_child&#39;</span></span>
+<span id="cb21-10"><a href="c03-harmonise.html#cb21-10" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="c03-harmonise.html#cb21-11" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
+<span id="cb21-12"><a href="c03-harmonise.html#cb21-12" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb21-13"><a href="c03-harmonise.html#cb21-13" tabindex="-1"></a></span>
+<span id="cb21-14"><a href="c03-harmonise.html#cb21-14" tabindex="-1"></a><span class="kw">isid</span> HH1 HH2 LN</span>
+<span id="cb21-15"><a href="c03-harmonise.html#cb21-15" tabindex="-1"></a><span class="kw">merge</span> 1:1 HH1 HH2 LN <span class="kw">using</span> <span class="ot">`hl_child&#39;</span></span>
+<span id="cb21-16"><a href="c03-harmonise.html#cb21-16" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
 </div>
 <div class="code-panel" data-lang="R">
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="c03-harmonise.html#cb25-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
-<span id="cb25-2"><a href="c03-harmonise.html#cb25-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb25-3"><a href="c03-harmonise.html#cb25-3" tabindex="-1"></a></span>
-<span id="cb25-4"><a href="c03-harmonise.html#cb25-4" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>)</span>
-<span id="cb25-5"><a href="c03-harmonise.html#cb25-5" tabindex="-1"></a>hl <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>)</span>
-<span id="cb25-6"><a href="c03-harmonise.html#cb25-6" tabindex="-1"></a></span>
-<span id="cb25-7"><a href="c03-harmonise.html#cb25-7" tabindex="-1"></a>hl <span class="sc">%&gt;%</span></span>
-<span id="cb25-8"><a href="c03-harmonise.html#cb25-8" tabindex="-1"></a>  <span class="fu">count</span>(HH1, HH2, HL1) <span class="sc">%&gt;%</span></span>
-<span id="cb25-9"><a href="c03-harmonise.html#cb25-9" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
-<span id="cb25-10"><a href="c03-harmonise.html#cb25-10" tabindex="-1"></a></span>
-<span id="cb25-11"><a href="c03-harmonise.html#cb25-11" tabindex="-1"></a>hl_child <span class="ot">&lt;-</span> hl <span class="sc">%&gt;%</span></span>
-<span id="cb25-12"><a href="c03-harmonise.html#cb25-12" tabindex="-1"></a>  <span class="fu">select</span>(HH1, HH2, HL1, variable_1, variable_2)</span>
-<span id="cb25-13"><a href="c03-harmonise.html#cb25-13" tabindex="-1"></a></span>
-<span id="cb25-14"><a href="c03-harmonise.html#cb25-14" tabindex="-1"></a>fs_merged <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
-<span id="cb25-15"><a href="c03-harmonise.html#cb25-15" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
-<span id="cb25-16"><a href="c03-harmonise.html#cb25-16" tabindex="-1"></a>    hl_child,</span>
-<span id="cb25-17"><a href="c03-harmonise.html#cb25-17" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;HH1&quot;</span>, <span class="st">&quot;HH2&quot;</span>, <span class="st">&quot;LN&quot;</span> <span class="ot">=</span> <span class="st">&quot;HL1&quot;</span>),</span>
-<span id="cb25-18"><a href="c03-harmonise.html#cb25-18" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;one-to-one&quot;</span></span>
-<span id="cb25-19"><a href="c03-harmonise.html#cb25-19" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="c03-harmonise.html#cb22-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb22-2"><a href="c03-harmonise.html#cb22-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb22-3"><a href="c03-harmonise.html#cb22-3" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="c03-harmonise.html#cb22-4" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>)</span>
+<span id="cb22-5"><a href="c03-harmonise.html#cb22-5" tabindex="-1"></a>hl <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>)</span>
+<span id="cb22-6"><a href="c03-harmonise.html#cb22-6" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="c03-harmonise.html#cb22-7" tabindex="-1"></a>hl <span class="sc">%&gt;%</span></span>
+<span id="cb22-8"><a href="c03-harmonise.html#cb22-8" tabindex="-1"></a>  <span class="fu">count</span>(HH1, HH2, HL1) <span class="sc">%&gt;%</span></span>
+<span id="cb22-9"><a href="c03-harmonise.html#cb22-9" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb22-10"><a href="c03-harmonise.html#cb22-10" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="c03-harmonise.html#cb22-11" tabindex="-1"></a>hl_child <span class="ot">&lt;-</span> hl <span class="sc">%&gt;%</span></span>
+<span id="cb22-12"><a href="c03-harmonise.html#cb22-12" tabindex="-1"></a>  <span class="fu">select</span>(HH1, HH2, HL1, variable_1, variable_2)</span>
+<span id="cb22-13"><a href="c03-harmonise.html#cb22-13" tabindex="-1"></a></span>
+<span id="cb22-14"><a href="c03-harmonise.html#cb22-14" tabindex="-1"></a>fs_merged <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
+<span id="cb22-15"><a href="c03-harmonise.html#cb22-15" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb22-16"><a href="c03-harmonise.html#cb22-16" tabindex="-1"></a>    hl_child,</span>
+<span id="cb22-17"><a href="c03-harmonise.html#cb22-17" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;HH1&quot;</span>, <span class="st">&quot;HH2&quot;</span>, <span class="st">&quot;LN&quot;</span> <span class="ot">=</span> <span class="st">&quot;HL1&quot;</span>),</span>
+<span id="cb22-18"><a href="c03-harmonise.html#cb22-18" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;one-to-one&quot;</span></span>
+<span id="cb22-19"><a href="c03-harmonise.html#cb22-19" tabindex="-1"></a>  )</span></code></pre></div>
 </div>
 </div>
 </div>
@@ -650,37 +649,37 @@ derive-mics-fl-vars-v1.0.R   passage length, scores, reading_status, max_reading
 <p><code>FS4</code> is another person’s line, not the child’s. Link <code>HH1</code> + <code>HH2</code> + <code>FS4</code> to <code>HL1</code>.</p>
 <div class="code-tabs">
 <div class="code-panel" data-lang="Stata">
-<div class="sourceCode" id="cb26"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb26-1"><a href="c03-harmonise.html#cb26-1" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
-<span id="cb26-2"><a href="c03-harmonise.html#cb26-2" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb26-3"><a href="c03-harmonise.html#cb26-3" tabindex="-1"></a></span>
-<span id="cb26-4"><a href="c03-harmonise.html#cb26-4" tabindex="-1"></a><span class="kw">keep</span> HH1 HH2 HL1 variable_1 variable_2</span>
-<span id="cb26-5"><a href="c03-harmonise.html#cb26-5" tabindex="-1"></a><span class="kw">rename</span> HL1 FS4</span>
-<span id="cb26-6"><a href="c03-harmonise.html#cb26-6" tabindex="-1"></a></span>
-<span id="cb26-7"><a href="c03-harmonise.html#cb26-7" tabindex="-1"></a><span class="kw">tempfile</span> hl_care</span>
-<span id="cb26-8"><a href="c03-harmonise.html#cb26-8" tabindex="-1"></a><span class="kw">save</span> <span class="ot">`hl_care&#39;</span></span>
-<span id="cb26-9"><a href="c03-harmonise.html#cb26-9" tabindex="-1"></a></span>
-<span id="cb26-10"><a href="c03-harmonise.html#cb26-10" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
-<span id="cb26-11"><a href="c03-harmonise.html#cb26-11" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb26-12"><a href="c03-harmonise.html#cb26-12" tabindex="-1"></a></span>
-<span id="cb26-13"><a href="c03-harmonise.html#cb26-13" tabindex="-1"></a><span class="kw">merge</span> <span class="fu">m</span>:1 HH1 HH2 FS4 <span class="kw">using</span> <span class="ot">`hl_care&#39;</span></span>
-<span id="cb26-14"><a href="c03-harmonise.html#cb26-14" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb23-1"><a href="c03-harmonise.html#cb23-1" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
+<span id="cb23-2"><a href="c03-harmonise.html#cb23-2" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb23-3"><a href="c03-harmonise.html#cb23-3" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="c03-harmonise.html#cb23-4" tabindex="-1"></a><span class="kw">keep</span> HH1 HH2 HL1 variable_1 variable_2</span>
+<span id="cb23-5"><a href="c03-harmonise.html#cb23-5" tabindex="-1"></a><span class="kw">rename</span> HL1 FS4</span>
+<span id="cb23-6"><a href="c03-harmonise.html#cb23-6" tabindex="-1"></a></span>
+<span id="cb23-7"><a href="c03-harmonise.html#cb23-7" tabindex="-1"></a><span class="kw">tempfile</span> hl_care</span>
+<span id="cb23-8"><a href="c03-harmonise.html#cb23-8" tabindex="-1"></a><span class="kw">save</span> <span class="ot">`hl_care&#39;</span></span>
+<span id="cb23-9"><a href="c03-harmonise.html#cb23-9" tabindex="-1"></a></span>
+<span id="cb23-10"><a href="c03-harmonise.html#cb23-10" tabindex="-1"></a>import spss <span class="kw">using</span> <span class="co">///</span></span>
+<span id="cb23-11"><a href="c03-harmonise.html#cb23-11" tabindex="-1"></a>    <span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb23-12"><a href="c03-harmonise.html#cb23-12" tabindex="-1"></a></span>
+<span id="cb23-13"><a href="c03-harmonise.html#cb23-13" tabindex="-1"></a><span class="kw">merge</span> <span class="fu">m</span>:1 HH1 HH2 FS4 <span class="kw">using</span> <span class="ot">`hl_care&#39;</span></span>
+<span id="cb23-14"><a href="c03-harmonise.html#cb23-14" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
 </div>
 <div class="code-panel" data-lang="R">
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="c03-harmonise.html#cb27-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
-<span id="cb27-2"><a href="c03-harmonise.html#cb27-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb27-3"><a href="c03-harmonise.html#cb27-3" tabindex="-1"></a></span>
-<span id="cb27-4"><a href="c03-harmonise.html#cb27-4" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>)</span>
-<span id="cb27-5"><a href="c03-harmonise.html#cb27-5" tabindex="-1"></a>hl <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>)</span>
-<span id="cb27-6"><a href="c03-harmonise.html#cb27-6" tabindex="-1"></a></span>
-<span id="cb27-7"><a href="c03-harmonise.html#cb27-7" tabindex="-1"></a>hl_care <span class="ot">&lt;-</span> hl <span class="sc">%&gt;%</span></span>
-<span id="cb27-8"><a href="c03-harmonise.html#cb27-8" tabindex="-1"></a>  <span class="fu">select</span>(HH1, HH2, HL1, variable_1, variable_2)</span>
-<span id="cb27-9"><a href="c03-harmonise.html#cb27-9" tabindex="-1"></a></span>
-<span id="cb27-10"><a href="c03-harmonise.html#cb27-10" tabindex="-1"></a>fs_merged <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
-<span id="cb27-11"><a href="c03-harmonise.html#cb27-11" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
-<span id="cb27-12"><a href="c03-harmonise.html#cb27-12" tabindex="-1"></a>    hl_care,</span>
-<span id="cb27-13"><a href="c03-harmonise.html#cb27-13" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;HH1&quot;</span>, <span class="st">&quot;HH2&quot;</span>, <span class="st">&quot;FS4&quot;</span> <span class="ot">=</span> <span class="st">&quot;HL1&quot;</span>),</span>
-<span id="cb27-14"><a href="c03-harmonise.html#cb27-14" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;many-to-one&quot;</span></span>
-<span id="cb27-15"><a href="c03-harmonise.html#cb27-15" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="c03-harmonise.html#cb24-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb24-2"><a href="c03-harmonise.html#cb24-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb24-3"><a href="c03-harmonise.html#cb24-3" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="c03-harmonise.html#cb24-4" tabindex="-1"></a>fs <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/fs.sav&quot;</span>)</span>
+<span id="cb24-5"><a href="c03-harmonise.html#cb24-5" tabindex="-1"></a>hl <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(<span class="st">&quot;Data/UNICEF/COUNTRY_SURVEY/hl.sav&quot;</span>)</span>
+<span id="cb24-6"><a href="c03-harmonise.html#cb24-6" tabindex="-1"></a></span>
+<span id="cb24-7"><a href="c03-harmonise.html#cb24-7" tabindex="-1"></a>hl_care <span class="ot">&lt;-</span> hl <span class="sc">%&gt;%</span></span>
+<span id="cb24-8"><a href="c03-harmonise.html#cb24-8" tabindex="-1"></a>  <span class="fu">select</span>(HH1, HH2, HL1, variable_1, variable_2)</span>
+<span id="cb24-9"><a href="c03-harmonise.html#cb24-9" tabindex="-1"></a></span>
+<span id="cb24-10"><a href="c03-harmonise.html#cb24-10" tabindex="-1"></a>fs_merged <span class="ot">&lt;-</span> fs <span class="sc">%&gt;%</span></span>
+<span id="cb24-11"><a href="c03-harmonise.html#cb24-11" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb24-12"><a href="c03-harmonise.html#cb24-12" tabindex="-1"></a>    hl_care,</span>
+<span id="cb24-13"><a href="c03-harmonise.html#cb24-13" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;HH1&quot;</span>, <span class="st">&quot;HH2&quot;</span>, <span class="st">&quot;FS4&quot;</span> <span class="ot">=</span> <span class="st">&quot;HL1&quot;</span>),</span>
+<span id="cb24-14"><a href="c03-harmonise.html#cb24-14" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;many-to-one&quot;</span></span>
+<span id="cb24-15"><a href="c03-harmonise.html#cb24-15" tabindex="-1"></a>  )</span></code></pre></div>
 </div>
 </div>
 </div>
@@ -689,17 +688,17 @@ derive-mics-fl-vars-v1.0.R   passage length, scores, reading_status, max_reading
 <p>A merge that completes without an error is not evidence that it is correct. Ask what one row represents in each file, whether the key is unique, and how many rows the analysis file should have afterwards.</p>
 <div class="code-tabs">
 <div class="code-panel" data-lang="Stata">
-<div class="sourceCode" id="cb28"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb28-1"><a href="c03-harmonise.html#cb28-1" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span>
-<span id="cb28-2"><a href="c03-harmonise.html#cb28-2" tabindex="-1"></a>* 1 = master only; 2 = <span class="kw">using</span> only; 3 = matched</span>
-<span id="cb28-3"><a href="c03-harmonise.html#cb28-3" tabindex="-1"></a>* Do <span class="kw">not</span> <span class="kw">drop</span> <span class="kw">if</span> <span class="dt">_merge</span> != 3 <span class="kw">until</span> you know why <span class="bn">rows</span> did <span class="kw">not</span> <span class="fu">match</span>.</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb25-1"><a href="c03-harmonise.html#cb25-1" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span>
+<span id="cb25-2"><a href="c03-harmonise.html#cb25-2" tabindex="-1"></a>* 1 = master only; 2 = <span class="kw">using</span> only; 3 = matched</span>
+<span id="cb25-3"><a href="c03-harmonise.html#cb25-3" tabindex="-1"></a>* Do <span class="kw">not</span> <span class="kw">drop</span> <span class="kw">if</span> <span class="dt">_merge</span> != 3 <span class="kw">until</span> you know why <span class="bn">rows</span> did <span class="kw">not</span> <span class="fu">match</span>.</span></code></pre></div>
 </div>
 <div class="code-panel" data-lang="R">
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="c03-harmonise.html#cb29-1" tabindex="-1"></a><span class="fu">nrow</span>(fs)</span>
-<span id="cb29-2"><a href="c03-harmonise.html#cb29-2" tabindex="-1"></a><span class="fu">nrow</span>(fs_merged)</span>
-<span id="cb29-3"><a href="c03-harmonise.html#cb29-3" tabindex="-1"></a></span>
-<span id="cb29-4"><a href="c03-harmonise.html#cb29-4" tabindex="-1"></a>fs_merged <span class="sc">%&gt;%</span></span>
-<span id="cb29-5"><a href="c03-harmonise.html#cb29-5" tabindex="-1"></a>  <span class="fu">count</span>(HH1, HH2, LN) <span class="sc">%&gt;%</span></span>
-<span id="cb29-6"><a href="c03-harmonise.html#cb29-6" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="c03-harmonise.html#cb26-1" tabindex="-1"></a><span class="fu">nrow</span>(fs)</span>
+<span id="cb26-2"><a href="c03-harmonise.html#cb26-2" tabindex="-1"></a><span class="fu">nrow</span>(fs_merged)</span>
+<span id="cb26-3"><a href="c03-harmonise.html#cb26-3" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="c03-harmonise.html#cb26-4" tabindex="-1"></a>fs_merged <span class="sc">%&gt;%</span></span>
+<span id="cb26-5"><a href="c03-harmonise.html#cb26-5" tabindex="-1"></a>  <span class="fu">count</span>(HH1, HH2, LN) <span class="sc">%&gt;%</span></span>
+<span id="cb26-6"><a href="c03-harmonise.html#cb26-6" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div>
 </div>
 </div>
 <p>Adding an <code>hh</code> covariate does not change the weight. While the rows remain selected children, use <code>fsweight</code> (<a href="ch-whats-in-data.html#c02-files">Files, keys, and who is in fs</a>).</p>
@@ -726,28 +725,28 @@ linech              &lt;-&gt; LINECH</code></pre>
 <h3><span class="header-section-number">3.3.1</span> Check uniqueness<a href="c03-harmonise.html#check-uniqueness" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div class="code-tabs">
 <div class="code-panel" data-lang="Stata">
-<div class="sourceCode" id="cb31"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb31-1"><a href="c03-harmonise.html#cb31-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb31-2"><a href="c03-harmonise.html#cb31-2" tabindex="-1"></a><span class="kw">duplicates</span> <span class="kw">report</span> SAMPLE CLUSTER HHNO LINECH</span>
-<span id="cb31-3"><a href="c03-harmonise.html#cb31-3" tabindex="-1"></a></span>
-<span id="cb31-4"><a href="c03-harmonise.html#cb31-4" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb31-5"><a href="c03-harmonise.html#cb31-5" tabindex="-1"></a><span class="kw">duplicates</span> <span class="kw">report</span> <span class="kw">sample</span> <span class="kw">cluster</span> hhno linech</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb28-1"><a href="c03-harmonise.html#cb28-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb28-2"><a href="c03-harmonise.html#cb28-2" tabindex="-1"></a><span class="kw">duplicates</span> <span class="kw">report</span> SAMPLE CLUSTER HHNO LINECH</span>
+<span id="cb28-3"><a href="c03-harmonise.html#cb28-3" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="c03-harmonise.html#cb28-4" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb28-5"><a href="c03-harmonise.html#cb28-5" tabindex="-1"></a><span class="kw">duplicates</span> <span class="kw">report</span> <span class="kw">sample</span> <span class="kw">cluster</span> hhno linech</span></code></pre></div>
 </div>
 <div class="code-panel" data-lang="R">
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="c03-harmonise.html#cb32-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
-<span id="cb32-2"><a href="c03-harmonise.html#cb32-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb32-3"><a href="c03-harmonise.html#cb32-3" tabindex="-1"></a></span>
-<span id="cb32-4"><a href="c03-harmonise.html#cb32-4" tabindex="-1"></a>ipums <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>)</span>
-<span id="cb32-5"><a href="c03-harmonise.html#cb32-5" tabindex="-1"></a>aflearn <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(</span>
-<span id="cb32-6"><a href="c03-harmonise.html#cb32-6" tabindex="-1"></a>  <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span></span>
-<span id="cb32-7"><a href="c03-harmonise.html#cb32-7" tabindex="-1"></a>)</span>
-<span id="cb32-8"><a href="c03-harmonise.html#cb32-8" tabindex="-1"></a></span>
-<span id="cb32-9"><a href="c03-harmonise.html#cb32-9" tabindex="-1"></a>ipums <span class="sc">%&gt;%</span></span>
-<span id="cb32-10"><a href="c03-harmonise.html#cb32-10" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE, CLUSTER, HHNO, LINECH) <span class="sc">%&gt;%</span></span>
-<span id="cb32-11"><a href="c03-harmonise.html#cb32-11" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
-<span id="cb32-12"><a href="c03-harmonise.html#cb32-12" tabindex="-1"></a></span>
-<span id="cb32-13"><a href="c03-harmonise.html#cb32-13" tabindex="-1"></a>aflearn <span class="sc">%&gt;%</span></span>
-<span id="cb32-14"><a href="c03-harmonise.html#cb32-14" tabindex="-1"></a>  <span class="fu">count</span>(sample, cluster, hhno, linech) <span class="sc">%&gt;%</span></span>
-<span id="cb32-15"><a href="c03-harmonise.html#cb32-15" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="c03-harmonise.html#cb29-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb29-2"><a href="c03-harmonise.html#cb29-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb29-3"><a href="c03-harmonise.html#cb29-3" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="c03-harmonise.html#cb29-4" tabindex="-1"></a>ipums <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>)</span>
+<span id="cb29-5"><a href="c03-harmonise.html#cb29-5" tabindex="-1"></a>aflearn <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(</span>
+<span id="cb29-6"><a href="c03-harmonise.html#cb29-6" tabindex="-1"></a>  <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span></span>
+<span id="cb29-7"><a href="c03-harmonise.html#cb29-7" tabindex="-1"></a>)</span>
+<span id="cb29-8"><a href="c03-harmonise.html#cb29-8" tabindex="-1"></a></span>
+<span id="cb29-9"><a href="c03-harmonise.html#cb29-9" tabindex="-1"></a>ipums <span class="sc">%&gt;%</span></span>
+<span id="cb29-10"><a href="c03-harmonise.html#cb29-10" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE, CLUSTER, HHNO, LINECH) <span class="sc">%&gt;%</span></span>
+<span id="cb29-11"><a href="c03-harmonise.html#cb29-11" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb29-12"><a href="c03-harmonise.html#cb29-12" tabindex="-1"></a></span>
+<span id="cb29-13"><a href="c03-harmonise.html#cb29-13" tabindex="-1"></a>aflearn <span class="sc">%&gt;%</span></span>
+<span id="cb29-14"><a href="c03-harmonise.html#cb29-14" tabindex="-1"></a>  <span class="fu">count</span>(sample, cluster, hhno, linech) <span class="sc">%&gt;%</span></span>
+<span id="cb29-15"><a href="c03-harmonise.html#cb29-15" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div>
 </div>
 </div>
 <p>If either check returns duplicates, stop before merging.</p>
@@ -757,43 +756,43 @@ linech              &lt;-&gt; LINECH</code></pre>
 <p>Keep IPUMS as the analysis population. Not every <code>fs</code> child has a completed reading assessment; ages 5–6 and 15–17 are outside the FLS target, and eligible children can leave the pathway earlier. The question is whether the child record links, not whether every child has a score.</p>
 <div class="code-tabs">
 <div class="code-panel" data-lang="Stata">
-<div class="sourceCode" id="cb33"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb33-1"><a href="c03-harmonise.html#cb33-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb33-2"><a href="c03-harmonise.html#cb33-2" tabindex="-1"></a></span>
-<span id="cb33-3"><a href="c03-harmonise.html#cb33-3" tabindex="-1"></a><span class="kw">rename</span> <span class="kw">sample</span> SAMPLE</span>
-<span id="cb33-4"><a href="c03-harmonise.html#cb33-4" tabindex="-1"></a><span class="kw">rename</span> <span class="kw">cluster</span> CLUSTER</span>
-<span id="cb33-5"><a href="c03-harmonise.html#cb33-5" tabindex="-1"></a><span class="kw">rename</span> hhno HHNO</span>
-<span id="cb33-6"><a href="c03-harmonise.html#cb33-6" tabindex="-1"></a><span class="kw">rename</span> linech LINECH</span>
-<span id="cb33-7"><a href="c03-harmonise.html#cb33-7" tabindex="-1"></a></span>
-<span id="cb33-8"><a href="c03-harmonise.html#cb33-8" tabindex="-1"></a><span class="kw">isid</span> SAMPLE CLUSTER HHNO LINECH</span>
-<span id="cb33-9"><a href="c03-harmonise.html#cb33-9" tabindex="-1"></a></span>
-<span id="cb33-10"><a href="c03-harmonise.html#cb33-10" tabindex="-1"></a><span class="kw">tempfile</span> aflearn</span>
-<span id="cb33-11"><a href="c03-harmonise.html#cb33-11" tabindex="-1"></a><span class="kw">save</span> <span class="ot">`aflearn&#39;</span></span>
-<span id="cb33-12"><a href="c03-harmonise.html#cb33-12" tabindex="-1"></a></span>
-<span id="cb33-13"><a href="c03-harmonise.html#cb33-13" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb33-14"><a href="c03-harmonise.html#cb33-14" tabindex="-1"></a></span>
-<span id="cb33-15"><a href="c03-harmonise.html#cb33-15" tabindex="-1"></a><span class="kw">merge</span> 1:1 SAMPLE CLUSTER HHNO LINECH <span class="kw">using</span> <span class="ot">`aflearn&#39;</span></span>
-<span id="cb33-16"><a href="c03-harmonise.html#cb33-16" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb30-1"><a href="c03-harmonise.html#cb30-1" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb30-2"><a href="c03-harmonise.html#cb30-2" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="c03-harmonise.html#cb30-3" tabindex="-1"></a><span class="kw">rename</span> <span class="kw">sample</span> SAMPLE</span>
+<span id="cb30-4"><a href="c03-harmonise.html#cb30-4" tabindex="-1"></a><span class="kw">rename</span> <span class="kw">cluster</span> CLUSTER</span>
+<span id="cb30-5"><a href="c03-harmonise.html#cb30-5" tabindex="-1"></a><span class="kw">rename</span> hhno HHNO</span>
+<span id="cb30-6"><a href="c03-harmonise.html#cb30-6" tabindex="-1"></a><span class="kw">rename</span> linech LINECH</span>
+<span id="cb30-7"><a href="c03-harmonise.html#cb30-7" tabindex="-1"></a></span>
+<span id="cb30-8"><a href="c03-harmonise.html#cb30-8" tabindex="-1"></a><span class="kw">isid</span> SAMPLE CLUSTER HHNO LINECH</span>
+<span id="cb30-9"><a href="c03-harmonise.html#cb30-9" tabindex="-1"></a></span>
+<span id="cb30-10"><a href="c03-harmonise.html#cb30-10" tabindex="-1"></a><span class="kw">tempfile</span> aflearn</span>
+<span id="cb30-11"><a href="c03-harmonise.html#cb30-11" tabindex="-1"></a><span class="kw">save</span> <span class="ot">`aflearn&#39;</span></span>
+<span id="cb30-12"><a href="c03-harmonise.html#cb30-12" tabindex="-1"></a></span>
+<span id="cb30-13"><a href="c03-harmonise.html#cb30-13" tabindex="-1"></a><span class="kw">use</span> <span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>, <span class="kw">clear</span></span>
+<span id="cb30-14"><a href="c03-harmonise.html#cb30-14" tabindex="-1"></a></span>
+<span id="cb30-15"><a href="c03-harmonise.html#cb30-15" tabindex="-1"></a><span class="kw">merge</span> 1:1 SAMPLE CLUSTER HHNO LINECH <span class="kw">using</span> <span class="ot">`aflearn&#39;</span></span>
+<span id="cb30-16"><a href="c03-harmonise.html#cb30-16" tabindex="-1"></a><span class="kw">tab</span> <span class="dt">_merge</span></span></code></pre></div>
 </div>
 <div class="code-panel" data-lang="R">
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="c03-harmonise.html#cb34-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
-<span id="cb34-2"><a href="c03-harmonise.html#cb34-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb34-3"><a href="c03-harmonise.html#cb34-3" tabindex="-1"></a></span>
-<span id="cb34-4"><a href="c03-harmonise.html#cb34-4" tabindex="-1"></a>ipums <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>)</span>
-<span id="cb34-5"><a href="c03-harmonise.html#cb34-5" tabindex="-1"></a>aflearn <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(</span>
-<span id="cb34-6"><a href="c03-harmonise.html#cb34-6" tabindex="-1"></a>  <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span></span>
-<span id="cb34-7"><a href="c03-harmonise.html#cb34-7" tabindex="-1"></a>)</span>
-<span id="cb34-8"><a href="c03-harmonise.html#cb34-8" tabindex="-1"></a></span>
-<span id="cb34-9"><a href="c03-harmonise.html#cb34-9" tabindex="-1"></a>analysis <span class="ot">&lt;-</span> ipums <span class="sc">%&gt;%</span></span>
-<span id="cb34-10"><a href="c03-harmonise.html#cb34-10" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
-<span id="cb34-11"><a href="c03-harmonise.html#cb34-11" tabindex="-1"></a>    aflearn,</span>
-<span id="cb34-12"><a href="c03-harmonise.html#cb34-12" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(</span>
-<span id="cb34-13"><a href="c03-harmonise.html#cb34-13" tabindex="-1"></a>      <span class="st">&quot;SAMPLE&quot;</span> <span class="ot">=</span> <span class="st">&quot;sample&quot;</span>,</span>
-<span id="cb34-14"><a href="c03-harmonise.html#cb34-14" tabindex="-1"></a>      <span class="st">&quot;CLUSTER&quot;</span> <span class="ot">=</span> <span class="st">&quot;cluster&quot;</span>,</span>
-<span id="cb34-15"><a href="c03-harmonise.html#cb34-15" tabindex="-1"></a>      <span class="st">&quot;HHNO&quot;</span> <span class="ot">=</span> <span class="st">&quot;hhno&quot;</span>,</span>
-<span id="cb34-16"><a href="c03-harmonise.html#cb34-16" tabindex="-1"></a>      <span class="st">&quot;LINECH&quot;</span> <span class="ot">=</span> <span class="st">&quot;linech&quot;</span></span>
-<span id="cb34-17"><a href="c03-harmonise.html#cb34-17" tabindex="-1"></a>    ),</span>
-<span id="cb34-18"><a href="c03-harmonise.html#cb34-18" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;one-to-one&quot;</span></span>
-<span id="cb34-19"><a href="c03-harmonise.html#cb34-19" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="c03-harmonise.html#cb31-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb31-2"><a href="c03-harmonise.html#cb31-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb31-3"><a href="c03-harmonise.html#cb31-3" tabindex="-1"></a></span>
+<span id="cb31-4"><a href="c03-harmonise.html#cb31-4" tabindex="-1"></a>ipums <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;Data/ipums_mics_fs.dta&quot;</span>)</span>
+<span id="cb31-5"><a href="c03-harmonise.html#cb31-5" tabindex="-1"></a>aflearn <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(</span>
+<span id="cb31-6"><a href="c03-harmonise.html#cb31-6" tabindex="-1"></a>  <span class="st">&quot;Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta&quot;</span></span>
+<span id="cb31-7"><a href="c03-harmonise.html#cb31-7" tabindex="-1"></a>)</span>
+<span id="cb31-8"><a href="c03-harmonise.html#cb31-8" tabindex="-1"></a></span>
+<span id="cb31-9"><a href="c03-harmonise.html#cb31-9" tabindex="-1"></a>analysis <span class="ot">&lt;-</span> ipums <span class="sc">%&gt;%</span></span>
+<span id="cb31-10"><a href="c03-harmonise.html#cb31-10" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb31-11"><a href="c03-harmonise.html#cb31-11" tabindex="-1"></a>    aflearn,</span>
+<span id="cb31-12"><a href="c03-harmonise.html#cb31-12" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(</span>
+<span id="cb31-13"><a href="c03-harmonise.html#cb31-13" tabindex="-1"></a>      <span class="st">&quot;SAMPLE&quot;</span> <span class="ot">=</span> <span class="st">&quot;sample&quot;</span>,</span>
+<span id="cb31-14"><a href="c03-harmonise.html#cb31-14" tabindex="-1"></a>      <span class="st">&quot;CLUSTER&quot;</span> <span class="ot">=</span> <span class="st">&quot;cluster&quot;</span>,</span>
+<span id="cb31-15"><a href="c03-harmonise.html#cb31-15" tabindex="-1"></a>      <span class="st">&quot;HHNO&quot;</span> <span class="ot">=</span> <span class="st">&quot;hhno&quot;</span>,</span>
+<span id="cb31-16"><a href="c03-harmonise.html#cb31-16" tabindex="-1"></a>      <span class="st">&quot;LINECH&quot;</span> <span class="ot">=</span> <span class="st">&quot;linech&quot;</span></span>
+<span id="cb31-17"><a href="c03-harmonise.html#cb31-17" tabindex="-1"></a>    ),</span>
+<span id="cb31-18"><a href="c03-harmonise.html#cb31-18" tabindex="-1"></a>    <span class="at">relationship =</span> <span class="st">&quot;one-to-one&quot;</span></span>
+<span id="cb31-19"><a href="c03-harmonise.html#cb31-19" tabindex="-1"></a>  )</span></code></pre></div>
 </div>
 </div>
 <p>Do not drop unmatched records until you know why they did not match. Once AFLEARN reading is on the file, drop or rename the IPUMS reading variables so you do not use them by accident.</p>
@@ -803,20 +802,20 @@ linech              &lt;-&gt; LINECH</code></pre>
 <p>Use the IPUMS age variable from your extract (often <code>AGE</code>). Malawi must show both assessment languages.</p>
 <div class="code-tabs">
 <div class="code-panel" data-lang="Stata">
-<div class="sourceCode" id="cb35"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb35-1"><a href="c03-harmonise.html#cb35-1" tabindex="-1"></a><span class="kw">tab</span> SAMPLE</span>
-<span id="cb35-2"><a href="c03-harmonise.html#cb35-2" tabindex="-1"></a><span class="kw">tab</span> reading_status <span class="kw">if</span> AGE &gt;= 7 &amp; AGE &lt;= 14</span>
-<span id="cb35-3"><a href="c03-harmonise.html#cb35-3" tabindex="-1"></a><span class="kw">tab</span> SAMPLE passage_language</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb32-1"><a href="c03-harmonise.html#cb32-1" tabindex="-1"></a><span class="kw">tab</span> SAMPLE</span>
+<span id="cb32-2"><a href="c03-harmonise.html#cb32-2" tabindex="-1"></a><span class="kw">tab</span> reading_status <span class="kw">if</span> AGE &gt;= 7 &amp; AGE &lt;= 14</span>
+<span id="cb32-3"><a href="c03-harmonise.html#cb32-3" tabindex="-1"></a><span class="kw">tab</span> SAMPLE passage_language</span></code></pre></div>
 </div>
 <div class="code-panel" data-lang="R">
-<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="c03-harmonise.html#cb36-1" tabindex="-1"></a>analysis <span class="sc">%&gt;%</span></span>
-<span id="cb36-2"><a href="c03-harmonise.html#cb36-2" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE)</span>
-<span id="cb36-3"><a href="c03-harmonise.html#cb36-3" tabindex="-1"></a></span>
-<span id="cb36-4"><a href="c03-harmonise.html#cb36-4" tabindex="-1"></a>analysis <span class="sc">%&gt;%</span></span>
-<span id="cb36-5"><a href="c03-harmonise.html#cb36-5" tabindex="-1"></a>  <span class="fu">filter</span>(AGE <span class="sc">&gt;=</span> <span class="dv">7</span>, AGE <span class="sc">&lt;=</span> <span class="dv">14</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb36-6"><a href="c03-harmonise.html#cb36-6" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE, reading_status)</span>
-<span id="cb36-7"><a href="c03-harmonise.html#cb36-7" tabindex="-1"></a></span>
-<span id="cb36-8"><a href="c03-harmonise.html#cb36-8" tabindex="-1"></a>analysis <span class="sc">%&gt;%</span></span>
-<span id="cb36-9"><a href="c03-harmonise.html#cb36-9" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE, passage_language)</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="c03-harmonise.html#cb33-1" tabindex="-1"></a>analysis <span class="sc">%&gt;%</span></span>
+<span id="cb33-2"><a href="c03-harmonise.html#cb33-2" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE)</span>
+<span id="cb33-3"><a href="c03-harmonise.html#cb33-3" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="c03-harmonise.html#cb33-4" tabindex="-1"></a>analysis <span class="sc">%&gt;%</span></span>
+<span id="cb33-5"><a href="c03-harmonise.html#cb33-5" tabindex="-1"></a>  <span class="fu">filter</span>(AGE <span class="sc">&gt;=</span> <span class="dv">7</span>, AGE <span class="sc">&lt;=</span> <span class="dv">14</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb33-6"><a href="c03-harmonise.html#cb33-6" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE, reading_status)</span>
+<span id="cb33-7"><a href="c03-harmonise.html#cb33-7" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="c03-harmonise.html#cb33-8" tabindex="-1"></a>analysis <span class="sc">%&gt;%</span></span>
+<span id="cb33-9"><a href="c03-harmonise.html#cb33-9" tabindex="-1"></a>  <span class="fu">count</span>(SAMPLE, passage_language)</span></code></pre></div>
 </div>
 </div>
 <p>If the study uses only single-passage countries, the AFLEARN reading fields are still the simpler common definition: the same <code>reading_status</code>, passage length, and accuracy rule in every supported survey.</p>

@@ -7,13 +7,13 @@ UNICEF releases MICS microdata as SPSS (`.sav`) files. The files already carry v
 1.  Open <https://mics.unicef.org/surveys>.
 2.  Log in if the site asks you to. Dataset downloads usually need an account.
 3.  Filter to the surveys you want: round **MICS6**, then region or countries, data type **MICS**, and status **Completed**.
-4.  Click **Download MICS datasets**. UNICEF packs every matching survey into one zip, usually named `MICS_Datasets.zip`.
+4.  Click **Download MICS datasets**. UNICEF packs every matching survey into one bulk zip, usually named `MICS_Datasets.zip`.
 
-Make a project folder, for example `MICS project`, and save `MICS_Datasets.zip` in it.
+Create a project folder in your local computer, for example `MICS project`, and save `MICS_Datasets.zip` in it.
 
 ### Unpack with AFLEARN's scripts
 
-The bulk zip nests each survey in further archives and wrapper folders. Unpacking many countries by hand wastes time and invites path errors.
+The `MICS_Datasets.zip` bulk zip nests each country survey in further archives and wrapper folders, as shown in the illustration below. Unpacking a large number of country surveys by hand wastes time and invites path errors.
 
 ``` text
 MICS_Datasets.zip
@@ -25,7 +25,7 @@ MICS_Datasets.zip
             └── ...
 ```
 
-Download [Script.zip](https://github.com/datafirst-aflearn/mics-guide/raw/main/Script.zip) and unzip it into the same project folder, so `Script/` sits beside `MICS_Datasets.zip`:
+To avoid this, firstly download from [AFLEARN's repository](https://github.com/datafirst-aflearn/mics-guide/raw/main/Script.zip) `Script.zip` and unzip it into the same project folder, i.e., `MICS project`, so `Script/` sits beside `MICS_Datasets.zip`. See blow:
 
 ``` text
 MICS project/
@@ -33,18 +33,14 @@ MICS project/
 └── Script/
 ```
 
-In R, set the project folder as the working directory and source `run-it.R`:
+Next, open R, set the `MICS project` folder as the working directory and source `run-it.R` as shown below:
 
 ```{r eval=FALSE}
 setwd("C:/path/to/MICS project")
 source("Script/run-it.R")
 ```
 
-The working directory must be the folder that holds `Script/`. If it is not, the script stops before creating anything.
-
-That one run unpacks the surveys and writes the AFLEARN analysis file. Later chapters explain those files. You do not need to source the other scripts on the first run.
-
-After a successful run:
+You have to ascertain that the working directory must be the folder that holds `Script/`. After a successful run, you will notice that there is now a `Data/` folder with a `UNICEF/` folder inside that carries all the unpacked and tidy country surveys you would have downloaded. Each survey then has a predictable path such as `Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav`.
 
 ``` text
 MICS project/
@@ -59,43 +55,20 @@ MICS project/
     │   │   └── ...
     │   └── ...
     └── AFLEARN Harmonised Data/
-        ├── mics6-crosswalk.xlsx
-        └── mics6-fs-harmonised-v2.0.dta
+       
 ```
 
-Each survey then has a predictable path such as `Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav`.
+You will also notice a folder called `AFLEARN Harmonised Data/`. This folder carried the AFLEARN harmonised microdata file, which will be explained in depth in Chapter 3 on Harmonising MICS6 microdata. 
 
-If the UNICEF zip is not in the project folder, pass its path:
-
-```{r eval=FALSE}
-source("Script/prepare-mics-fs.R")
-prepare_mics_data(zip = "C:/path/to/MICS_Datasets.zip")
-```
-
-Then source `Script/run-it.R` as usual, or source the remaining scripts from `Script/` yourself.
-
-### Check the result
-
-```{r eval=FALSE}
-dir.exists("Data/UNICEF")
-list.files("Data/UNICEF")
-file.exists("Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav")
-```
-
-Open one SPSS file:
-
-```{r eval=FALSE}
-library(haven)
-fs <- read_sav("Data/UNICEF/BEN_2021_MICS6_v01_M/fs.sav")
-dim(fs)
-```
 
 ::: alternativebox-header
 **Keep the original download**
 :::
 
 ::: alternativebox
-Keep the original UNICEF zip. The clean folders are for analysis; the zip is the unchanged source.
+Keep the original `MICS_Datasets.zip` file. The clean country survey folders are for analysis, while the  `MICS_Datasets.zip` file is the unchanged source.
 :::
 
-[Understanding MICS6 data](#ch-whats-in-data) explains the survey files and the FLS module.
+After setting up, [Understanding MICS6 data](#ch-whats-in-data) explains the survey files and the FLS module.
+
+

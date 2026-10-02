@@ -2,14 +2,10 @@
 
 The Multiple Indicator Cluster Survey (MICS) is a national household survey implemented by countries under the programme developed by the United Nation's Children's Fund (UNICEF) to provide internationally comparable, statistically rigorous data on the situation of children and women. Among other topics included in the survey, MICS6 covers the Foundational Learning Skills (FLS) Module. This is a data collection tool that directly assesses whether children have acquired essential reading and mathematics skills at the early primary level. It focuses on children aged 7 to 14 and captures learning outcomes at grades 2 and 3.
 
-To make the MICS6 microdata more accessible, this chapter of this guide shows how to download and unpack (the crucial the MICS6 for multi-country early foundational learning research.
-
-Generally, researchers can access the MICS6 microdata in two ways:
+To make the MICS6 microdata more accessible, this chapter of this guide shows how to download and unpack (the crucial!) the MICS6 for multi-country early foundational learning research. Generally, researchers can access the MICS6 microdata in two ways:
 
 1.  [UNICEF MICS](https://mics.unicef.org/surveys): the original country survey files.
 2.  [IPUMS MICS](https://mics.ipums.org/mics/): a custom extract with variables already harmonised across the surveys you select.
-
-Use UNICEF when you need the FLS assessment, country-specific items, or a single country. Use IPUMS when you want a pooled file of demographic, household, and schooling variables and have Stata to build the extract. A single-country study gains little from IPUMS.
 
 |   | UNICEF MICS | IPUMS MICS |
 |------------------------|------------------------|------------------------|
@@ -24,10 +20,10 @@ Use UNICEF when you need the FLS assessment, country-specific items, or a single
 :::
 
 ::: warningbox
-If the analysis uses foundational reading, do not use the IPUMS reading variables for surveys that administered more than one passage. IPUMS keeps one passage and can drop a large share of children who completed the assessment. AFLEARN reconstructs reading outcomes from the complete UNICEF files; you can merge that file onto an IPUMS extract.
+If the analysis uses foundational reading, do not use the IPUMS reading variables for surveys that administered more than one reading passage. IPUMS keeps one passage and can drop a large share of children who completed the assessment. AFLEARN reconstructs reading outcomes from the complete UNICEF files.
 :::
 
 The two routes complement each other: IPUMS for comparable background variables, UNICEF for every reading passage.
 
-- To download the UNICEF country files and unpack them with AFLEARN's scripts, go to [Getting UNICEF MICS files](#c01-unicef).
+- To download the UNICEF country files and unpack them with AFLEARN's R scripts, go to [Getting UNICEF MICS files](#c01-unicef).
 - To build an IPUMS extract, go to [Getting IPUMS MICS files](#c01-ipums).
