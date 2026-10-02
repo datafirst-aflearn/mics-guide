@@ -33,14 +33,11 @@ c05-weights
 c05-single-survey
 check-the-design-variables
 declare-the-design
-estimate-a-mean
-restrict-to-ages-714-after-declaring-the-design
 lonely-psus
 c05-pooling
 make-psu-and-stratum-unique
-what-a-pooled-mean-means
-three-ways-to-compute-a-mean
-domains-missing-outcomes-and-regression
+what-a-pooled-average-means
+three-ways-to-compute-an-average
 before-you-report
 c03-r
 packages

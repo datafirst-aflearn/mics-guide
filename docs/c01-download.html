@@ -191,21 +191,18 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="4" data-path="c05-survey-design.html"><a href="c05-survey-design.html"><i class="fa fa-check"></i><b>4</b> Survey design, weights and standard errors</a>
 <ul>
 <li class="chapter" data-level="4.1" data-path="c05-survey-design.html"><a href="c05-survey-design.html#c05-weights"><i class="fa fa-check"></i><b>4.1</b> Which MICS weight</a></li>
-<li class="chapter" data-level="4.2" data-path="c05-survey-design.html"><a href="c05-survey-design.html#c05-single-survey"><i class="fa fa-check"></i><b>4.2</b> Setting up one survey</a>
+<li class="chapter" data-level="4.2" data-path="c05-survey-design.html"><a href="c05-survey-design.html#c05-single-survey"><i class="fa fa-check"></i><b>4.2</b> Creating a survey design for one country survey</a>
 <ul>
 <li class="chapter" data-level="4.2.1" data-path="c05-survey-design.html"><a href="c05-survey-design.html#check-the-design-variables"><i class="fa fa-check"></i><b>4.2.1</b> Check the design variables</a></li>
 <li class="chapter" data-level="4.2.2" data-path="c05-survey-design.html"><a href="c05-survey-design.html#declare-the-design"><i class="fa fa-check"></i><b>4.2.2</b> Declare the design</a></li>
-<li class="chapter" data-level="4.2.3" data-path="c05-survey-design.html"><a href="c05-survey-design.html#estimate-a-mean"><i class="fa fa-check"></i><b>4.2.3</b> Estimate a mean</a></li>
-<li class="chapter" data-level="4.2.4" data-path="c05-survey-design.html"><a href="c05-survey-design.html#restrict-to-ages-714-after-declaring-the-design"><i class="fa fa-check"></i><b>4.2.4</b> Restrict to ages 7–14 after declaring the design</a></li>
-<li class="chapter" data-level="4.2.5" data-path="c05-survey-design.html"><a href="c05-survey-design.html#lonely-psus"><i class="fa fa-check"></i><b>4.2.5</b> Lonely PSUs</a></li>
+<li class="chapter" data-level="4.2.3" data-path="c05-survey-design.html"><a href="c05-survey-design.html#lonely-psus"><i class="fa fa-check"></i><b>4.2.3</b> Lonely PSUs</a></li>
 </ul></li>
-<li class="chapter" data-level="4.3" data-path="c05-survey-design.html"><a href="c05-survey-design.html#c05-pooling"><i class="fa fa-check"></i><b>4.3</b> Several surveys, and the standard error</a>
+<li class="chapter" data-level="4.3" data-path="c05-survey-design.html"><a href="c05-survey-design.html#c05-pooling"><i class="fa fa-check"></i><b>4.3</b> More than one survey, and the standard error</a>
 <ul>
 <li class="chapter" data-level="4.3.1" data-path="c05-survey-design.html"><a href="c05-survey-design.html#make-psu-and-stratum-unique"><i class="fa fa-check"></i><b>4.3.1</b> Make PSU and stratum unique</a></li>
-<li class="chapter" data-level="4.3.2" data-path="c05-survey-design.html"><a href="c05-survey-design.html#what-a-pooled-mean-means"><i class="fa fa-check"></i><b>4.3.2</b> What a pooled mean means</a></li>
-<li class="chapter" data-level="4.3.3" data-path="c05-survey-design.html"><a href="c05-survey-design.html#three-ways-to-compute-a-mean"><i class="fa fa-check"></i><b>4.3.3</b> Three ways to compute a mean</a></li>
-<li class="chapter" data-level="4.3.4" data-path="c05-survey-design.html"><a href="c05-survey-design.html#domains-missing-outcomes-and-regression"><i class="fa fa-check"></i><b>4.3.4</b> Domains, missing outcomes, and regression</a></li>
-<li class="chapter" data-level="4.3.5" data-path="c05-survey-design.html"><a href="c05-survey-design.html#before-you-report"><i class="fa fa-check"></i><b>4.3.5</b> Before you report</a></li>
+<li class="chapter" data-level="4.3.2" data-path="c05-survey-design.html"><a href="c05-survey-design.html#what-a-pooled-average-means"><i class="fa fa-check"></i><b>4.3.2</b> What a pooled average means</a></li>
+<li class="chapter" data-level="4.3.3" data-path="c05-survey-design.html"><a href="c05-survey-design.html#three-ways-to-compute-an-average"><i class="fa fa-check"></i><b>4.3.3</b> Three ways to compute an average</a></li>
+<li class="chapter" data-level="4.3.4" data-path="c05-survey-design.html"><a href="c05-survey-design.html#before-you-report"><i class="fa fa-check"></i><b>4.3.4</b> Before you report</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="c03-r.html"><a href="c03-r.html"><i class="fa fa-check"></i><b>5</b> Analysing MICS6 data in R</a>
@@ -443,7 +440,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>In these surveys, IPUMS retains data for only one of the reading passages. Children assessed using another reading passage therefore appear to have no data on the IPUMS harmonised reading variables. This systematically excludes children according to the language or reading passage in which they were assessed and can make estimates of reading performance seriously misleading.</p>
 </div>
 <p>This issue is especially important in multilingual African countries. The FLS module allowed countries to adapt the reading assessment to local languages. The country-specific microdata files can therefore contain separate variables for different reading passages or languages, while the corresponding IPUMS harmonised reading variable represents only one of them.</p>
-<p>Malawi MICS 2019–20 is the clear case. IPUMS records 1,720 children on <code>FLWORDSATTEMPT</code> variable (the English passage). The UNICEF microdata files show 3,970 who attempted Chichewa, of whom 130 also attempted English. Treating the IPUMS variable as the Malawi reading sample drops most of the children who completed the assessment.</p>
+<p>Malawi MICS 2019–20 is the clear case. IPUMS records 1,720 children on <code>FLWORDSATTEMPT</code> variable (the English passage). The UNICEF microdata files show 3,970 who attempted Chichewa, of whom 130 also attempted English. Using IPUMS reading variables in this case drops most of the children who completed the reading assessment.</p>
 <p>This limit applies to the harmonised reading variables in multi-passage surveys, not to the rest of IPUMS. To solve this issue, AFLEARN reconstructs the reading data from the original UNICEF microdata files, retaining all relevant passages and languages. All of this is shown in full detail in the <a href="c03-harmonise.html#c03-harmonise">Harmonising MICS6 microdata</a></p>
 <p>Before you can reach that, <a href="ch-whats-in-data.html#ch-whats-in-data">Understanding MICS6 data</a> explains the survey files and the FLS module in the next chapter.</p>
 
