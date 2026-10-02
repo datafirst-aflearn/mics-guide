@@ -1,10 +1,14 @@
-## Several surveys, and the standard error {#c05-pooling}
+## More than one survey, and the standard error {#c05-pooling}
 
-Appending surveys raises two questions. How should the software see the design? What population does a pooled number describe? Making PSU codes unique answers the first. It does not answer the second.
+Appending surveys raises two questions:
+1. How should the software see the design?
+2. What population does a pooled number describe? 
+
+Making the primary sampling unit (PSU) codes unique answers the first. It does not answer the second.
 
 ### Make PSU and stratum unique
 
-The same numeric `PSU` and `stratum` appear in more than one survey. They are not the same sampling units. Build identifiers from `country_iso3` + `year`. For an IPUMS extract, use `SAMPLE`. Tunisia 2018 and Tunisia 2023 are two surveys; country alone is not enough.
+The same numeric `PSU` and `stratum` appear in more than one survey. They are not the same sampling units. Build identifiers from `country_iso3` + `year`. For an IPUMS extract, use `SAMPLE`. Tunisia 2018 and Tunisia 2023 are two surveys, thus country alone is not enough.
 
 Always make **both** PSU and stratum survey-specific.
 
@@ -23,27 +27,28 @@ svyset psu_pool [pw=fsweight], strata(stratum_pool)
 library(dplyr)
 library(survey)
 
-d <- d %>%
+d <- d |>
   mutate(
-    survey_id = interaction(country_iso3, year, drop = TRUE),
-    psu_pool = interaction(survey_id, PSU, drop = TRUE),
+       survey_id = interaction(country_iso3, year, drop = TRUE),
+        psu_pool = interaction(survey_id, PSU, drop = TRUE),
     stratum_pool = interaction(survey_id, stratum, drop = TRUE)
   )
 
-des_pool <- svydesign(
-  ids = ~psu_pool,
-  strata = ~stratum_pool,
+des = d |>
+  as_survey_design(
+      ids = ~psu_pool,
+   strata = ~stratum_pool,
   weights = ~fsweight,
-  data = d,
-  nest = TRUE
-)
+     data = d,
+     nest = TRUE
+  )
 ```
 ::::
 :::::
 
 If you are using `HH1` in place of `PSU`, nest `HH1` inside the same survey identifier.
 
-### What a pooled mean means
+### What a pooled average means
 
 For most comparisons in this guide, estimate **by country**, then plot or tabulate those estimates.
 
@@ -55,7 +60,15 @@ svy: mean reading_skills, over(country_iso3)
 ::::
 :::: {.code-panel data-lang="R"}
 ```{r eval=FALSE}
-svyby(~reading_skills, ~country_iso3, des_pool, svymean, na.rm = TRUE)
+des_pool |>
+  group_by(country_iso3) |>
+  summarise(
+    mean_math = survey_mean(
+      pct_total_math,
+      na.rm = TRUE,
+      vartype = c("se", "ci")
+    )
+  )
 ```
 ::::
 :::::
@@ -64,7 +77,7 @@ A single mean across all countries is a different estimand. Released `fsweight` 
 
 Pooled regressions need the same decision: what the weights imply about each country's contribution, whether country fixed effects belong, and whether the coefficient is a within-country or between-country relationship. There is no automatic MICS pooled weight.
 
-### Three ways to compute a mean
+### Three ways to compute an average
 
 | Approach | Point estimate | Standard error |
 |----------|----------------|----------------|
@@ -72,30 +85,8 @@ Pooled regressions need the same decision: what the weights imply about each cou
 | Weighted mean, ordinary SE | Uses `fsweight` | Still ignores clustering and strata |
 | Survey-weighted mean, design-based SE | Uses `fsweight` | Uses PSU and stratum |
 
-Use the third.
+Use the third!
 
-### Domains, missing outcomes, and regression
-
-A national file with thousands of children can have few contributing PSUs once you cut to Grade 2 × rural × poorest quintile in one country. Precision tracks those PSUs, not the raw child count. Check the standard error, the confidence interval, and the number of PSUs in the domain.
-
-Before a reading estimate, look at `reading_status` ([The AFLEARN analysis file](#c03-file)). A skip is not ordinary item non-response.
-
-Regressions use the same design:
-
-::::: {.code-tabs}
-:::: {.code-panel data-lang="Stata"}
-```stata
-svy: regress numeracy_score age i.sex
-```
-::::
-:::: {.code-panel data-lang="R"}
-```{r eval=FALSE}
-summary(svyglm(numeracy_score ~ age + sex, design = des))
-```
-::::
-:::::
-
-Report the estimate, a 95% confidence interval, and the unweighted analytic `N`. The `N` is context. It is not a substitute for the design-based interval.
 
 ### Before you report
 
@@ -106,4 +97,4 @@ Report the estimate, a 95% confidence interval, and the unweighted analytic `N`.
 - Appended surveys have survey-specific PSU and stratum identifiers.
 - A pooled number has an explicit estimand.
 - The estimate is published with a confidence interval and an unweighted `N`.
-- Reading estimates started from `reading_status`.
+

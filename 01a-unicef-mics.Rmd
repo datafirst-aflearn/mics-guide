@@ -58,17 +58,14 @@ MICS project/
        
 ```
 
-You will also notice a folder called `AFLEARN Harmonised Data/`. This folder carried the AFLEARN harmonised microdata file, which will be explained in depth in Chapter 3 on Harmonising MICS6 microdata. 
-
+You will also notice a folder called `AFLEARN Harmonised Data/`. This folder carried the AFLEARN harmonised microdata file, which will be explained in depth in Chapter 3 on Harmonising MICS6 microdata.
 
 ::: alternativebox-header
 **Keep the original download**
 :::
 
 ::: alternativebox
-Keep the original `MICS_Datasets.zip` file. The clean country survey folders are for analysis, while the  `MICS_Datasets.zip` file is the unchanged source.
+Keep the original `MICS_Datasets.zip` file. The clean country survey folders are for analysis, while the `MICS_Datasets.zip` file is the unchanged source.
 :::
 
 After setting up, [Understanding MICS6 data](#ch-whats-in-data) explains the survey files and the FLS module.
-
-

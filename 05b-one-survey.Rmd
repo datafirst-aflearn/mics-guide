@@ -1,4 +1,4 @@
-## Setting up one survey {#c05-single-survey}
+## Creating a survey design for one country survey {#c05-single-survey}
 
 For one MICS6 survey the selected-child design is:
 
@@ -8,9 +8,6 @@ PSU      = PSU
 stratum  = stratum
 ```
 
-If `PSU` and `stratum` are missing from the AFLEARN file, merge them from `Data/UNICEF/COUNTRY_SURVEY/fs.sav` ([Adding variables from UNICEF files](#c03-merge)), or use `HH1` as the cluster and nest it inside the survey.
-
-If you do not yet have the analysis file, start from [Getting UNICEF MICS files](#c01-unicef).
 
 ### Check the design variables
 
@@ -32,10 +29,10 @@ svydescribe
 library(haven)
 library(dplyr)
 
-d <- read_dta("Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta") %>%
-  filter(country_iso3 == "GHA")
+d = read_dta("Data/AFLEARN Harmonised Data/mics6-fs-harmonised-v2.0.dta") |>
+  filter(country_iso3 == "GHA")    # subset to Ghana survey
 
-d %>%
+d |>
   summarise(
     n = n(),
     missing_weight = sum(is.na(fsweight)),
@@ -48,7 +45,6 @@ d %>%
 ::::
 :::::
 
-Prefer the released `PSU` to `HH1`. They often agree; `PSU` is the sampling-error variable. IPUMS names them `PSU` and `STRATUM`. Check the names in your extract.
 
 ### Declare the design
 
@@ -63,57 +59,20 @@ svydescribe
 ::::
 :::: {.code-panel data-lang="R"}
 ```{r eval=FALSE}
-library(survey)
-
-des <- svydesign(
-  ids = ~PSU,
-  strata = ~stratum,
+library(srvyr)
+des = d |>
+  as_survey_design(
+      ids = ~PSU,
+   strata = ~stratum,
   weights = ~fsweight,
-  data = d,
-  nest = TRUE
-)
+     data = d,
+     nest = TRUE
+  )
+  
 ```
 ::::
 :::::
 
-`srvyr::as_survey_design()` wraps the same specification if you want dplyr verbs.
-
-### Estimate a mean
-
-The mean of a 0/1 variable is the estimated proportion equal to 1.
-
-::::: {.code-tabs}
-:::: {.code-panel data-lang="Stata"}
-```stata
-svy: mean reading_skills
-svy: mean numeracy_score
-```
-::::
-:::: {.code-panel data-lang="R"}
-```{r eval=FALSE}
-svymean(~reading_skills, design = des, na.rm = TRUE)
-svymean(~numeracy_score, design = des, na.rm = TRUE)
-```
-::::
-:::::
-
-### Restrict to ages 7–14 after declaring the design
-
-Define the design on the full selected-child sample, then restrict the design object. Dropping rows first discards information the variance estimator needs.
-
-::::: {.code-tabs}
-:::: {.code-panel data-lang="Stata"}
-```stata
-svy, subpop(if age >= 7 & age <= 14): mean reading_skills
-```
-::::
-:::: {.code-panel data-lang="R"}
-```{r eval=FALSE}
-des_7_14 <- subset(des, age >= 7 & age <= 14)
-svymean(~reading_skills, design = des_7_14, na.rm = TRUE)
-```
-::::
-:::::
 
 ### Lonely PSUs
 

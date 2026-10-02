@@ -10,14 +10,10 @@ MICS attaches a weight to each questionnaire population.
 | Children under five | `chweight` |
 | Selected children aged 5–17 | `fsweight` |
 
-The [MICS6 Manual for Statistical Data Analysis](https://data.unicef.org/wp-content/uploads/2019/07/MICS6-manual-for-stats-data-analysis-English_2020_v2.pdf) matches those weights to those files.
 
-FLS sits on the 5–17 questionnaire. One eligible child is drawn per household, so a child in a large sibling group is less likely to enter `fs` than an only eligible child. `fsweight` includes that draw. Use it for foundational learning, including outcomes defined only for ages 7–14 or for children who reached the passage.
+The FLS module is administered within the questionnaire for children aged 5 - 17, for whihc one eligible child is randomly selected per household. A child in a household containing several eligible 5-17-year-olds has a lower probability of being selected for `fs` than an otherwise comparable child who is the only eligible child in their household. The `fsweight` accounts for the selected-child sampling process. 
 
-`fshweight` is the household sample weight stored on `fs`. It does not include the within-household child draw. It is not a substitute for `fsweight`.
+Perhaps more important is that the weight follows the analysis population, not the source of each variable. Suppose you start with `fs` and merge household wealth from `hh`. The unit of observation is still the selected child. Thus, always use `fsweight`, and not `hhweight`. Adding household wealth does not turn the analysis into a household analysis. Ask "what does one row represent?". That question is more useful than asking which file a covariate originally came from. 
 
-Merging wealth from `hh` or parent education from `hl` does not change the weight. While one row remains a selected child, use `fsweight` ([Files, keys, and who is in fs](#c02-files)).
+It is common that the `fs` microdata file contain `fshweight` variable. This is labelled as the *children 5-17 household sample weight*. This is different from the `fsweight`. For ordinary child-level analyses of the randomly selected 5-17-year-old, including FLS outcomes, use `fsweight`. The latter weight variable incorporates the selection of one child from the eligible 5-17-year-olds in the household, whereas the household-level weight,`fshweight`, does not represent each selected child with that within-household selection adjustment.  
 
-Do not divide the weight by 1,000. Multiplying every weight in a survey by the same positive constant leaves a weighted mean unchanged. Supply the weights as released.
-
-MICS analysis weights are normalised within each survey. They are right for means, proportions, and regressions. The sum of weights is not a national population count. If the question is a census total, read the country sampling documentation and calibrate separately.

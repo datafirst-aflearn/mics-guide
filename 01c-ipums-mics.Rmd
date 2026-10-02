@@ -32,7 +32,7 @@ In these surveys, IPUMS retains data for only one of the reading passages. Child
 
 This issue is especially important in multilingual African countries. The FLS module allowed countries to adapt the reading assessment to local languages. The country-specific microdata files can therefore contain separate variables for different reading passages or languages, while the corresponding IPUMS harmonised reading variable represents only one of them.
 
-Malawi MICS 2019–20 is the clear case. IPUMS records 1,720 children on `FLWORDSATTEMPT` variable (the English passage). The UNICEF microdata files show 3,970 who attempted Chichewa, of whom 130 also attempted English. Treating the IPUMS variable as the Malawi reading sample drops most of the children who completed the assessment.
+Malawi MICS 2019–20 is the clear case. IPUMS records 1,720 children on `FLWORDSATTEMPT` variable (the English passage). The UNICEF microdata files show 3,970 who attempted Chichewa, of whom 130 also attempted English. Using IPUMS reading variables in this case drops most of the children who completed the reading assessment.
 
 This limit applies to the harmonised reading variables in multi-passage surveys, not to the rest of IPUMS. To solve this issue, AFLEARN reconstructs the reading data from the original UNICEF microdata files, retaining all relevant passages and languages. All of this is shown in full detail in the [Harmonising MICS6 microdata](#c03-harmonise)
 
