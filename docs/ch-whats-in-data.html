@@ -306,7 +306,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
    │
    └── one randomly selected child aged 5–17 (fs)
            │
-           └── ages 7–14 may take the FLS assessment</code></pre>
+           └── ages 7–14 may take the Foundational Learning Skills (FLS) assessment</code></pre>
 <p>The household questionnaire (<code>hh</code>) tells us about the household and every member listed in it. Additional questionnaires collect more detailed information for particular populations, including women (<code>wm</code>) , men (<code>mn</code>), children under five (<code>ch</code>) and one randomly selected child aged 5–17 per household (<code>fs</code>).</p>
 
 <div id="c02-files" class="section level2 hasAnchor" number="2.1">
@@ -367,19 +367,19 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><strong>For early-foundational learning</strong></p>
 </div>
 <div class="alternativebox">
-<p>The Foundational Learning Skills (FLS) assessment is in <code>fs</code> microdata file. Household and roster characteristics often still need to be added from <code>hh</code> and <code>hl</code>.</p>
+<p>The Foundational Learning Skills (FLS) assessment is in <code>fs</code> microdata file. Household characteristics often still need to be added from the <code>hh</code> and <code>hl</code> microdata files.</p>
 </div>
 </div>
 <div id="key-identifiers-in-each-microdata-file" class="section level2 hasAnchor" number="2.2">
 <h2><span class="header-section-number">2.2</span> Key identifiers in each microdata file<a href="ch-whats-in-data.html#key-identifiers-in-each-microdata-file" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>MICS microdata files do not share one key identifier, because the unit of observation differs. Thw <code>HH1</code> variable is the cluster, <code>HH2</code> is the household within the cluster, and a line number (<code>HL1</code>/<code>LN</code>/<code>FS4</code>) then picks out one person inside that household.</p>
+<p>MICS microdata files do not share one key identifier, because the unit of observation differs. The <code>HH1</code> variable is the cluster, <code>HH2</code> is the household within the cluster, and a line number (<code>HL1</code>/<code>LN</code>/<code>FS4</code>) then picks out one person inside that household.</p>
 <pre class="text"><code>Household:              HH1 + HH2
 Person on the roster:   HH1 + HH2 + HL1
 Selected child:         fs: HH1 + HH2 + LN
                         hl: HH1 + HH2 + HL1     (LN corresponds to HL1)
 Mother or caretaker:    fs: HH1 + HH2 + FS4
                         hl: HH1 + HH2 + HL1     (FS4 is another person&#39;s line)</code></pre>
-<p>The household (<code>hh</code>) microdata file stops at <code>HH1</code> + <code>HH2</code>. The household can then be splitted in two: left is the household member roster (<code>hl</code> microdata file that adds <code>HL1</code> variable for every member), right is the selected child (<code>fs</code> microdata file that adds <code>LN</code> variable). It is important to note that <code>LN</code> is the child’s own line number in the <code>fs</code>, which can be the same number in <code>hl</code>, but using <code>HL1</code> .</p>
+<p>The household (<code>hh</code>) microdata file stops at <code>HH1</code> + <code>HH2</code>. The household can then be splitted in two: left is the household member roster (<code>hl</code> microdata file that adds <code>HL1</code> variable for every member), right is the selected child (<code>fs</code> microdata file that adds <code>LN</code> variable). It is important to note that <code>LN</code> is the child’s own line number in the <code>fs</code>, which can be the same number in <code>hl</code>, but using <code>HL1</code> . <code>FS4</code> variable in the <code>fs</code> microdata file is the mother or caretaker’s identifier.</p>
 <pre class="text"><code>                         HOUSEHOLD
                             hh
                          HH1 + HH2
@@ -397,11 +397,10 @@ Mother or caretaker:    fs: HH1 + HH2 + FS4
               fs                                  hl
        HH1 + HH2 + FS4  ─────────────►  HH1 + HH2 + HL1
                     mother/caretaker</code></pre>
-<p><code>FS4</code> variable in the <code>fs</code> microdata file is the mother or caretaker’s identifier.</p>
 </div>
 <div id="who-is-in-fs-microdata-file" class="section level2 hasAnchor" number="2.3">
 <h2><span class="header-section-number">2.3</span> Who is in <code>fs</code> microdata file<a href="ch-whats-in-data.html#who-is-in-fs-microdata-file" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p><code>fs</code> contains information on one randomly selected child aged 5–17 per sampled household. Please note that it is not every child of that age in the household listing that can be found in this file.</p>
+<p>The <code>fs</code> microdata file contains information on one randomly selected child aged 5–17 per sampled household. Please note that it is not every child of that age in the household listing that can be found in this file.</p>
 <pre class="text"><code>Sampled household
       │
       ▼
@@ -426,7 +425,7 @@ Randomly select one child → fs record
 <div class="alternativebox">
 <p>“Percentage with foundational reading skills” is incomplete until the reader knows among whom: children aged 7–14, children of Grade 2/3 age, children attending Grade 2/3, or another population you define.</p>
 </div>
-<p>A child aged 10 in Grade 2 can enter a grade-based Grade 2/3 estimate and still be over-age for that grade. A child of Grade 2/3 age may be in another grade or out of school. UNICEF tabulations use these denominators separately because they answer different questions.</p>
+<p>A child aged 10 in Grade 2 can enter a grade-based Grade 2/3 estimate and still be over-age for that grade. A child of Grade 2/3 age may be in another grade or out of school. Therefore, it is advisable to use these denominators separately because they answer different questions.</p>
 <p>When the rows are selected children, use <code>fsweight</code>. Adding a variable from <code>hh</code> or <code>hl</code> does not change the weight. The analysis population does.</p>
 
 </div>

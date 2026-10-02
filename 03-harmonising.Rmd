@@ -1,6 +1,6 @@
 # Harmonising MICS6 data {#c03-harmonise}
 
-MICS6 questionnaires are standardised. The released country files are not. Variable names, education codes, languages, and omitted modules differ across surveys. Stacking `fs.sav` files does not give a comparable child-level file.
+While the MICS6 questionnaires are largely standardised, there are important differences between countries. Variable names, education codes, languages, and omitted modules differ across surveys. Stacking `fs.sav` files does not give a comparable child-level file.
 
 [IPUMS MICS](https://mics.ipums.org/mics/) aligns much of the background data. It still keeps only one reading passage, so it is a poor base for foundational reading in multi-passage surveys ([Getting IPUMS MICS files](#ipums-reading-warning)).
 

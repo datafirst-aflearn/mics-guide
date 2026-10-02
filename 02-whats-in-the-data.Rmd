@@ -9,7 +9,7 @@ HOUSEHOLD (hh)
    │
    └── one randomly selected child aged 5–17 (fs)
            │
-           └── ages 7–14 may take the FLS assessment
+           └── ages 7–14 may take the Foundational Learning Skills (FLS) assessment
 ```
 
 The household questionnaire (`hh`) tells us about the household and every member listed in it. Additional questionnaires collect more detailed information for particular populations, including women (`wm`) , men (`mn`), children under five (`ch`) and one randomly selected child aged 5–17 per household (`fs`).

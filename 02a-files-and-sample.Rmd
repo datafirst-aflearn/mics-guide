@@ -17,12 +17,12 @@ MICS6 usually contains 8 questionnaires (or, microdata files). However, each cou
 :::
 
 ::: alternativebox
-The Foundational Learning Skills (FLS) assessment is in `fs` microdata file. Household and roster characteristics often still need to be added from `hh` and `hl`.
+The Foundational Learning Skills (FLS) assessment is in `fs` microdata file. Household characteristics often still need to be added from the `hh` and `hl` microdata files.
 :::
 
 ## Key identifiers in each microdata file
 
-MICS microdata files do not share one key identifier, because the unit of observation differs. Thw `HH1` variable is the cluster, `HH2` is the household within the cluster, and a line number (`HL1`/`LN`/`FS4`) then picks out one person inside that household.
+MICS microdata files do not share one key identifier, because the unit of observation differs. The `HH1` variable is the cluster, `HH2` is the household within the cluster, and a line number (`HL1`/`LN`/`FS4`) then picks out one person inside that household.
 
 ``` text
 Household:              HH1 + HH2
@@ -33,7 +33,7 @@ Mother or caretaker:    fs: HH1 + HH2 + FS4
                         hl: HH1 + HH2 + HL1     (FS4 is another person's line)
 ```
 
-The household (`hh`) microdata file stops at `HH1` + `HH2`. The household can then be splitted in two: left is the household member roster (`hl` microdata file that adds `HL1` variable for every member), right is the selected child (`fs` microdata file that adds `LN` variable). It is important to note that `LN` is the child's own line number in the `fs`, which can be the same number in `hl`, but using `HL1` .
+The household (`hh`) microdata file stops at `HH1` + `HH2`. The household can then be splitted in two: left is the household member roster (`hl` microdata file that adds `HL1` variable for every member), right is the selected child (`fs` microdata file that adds `LN` variable). It is important to note that `LN` is the child's own line number in the `fs`, which can be the same number in `hl`, but using `HL1` . `FS4` variable in the `fs` microdata file is the mother or caretaker's identifier.
 
 ``` text
                          HOUSEHOLD
@@ -55,11 +55,10 @@ The household (`hh`) microdata file stops at `HH1` + `HH2`. The household can th
                     mother/caretaker
 ```
 
-`FS4` variable in the `fs` microdata file is the mother or caretaker's identifier.
 
 ## Who is in `fs` microdata file
 
-`fs` contains information on one randomly selected child aged 5–17 per sampled household. Please note that it is not every child of that age in the household listing that can be found in this file.
+The `fs` microdata file contains information on one randomly selected child aged 5–17 per sampled household. Please note that it is not every child of that age in the household listing that can be found in this file.
 
 ``` text
 Sampled household
@@ -93,6 +92,7 @@ Because MICS is household based, the assessment is not restricted to children wh
 "Percentage with foundational reading skills" is incomplete until the reader knows among whom: children aged 7–14, children of Grade 2/3 age, children attending Grade 2/3, or another population you define.
 :::
 
-A child aged 10 in Grade 2 can enter a grade-based Grade 2/3 estimate and still be over-age for that grade. A child of Grade 2/3 age may be in another grade or out of school. UNICEF tabulations use these denominators separately because they answer different questions.
+
+A child aged 10 in Grade 2 can enter a grade-based Grade 2/3 estimate and still be over-age for that grade. A child of Grade 2/3 age may be in another grade or out of school. Therefore, it is advisable to use these denominators separately because they answer different questions.
 
 When the rows are selected children, use `fsweight`. Adding a variable from `hh` or `hl` does not change the weight. The analysis population does.

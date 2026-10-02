@@ -1,16 +1,18 @@
 # Getting MICS6 data {#c01-download}
 
-This chapter shows how to put MICS6 microdata on disk, ready for the rest of the guide.
+The Multiple Indicator Cluster Survey (MICS) is a national household survey implemented by countries under the programme developed by the United Nation's Children's Fund (UNICEF) to provide internationally comparable, statistically rigorous data on the situation of children and women. Among other topics included in the survey, MICS6 covers the Foundational Learning Skills (FLS) Module. This is a data collection tool that directly assesses whether children have acquired essential reading and mathematics skills at the early primary level. It focuses on children aged 7 to 14 and captures learning outcomes at grades 2 and 3.
 
-MICS6 is the UNICEF round that first fielded the Foundational Learning Skills (FLS) module. You can obtain the files in two ways:
+To make the MICS6 microdata more accessible, this chapter of this guide shows how to download and unpack (the crucial the MICS6 for multi-country early foundational learning research.
 
-1.  UNICEF MICS: the original country survey files.
-2.  IPUMS MICS: a custom extract with variables already aligned across the surveys you select.
+Generally, researchers can access the MICS6 microdata in two ways:
+
+1.  [UNICEF MICS](https://mics.unicef.org/surveys): the original country survey files.
+2.  [IPUMS MICS](https://mics.ipums.org/mics/): a custom extract with variables already harmonised across the surveys you select.
 
 Use UNICEF when you need the FLS assessment, country-specific items, or a single country. Use IPUMS when you want a pooled file of demographic, household, and schooling variables and have Stata to build the extract. A single-country study gains little from IPUMS.
 
 |   | UNICEF MICS | IPUMS MICS |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | What you receive | Original country survey files | A custom extract with harmonised variables across selected surveys |
 | Best for | Country-specific items; the FLS assessment; reproducing MICS indicators | Multi-country work on demographic, household, and schooling variables |
 | Preparation | More: files must be unpacked and, for pooled work, harmonised | Less: IPUMS supplies syntax that builds the extract |
